@@ -1,13 +1,12 @@
-import { Edit, Trash2, Download, Calendar, Clock, Copy } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Edit, Trash2, Download, Calendar, Clock, Copy, FileText, CodeXml } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const NoteCard = ({
-  note,
-  onDelete,
-  onDownload,
-  onDuplicate,
-  viewMode = "grid",
-}) => {
+const NoteCard = ({ note, onDelete, onDownload, onDuplicate, viewMode = "grid" }) => {
+  const [modal, setModal] = useState({ show: false, message: "", onConfirm: null });
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
   const formattedDate = new Date(note.date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -19,117 +18,129 @@ const NoteCard = ({
     minute: "2-digit",
   });
 
-  if (viewMode === "list") {
-    return (
-      <div className="bg-white dark:bg-black rounded-xl p-4 hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 flex justify-between items-center">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white truncate mb-1">
-            {note.title}
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 truncate mb-2">
-            {note.content}
-          </p>
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-500">
-            <Calendar size={14} className="mr-1" />
-            <span className="mr-3">{formattedDate}</span>
-            <Clock size={14} className="mr-1" />
-            <span>{formattedTime}</span>
+  // Close dropdown if click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const showModal = (message, onConfirm) => {
+    setModal({ show: true, message, onConfirm });
+  };
+
+  const hideModal = () => setModal({ show: false, message: "", onConfirm: null });
+
+  const handleDelete = () => {
+    showModal("Are you sure you want to delete this note?", () => {
+      onDelete(note.id);
+      hideModal();
+    });
+  };
+
+  const handleDownload = (format) => {
+    setDropdownOpen(false);
+    onDownload(note, format);
+  };
+
+  // Modal Component
+  const Modal = () =>
+    modal.show ? (
+      <div className="fixed inset-0 flex items-center justify-center bg-black/90 z-50">
+        <div className="bg-white dark:bg-black p-6 rounded-xl shadow-lg max-w-sm w-full text-center">
+          <p className="mb-4 text-gray-800 dark:text-white">{modal.message}</p>
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => modal.onConfirm && modal.onConfirm()}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Confirm
+            </button>
+            <button
+              onClick={hideModal}
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded hover:bg-gray-400 transition"
+            >
+              Cancel
+            </button>
           </div>
         </div>
-        <div className="flex space-x-2 ml-4">
-          <button
-            onClick={() => onDuplicate(note)}
-            className="p-2 rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors duration-200"
-            aria-label="Duplicate note"
-            title="Duplicate note"
-          >
-            <Copy size={18} />
-          </button>
-          <Link
-            to={`/notes/edit/${note.id}`}
-            className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors duration-200"
-            aria-label="Edit note"
-            title="Edit note"
-          >
-            <Edit size={18} />
-          </Link>
-          <button
-            onClick={() => onDownload(note)}
-            className="p-2 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors duration-200"
-            aria-label="Download note"
-            title="Download note"
-          >
-            <Download size={18} />
-          </button>
-          <button
-            onClick={() => onDelete(note.id)}
-            className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors duration-200"
-            aria-label="Delete note"
-            title="Delete note"
-          >
-            <Trash2 size={18} />
-          </button>
-        </div>
       </div>
-    );
-  }
+    ) : null;
+
+  const content = (
+    <div
+      dangerouslySetInnerHTML={{ __html: note.content || "<p>Nothing to preview</p>" }}
+      className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3"
+    />
+  );
 
   return (
-    <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-black group">
-      <div className="p-5">
+    <>
+      <Modal />
+      <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-sm overflow-visible hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-black group p-5">
         <div className="flex justify-between items-start mb-3">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white truncate group-hover:text-primary dark:group-hover:text-primary transition-colors duration-200">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white truncate">
             {note.title}
           </h3>
         </div>
-        <div
-          dangerouslySetInnerHTML={{
-            __html: note.content || "<p>Nothing to preview</p>",
-          }}
-          className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3"
-        />
-
+        {content}
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-500 dark:text-gray-500">
             {formattedDate} • {formattedTime}
           </div>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2 relative" ref={dropdownRef}>
+            {/* Download Button */}
+            <button
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="p-2 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors duration-200"
+            >
+              <Download size={18} />
+            </button>
+
+            {/* Custom Dropdown */}
+            {dropdownOpen && (
+              <div className="absolute -right-10 top-full mt-1 w-48 bg-white text-black dark:text-white text-xs dark:bg-black border border-gray-200 dark:border-gray-700 rounded shadow-lg z-50">
+                <button
+                  className="flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  onClick={() => handleDownload("txt")}
+                >
+                 <FileText size={16} /> Download as TXT
+                </button>
+                <button
+                  className="flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  onClick={() => handleDownload("html")}
+                >
+                 <CodeXml size={16} /> Download as HTML
+                </button>
+              </div>
+            )}
+
             <button
               onClick={() => onDuplicate(note)}
               className="p-2 rounded-lg text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors duration-200"
-              aria-label="Duplicate note"
-              title="Duplicate note"
             >
               <Copy size={18} />
             </button>
             <Link
               to={`/notes/edit/${note.id}`}
               className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors duration-200"
-              aria-label="Edit note"
-              title="Edit note"
             >
               <Edit size={18} />
             </Link>
             <button
-              onClick={() => onDownload(note)}
-              className="p-2 rounded-lg text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors duration-200"
-              aria-label="Download note"
-              title="Download note"
-            >
-              <Download size={18} />
-            </button>
-            <button
-              onClick={() => onDelete(note.id)}
+              onClick={handleDelete}
               className="p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors duration-200"
-              aria-label="Delete note"
-              title="Delete note"
             >
               <Trash2 size={18} />
             </button>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

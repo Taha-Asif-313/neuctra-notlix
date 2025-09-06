@@ -38,20 +38,20 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             <Link
-              to="/"
+              to="/notes"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center ${
-                isActive("/")
+                isActive("/notes")
                   ? "text-primary dark:text-primary bg-primary/15 dark:bg-primary/15"
                   : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
               }`}
             >
               <Home size={18} className="mr-1" />
-              Home
+              Notes
             </Link>
             <Link
-              to="/create"
+              to="/notes/create"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center ${
-                isActive("/create")
+                isActive("/notes/create")
                   ? "text-primary dark:text-primary bg-primary/5 dark:bg-primary/15"
                   : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
               }`}
@@ -86,21 +86,21 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
         <div className="md:hidden bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-700">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
-              to="/"
+              to="/notes"
               className={` px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 flex items-center ${
-                isActive("/")
+                isActive("/notes")
                   ? "text-primary dark:text-primary bg-blue-100 dark:bg-primary/30"
                   : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
               <Home size={18} className="mr-2" />
-              Home
+              Notes
             </Link>
             <Link
-              to="/create"
+              to="/notes/create"
               className={` px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 flex items-center ${
-                isActive("/create")
+                isActive("/notes/create")
                   ? "text-primary dark:text-primary bg-blue-100 dark:bg-primary/30"
                   : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
               }`}

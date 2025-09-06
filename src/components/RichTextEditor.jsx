@@ -39,15 +39,15 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
   useEffect(() => {
     const loadQuill = async () => {
       if (typeof window !== "undefined" && !window.Quill) {
-        // Load Quill CSS
+        // Load Quill CSS from public
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css";
+        link.href = "/quill/quill.snow.min.css"; // from public
         document.head.appendChild(link);
 
-        // Load Quill JS
+        // Load Quill JS from public
         const script = document.createElement("script");
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js";
+        script.src = "/quill/quill.min.js"; // from public
         script.onload = () => {
           setIsQuillLoaded(true);
         };
@@ -386,7 +386,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
             </div>
           ) : (
             // Editor Mode
-            <div className="py-4 px-6">
+            <div className="py-4 lg:px-6">
               {!isQuillLoaded && (
                 <div className="min-h-[500px] flex items-center justify-center">
                   <div className="text-gray-500">Loading editor...</div>
@@ -408,9 +408,9 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
         {/* Footer */}
         <div className="mt-4 text-center text-sm text-gray-600 bg-white/80 backdrop-blur-sm rounded-lg p-4">
           <p>
-            💡 <strong>Tips:</strong> Use formatting toolbar • Drag and drop images
-            • Rich formatting with keyboard shortcuts • Export in multiple
-            formats
+            💡 <strong>Tips:</strong> Use formatting toolbar • Drag and drop
+            images • Rich formatting with keyboard shortcuts • Export in
+            multiple formats
           </p>
         </div>
       </div>
@@ -471,6 +471,10 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           background-color: #f9fafb !important;
         }
 
+        .ql-toolbar.ql-snow .ql-formats {
+          padding : 10px 0;
+        }
+
         .ql-container.ql-snow {
           border: none !important;
           font-size: 16px !important;
@@ -484,7 +488,5 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     </div>
   );
 };
-
-
 
 export default RichTextEditor;

@@ -23,7 +23,6 @@ const CreateNote = () => {
   const [aiPrompt, setAiPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState(new Date());
-console.log(content);
 
   const existingNote = isEditing
     ? notes.find((note) => note.id.toString() === id)
