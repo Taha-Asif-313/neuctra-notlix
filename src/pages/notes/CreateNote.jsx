@@ -5,7 +5,7 @@ import {
   useOutletContext,
   useParams,
 } from "react-router-dom";
-import { ArrowLeft, Save, View, X, Zap } from "lucide-react";
+import { ArrowLeft, MoveLeft, Save, View, X, Zap } from "lucide-react";
 import RichTextEditor from "../../components/RichTextEditor";
 import { CreateNoteAiAgent } from "../../agent/NoteMaker";
 
@@ -90,8 +90,8 @@ const CreateNote = () => {
           {/* Title Section */}
           <div className="mb-4">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-4">
-              <Link to={"/"}>
-                <ArrowLeft className="w-7 h-7 text-primary sm:w-6 sm:h-6" />
+              <Link to={"/notes"}>
+                <MoveLeft className="w-7 h-7 text-primary sm:w-6 sm:h-6" />
               </Link>
               {isEditing ? "Edit Note" : "Create New Note"}
             </h2>
@@ -130,8 +130,13 @@ const CreateNote = () => {
           {/* Footer Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              <span>Last saved: {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-</span>
+              <span>
+                Last saved:{" "}
+                {lastSaved.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 text-sm w-full sm:w-auto">

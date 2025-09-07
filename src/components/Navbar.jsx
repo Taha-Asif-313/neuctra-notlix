@@ -30,7 +30,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                 />
               </div>
               <span className="text-sm text-gray-800 dark:text-white">
-                Neuctra <span className="text-primary font-bold">Notes</span>
+                Neuctra <span className="text-primary font-bold">Notexa</span>
               </span>
             </Link>
           </div>
