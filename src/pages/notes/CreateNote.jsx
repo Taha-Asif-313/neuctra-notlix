@@ -130,7 +130,8 @@ const CreateNote = () => {
           {/* Footer Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 p-4 sm:p-6 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-              <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+              <span>Last saved: {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+</span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 text-sm w-full sm:w-auto">

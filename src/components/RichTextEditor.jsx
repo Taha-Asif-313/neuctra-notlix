@@ -7,6 +7,7 @@ import {
   Upload,
   FileText,
   Trash2,
+  Ellipsis,
 } from "lucide-react";
 
 const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
@@ -236,18 +237,18 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     <div className="w-full">
       <div className="max-w-full">
         {/* Header */}
-        <div className="bg-white rounded-t-2xl shadow-lg border border-gray-200">
+        <div className="bg-white rounded-t-2xl shadow-lg">
           <div className="flex items-center justify-between max-md:flex-col px-6 py-5 border-b border-gray-200">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-white" />
+              <div className="rounded-lg flex items-center justify-center">
+                <img src="/logo-white.png" alt="logo" height={36} width={36}/>
               </div>
-              <h1 className="text-xl font-bold text-gray-800">
-                Rich Text Editor
+              <h1 className="text-lg font-bold text-gray-800">
+                Neuctra Text Editor
               </h1>
             </div>
 
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-2 text-xs mt-4 md:mt-0">
+            <div className="flex flex-row items-center gap-2 text-xs mt-2 md:mt-0">
               {/* Stats */}
               <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
                 {wordCount} words • {charCount} characters
@@ -257,24 +258,13 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
               <div className="md:hidden relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors flex items-center space-x-2"
+                  className="px-4 py-1 bg-primary/10 text-primary rounded-lg hover:bg-indigo-200 transition-colors flex items-center space-x-2"
                 >
-                  <span>Actions</span>
+                  <Ellipsis/>
                 </button>
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg flex flex-col gap-2 p-2 z-10 border">
-                    <button
-                      onClick={() => {
-                        setIsPreviewMode(!isPreviewMode);
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded text-left"
-                    >
-                      {isPreviewMode ? <EyeOff size={16} /> : <Eye size={16} />}
-                      <span>{isPreviewMode ? "Edit" : "Preview"}</span>
-                    </button>
-
                     <button
                       onClick={() => {
                         saveContent();
@@ -325,14 +315,6 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
               {/* Horizontal buttons for desktop */}
               <div className="hidden md:flex flex-wrap items-center gap-2">
                 <button
-                  onClick={() => setIsPreviewMode(!isPreviewMode)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
-                >
-                  {isPreviewMode ? <EyeOff size={18} /> : <Eye size={18} />}
-                  <span>{isPreviewMode ? "Edit" : "Preview"}</span>
-                </button>
-
-                <button
                   onClick={saveContent}
                   className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                 >
@@ -370,39 +352,22 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
 
         {/* Editor Container */}
         <div className="bg-white rounded-b-2xl shadow-lg border-l border-r border-b border-gray-200">
-          {isPreviewMode ? (
-            // Preview Mode
-            <div className="p-8">
-              <div className="prose max-w-none">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                  <Eye className="w-5 h-5 mr-2 text-indigo-600" />
-                  Preview
-                </h2>
-                <div
-                  className="border border-gray-200 rounded-lg p-6 bg-gray-50 min-h-[400px]"
-                  dangerouslySetInnerHTML={{ __html: content || "<p><br></p>" }}
-                />
+          <div className="">
+            {!isQuillLoaded && (
+              <div className="min-h-[500px] flex items-center justify-center">
+                <div className="text-gray-500">Loading editor...</div>
               </div>
-            </div>
-          ) : (
-            // Editor Mode
-            <div className="py-4 lg:px-6">
-              {!isQuillLoaded && (
-                <div className="min-h-[500px] flex items-center justify-center">
-                  <div className="text-gray-500">Loading editor...</div>
-                </div>
-              )}
-              <div
-                ref={editorRef}
-                style={{
-                  minHeight: "500px",
-                  fontSize: "16px",
-                  lineHeight: "1.6",
-                  display: isQuillLoaded ? "block" : "none",
-                }}
-              />
-            </div>
-          )}
+            )}
+            <div
+              ref={editorRef}
+              style={{
+                minHeight: "500px",
+                fontSize: "16px",
+                lineHeight: "1.6",
+                display: isQuillLoaded ? "block" : "none",
+              }}
+            />
+          </div>
         </div>
 
         {/* Footer */}
@@ -420,7 +385,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
         .ql-editor {
           font-size: 16px !important;
           line-height: 1.6 !important;
-          color: #374151 !important;
+          color: #000000 !important;
         }
 
         .ql-editor h1 {
@@ -468,11 +433,12 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           border-left: none !important;
           border-right: none !important;
           border-bottom: 1px solid #e5e7eb !important;
-          background-color: #f9fafb !important;
+          padding: 0px 20px !important;
+          background-color: #ffffff !important;
         }
 
         .ql-toolbar.ql-snow .ql-formats {
-          padding : 10px 0;
+          padding: 10px 0;
         }
 
         .ql-container.ql-snow {

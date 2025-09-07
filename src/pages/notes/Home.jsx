@@ -56,7 +56,7 @@ const Home = () => {
             </h2>
             <Link
               to="/notes/create"
-              className="flex items-center px-4 py-2 bg-primary text-white font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+              className="flex items-center text-sm px-4 py-2 bg-primary text-white font-medium rounded transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <Plus size={20} className="mr-2" />
               New Note

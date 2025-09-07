@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Moon, Sun, Menu, X, Plus, Home } from "lucide-react";
+import { Moon, Sun, Menu, X, Plus, Home, BookHeart } from "lucide-react";
 
 const Navbar = ({ darkMode, toggleDarkMode }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -41,18 +41,18 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
               to="/notes"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center ${
                 isActive("/notes")
-                  ? "text-primary dark:text-primary bg-primary/15 dark:bg-primary/15"
+                  ? "text-primary dark:text-primary bg-primary/15 dark:bg-primary/5"
                   : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
               }`}
             >
-              <Home size={18} className="mr-1" />
+              <BookHeart size={18} className="mr-1" />
               Notes
             </Link>
             <Link
               to="/notes/create"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center ${
                 isActive("/notes/create")
-                  ? "text-primary dark:text-primary bg-primary/5 dark:bg-primary/15"
+                  ? "text-primary dark:text-primary bg-primary/5 dark:bg-primary/5"
                   : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
               }`}
             >
@@ -83,25 +83,25 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-700">
+        <div className="md:hidden text-sm bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-gray-700">
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
               to="/notes"
               className={` px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 flex items-center ${
                 isActive("/notes")
-                  ? "text-primary dark:text-primary bg-blue-100 dark:bg-primary/30"
+                  ? "text-primary dark:text-primary bg-blue-100 dark:bg-primary/10"
                   : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
               }`}
               onClick={() => setIsMenuOpen(false)}
             >
-              <Home size={18} className="mr-2" />
+              <BookHeart size={18} className="mr-2" />
               Notes
             </Link>
             <Link
               to="/notes/create"
               className={` px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 flex items-center ${
                 isActive("/notes/create")
-                  ? "text-primary dark:text-primary bg-blue-100 dark:bg-primary/30"
+                  ? "text-primary dark:text-primary bg-blue-100 dark:bg-primary/10"
                   : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
               }`}
               onClick={() => setIsMenuOpen(false)}

@@ -1,9 +1,28 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Edit, Trash2, Download, Calendar, Clock, Copy, FileText, CodeXml } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  Download,
+  Calendar,
+  Clock,
+  Copy,
+  FileText,
+  CodeXml,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
-const NoteCard = ({ note, onDelete, onDownload, onDuplicate, viewMode = "grid" }) => {
-  const [modal, setModal] = useState({ show: false, message: "", onConfirm: null });
+const NoteCard = ({
+  note,
+  onDelete,
+  onDownload,
+  onDuplicate,
+  viewMode = "grid",
+}) => {
+  const [modal, setModal] = useState({
+    show: false,
+    message: "",
+    onConfirm: null,
+  });
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -33,7 +52,8 @@ const NoteCard = ({ note, onDelete, onDownload, onDuplicate, viewMode = "grid" }
     setModal({ show: true, message, onConfirm });
   };
 
-  const hideModal = () => setModal({ show: false, message: "", onConfirm: null });
+  const hideModal = () =>
+    setModal({ show: false, message: "", onConfirm: null });
 
   const handleDelete = () => {
     showModal("Are you sure you want to delete this note?", () => {
@@ -73,7 +93,9 @@ const NoteCard = ({ note, onDelete, onDownload, onDuplicate, viewMode = "grid" }
 
   const content = (
     <div
-      dangerouslySetInnerHTML={{ __html: note.content || "<p>Nothing to preview</p>" }}
+      dangerouslySetInnerHTML={{
+        __html: note.content || "<p>Nothing to preview</p>",
+      }}
       className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3"
     />
   );
@@ -81,18 +103,22 @@ const NoteCard = ({ note, onDelete, onDownload, onDuplicate, viewMode = "grid" }
   return (
     <>
       <Modal />
-      <div className="bg-white dark:bg-zinc-950 rounded-xl shadow-sm overflow-visible hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-black group p-5">
+      <div className="bg-white flex flex-col justify-between dark:bg-zinc-950 rounded-xl shadow-sm overflow-visible hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-black group p-5">
         <div className="flex justify-between items-start mb-3">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white truncate">
+          <h3 className="text-lg group-hover:text-primary font-semibold text-gray-800 dark:text-white truncate">
             {note.title}
           </h3>
         </div>
-        {content}
+        <span className="text-xs">{content}</span>
         <div className="flex justify-between items-center">
-          <div className="text-sm text-gray-500 dark:text-gray-500">
-            {formattedDate} • {formattedTime}
+          <div className="text-sm flex max-md:flex-col md:gap-2 text-gray-500 dark:text-gray-500">
+            <span>{formattedDate},</span>
+            <span>{formattedTime}</span>
           </div>
-          <div className="flex items-center space-x-2 relative" ref={dropdownRef}>
+          <div
+            className="flex items-center space-x-2 relative"
+            ref={dropdownRef}
+          >
             {/* Download Button */}
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -108,13 +134,13 @@ const NoteCard = ({ note, onDelete, onDownload, onDuplicate, viewMode = "grid" }
                   className="flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => handleDownload("txt")}
                 >
-                 <FileText size={16} /> Download as TXT
+                  <FileText size={16} /> Download as TXT
                 </button>
                 <button
                   className="flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => handleDownload("html")}
                 >
-                 <CodeXml size={16} /> Download as HTML
+                  <CodeXml size={16} /> Download as HTML
                 </button>
               </div>
             )}
