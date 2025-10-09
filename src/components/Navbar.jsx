@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Moon, Sun, Menu, X, Plus, Home, BookHeart } from "lucide-react";
+import { ReactSignedIn, ReactUserButton, ReactUserProfile } from "@neuctra/authix";
 
 const Navbar = ({ darkMode, toggleDarkMode }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -66,6 +67,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
+            <ReactUserButton/>
           </div>
 
           {/* Mobile menu button */}
@@ -125,6 +127,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                 </>
               )}
             </button>
+
           </div>
         </div>
       )}
