@@ -23,7 +23,261 @@ import {
   Highlighter,
   Eraser,
   ArrowRightLeft,
+  X,
+  Plus,
 } from "lucide-react";
+
+// Modal Components
+const LinkModal = ({ isOpen, onClose, onInsert }) => {
+  const [url, setUrl] = useState("");
+  const [text, setText] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (url.trim()) {
+      onInsert(url, text || url);
+      setUrl("");
+      setText("");
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-96 max-w-[90vw] shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Insert Link</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              URL
+            </label>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://example.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Display Text (Optional)
+            </label>
+            <input
+              type="text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Link text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+            >
+              Insert Link
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const TableModal = ({ isOpen, onClose, onInsert }) => {
+  const [rows, setRows] = useState(3);
+  const [cols, setCols] = useState(3);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onInsert(rows, cols);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-96 max-w-[90vw] shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Insert Table</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rows
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={rows}
+                onChange={(e) => setRows(parseInt(e.target.value) || 1)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Columns
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={cols}
+                onChange={(e) => setCols(parseInt(e.target.value) || 1)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+            >
+              Insert Table
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const ColorModal = ({ isOpen, onClose, onColorSelect, type }) => {
+  const colors = [
+    "#000000", "#333333", "#666666", "#999999", "#cccccc", "#ffffff",
+    "#ff4444", "#ff8844", "#ffcc44", "#44ff44", "#44ffcc", "#4488ff",
+    "#8844ff", "#ff44cc", "#8b4513", "#d2691e", "#ffa500", "#ffff00"
+  ];
+
+  const handleColorSelect = (color) => {
+    onColorSelect(color);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-80 max-w-[90vw] shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            {type === 'text' ? 'Text Color' : 'Background Color'}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="grid grid-cols-6 gap-2">
+          {colors.map((color) => (
+            <button
+              key={color}
+              onClick={() => handleColorSelect(color)}
+              className="w-10 h-10 rounded-lg border border-gray-200 hover:scale-110 transition-transform"
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Custom Color
+          </label>
+          <input
+            type="color"
+            onChange={(e) => handleColorSelect(e.target.value)}
+            className="w-full h-10 rounded-lg cursor-pointer"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TableEditModal = ({ isOpen, onClose, onTableEdit }) => {
+  const [action, setAction] = useState('addRow');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onTableEdit(action);
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-80 max-w-[90vw] shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Edit Table</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <X size={20} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Action
+            </label>
+            <select
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+            >
+              <option value="addRow">Add Row</option>
+              <option value="addColumn">Add Column</option>
+              <option value="deleteRow">Delete Row</option>
+              <option value="deleteColumn">Delete Column</option>
+              <option value="deleteTable">Delete Table</option>
+            </select>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
+            >
+              Apply
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
   const editorRef = useRef(null);
@@ -35,6 +289,12 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
   const [fontSize, setFontSize] = useState("16px");
   const [customSizeValue, setCustomSizeValue] = useState("");
   const saveTimerRef = useRef(null);
+
+  // Modal states
+  const [linkModal, setLinkModal] = useState(false);
+  const [tableModal, setTableModal] = useState(false);
+  const [tableEditModal, setTableEditModal] = useState(false);
+  const [colorModal, setColorModal] = useState({ open: false, type: 'text' });
 
   // Detect mobile layout
   useEffect(() => {
@@ -115,28 +375,48 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
   };
 
   const applyColor = (type, color) => {
-    try {
-      document.execCommand(
-        type === "foreColor" ? "foreColor" : "hiliteColor",
-        false,
-        color
-      );
-    } catch {
-      const range = getRange();
-      if (!range) return;
-      const span = document.createElement("span");
-      if (type === "foreColor") span.style.color = color;
-      else span.style.backgroundColor = color;
-      const contents = range.extractContents();
-      span.appendChild(contents);
-      range.insertNode(span);
+    const range = getRange();
+    if (!range) return;
+    
+    const span = document.createElement("span");
+    if (type === "text") {
+      span.style.color = color;
+    } else if (type === "background") {
+      span.style.backgroundColor = color;
+    } else if (type === "cell") {
+      // For table cell background
+      const cell = range.startContainer.closest('td, th');
+      if (cell) {
+        cell.style.backgroundColor = color;
+      } else {
+        span.style.backgroundColor = color;
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+      }
+      triggerChange();
+      return;
     }
+    
+    const contents = range.extractContents();
+    span.appendChild(contents);
+    range.insertNode(span);
     triggerChange();
   };
 
-  const insertLink = () => {
-    const url = window.prompt("Enter link URL:");
-    if (url) exec("createLink", url);
+  const insertLink = (url, text) => {
+    const range = getRange();
+    if (!range) return;
+    
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.textContent = text || url;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    
+    range.deleteContents();
+    range.insertNode(anchor);
+    triggerChange();
   };
 
   const applyAlign = (type) => {
@@ -162,15 +442,20 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     table.style.width = "100%";
     table.style.borderCollapse = "collapse";
     table.className = "editor-table";
+    
     for (let r = 0; r < rows; r++) {
       const tr = document.createElement("tr");
       for (let c = 0; c < cols; c++) {
         const td = document.createElement("td");
         td.innerHTML = "<br/>";
+        td.style.border = "1px solid #e5e7eb";
+        td.style.padding = "12px 16px";
+        td.style.minWidth = "100px";
         tr.appendChild(td);
       }
       table.appendChild(tr);
     }
+    
     if (range) {
       range.deleteContents();
       range.insertNode(table);
@@ -180,10 +465,65 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     triggerChange();
   };
 
-  const promptInsertTable = () => {
-    const rows = parseInt(prompt("Rows?", "3") || "3");
-    const cols = parseInt(prompt("Columns?", "3") || "3");
-    insertTable(rows, cols);
+  const handleTableEdit = (action) => {
+    const range = getRange();
+    if (!range) return;
+    
+    const cell = range.startContainer.closest('td, th');
+    if (!cell) return;
+    
+    const table = cell.closest('table');
+    if (!table) return;
+    
+    const row = cell.parentElement;
+    const rowIndex = Array.from(table.rows).indexOf(row);
+    const cellIndex = Array.from(row.cells).indexOf(cell);
+    
+    switch (action) {
+      case 'addRow':
+        const newRow = document.createElement('tr');
+        for (let i = 0; i < table.rows[0].cells.length; i++) {
+          const newCell = document.createElement('td');
+          newCell.innerHTML = "<br/>";
+          newCell.style.border = "1px solid #e5e7eb";
+          newCell.style.padding = "12px 16px";
+          newRow.appendChild(newCell);
+        }
+        table.insertBefore(newRow, row.nextSibling);
+        break;
+        
+      case 'addColumn':
+        Array.from(table.rows).forEach(tr => {
+          const newCell = document.createElement('td');
+          newCell.innerHTML = "<br/>";
+          newCell.style.border = "1px solid #e5e7eb";
+          newCell.style.padding = "12px 16px";
+          tr.insertBefore(newCell, tr.cells[cellIndex + 1] || null);
+        });
+        break;
+        
+      case 'deleteRow':
+        if (table.rows.length > 1) {
+          row.remove();
+        }
+        break;
+        
+      case 'deleteColumn':
+        if (table.rows[0].cells.length > 1) {
+          Array.from(table.rows).forEach(tr => {
+            if (tr.cells[cellIndex]) {
+              tr.deleteCell(cellIndex);
+            }
+          });
+        }
+        break;
+        
+      case 'deleteTable':
+        table.remove();
+        break;
+    }
+    
+    triggerChange();
   };
 
   // Input handler
@@ -334,15 +674,20 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           <div className="w-px h-6 bg-gray-200 mx-1"></div>
 
           {/* Colors */}
-          <ColorPicker
+          <ToolbarButton
             icon={<Palette size={18} />}
             title="Text Color"
-            onChange={(color) => applyColor("foreColor", color)}
+            onClick={() => setColorModal({ open: true, type: 'text' })}
           />
-          <ColorPicker
+          <ToolbarButton
             icon={<Highlighter size={18} />}
-            title="Highlight Color"
-            onChange={(color) => applyColor("hiliteColor", color)}
+            title="Background Color"
+            onClick={() => setColorModal({ open: true, type: 'background' })}
+          />
+          <ToolbarButton
+            icon={<div className="w-4 h-4 border-2 border-gray-400 rounded" />}
+            title="Cell Color"
+            onClick={() => setColorModal({ open: true, type: 'cell' })}
           />
 
           <div className="w-px h-6 bg-gray-200 mx-1"></div>
@@ -356,12 +701,17 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           <ToolbarButton
             icon={<Link size={18} />}
             title="Insert Link"
-            onClick={insertLink}
+            onClick={() => setLinkModal(true)}
           />
           <ToolbarButton
             icon={<Table size={18} />}
             title="Insert Table"
-            onClick={promptInsertTable}
+            onClick={() => setTableModal(true)}
+          />
+          <ToolbarButton
+            icon={<Plus size={18} />}
+            title="Edit Table"
+            onClick={() => setTableEditModal(true)}
           />
 
           <div className="w-px h-6 bg-gray-200 mx-1"></div>
@@ -401,6 +751,29 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           />
         </div>
       </div>
+
+      {/* MODALS */}
+      <LinkModal
+        isOpen={linkModal}
+        onClose={() => setLinkModal(false)}
+        onInsert={insertLink}
+      />
+      <TableModal
+        isOpen={tableModal}
+        onClose={() => setTableModal(false)}
+        onInsert={insertTable}
+      />
+      <TableEditModal
+        isOpen={tableEditModal}
+        onClose={() => setTableEditModal(false)}
+        onTableEdit={handleTableEdit}
+      />
+      <ColorModal
+        isOpen={colorModal.open}
+        onClose={() => setColorModal({ open: false, type: 'text' })}
+        onColorSelect={(color) => applyColor(colorModal.type, color)}
+        type={colorModal.type}
+      />
 
       {/* STYLE */}
       <style>{`
@@ -459,11 +832,14 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           border-radius: 12px;
           overflow: hidden;
           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          background: white;
         }
         .rich-text-editor td, .rich-text-editor th {
           border: 1px solid #e5e7eb;
           padding: 12px 16px;
-          transition: background 0.2s ease;
+          transition: all 0.2s ease;
+          min-width: 100px;
+          position: relative;
         }
         .rich-text-editor th {
           background: #f8fafc;
@@ -477,6 +853,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           color: #059669;
           text-decoration: underline;
           transition: color 0.2s ease;
+          font-weight: 500;
         }
         .rich-text-editor a:hover {
           color: #047857;
@@ -498,18 +875,6 @@ const ToolbarButton = ({ icon, title, onClick }) => (
   <button className="toolbar-btn" title={title} onClick={onClick}>
     {icon}
   </button>
-);
-
-// Color Picker Component
-const ColorPicker = ({ icon, title, onChange }) => (
-  <label className="toolbar-btn cursor-pointer" title={title}>
-    {icon}
-    <input
-      type="color"
-      className="absolute opacity-0 w-0 h-0"
-      onChange={(e) => onChange(e.target.value)}
-    />
-  </label>
 );
 
 export default RichTextEditor;
