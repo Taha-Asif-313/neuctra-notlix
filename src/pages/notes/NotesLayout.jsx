@@ -7,7 +7,7 @@ const NotesLayout = ({ darkMode, toggleDarkMode, notes, setNotes }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 dark:from-black dark:via-black dark:to-green-950/50 transition-colors duration-300 flex flex-col">
       <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-      <div className="flex-1 py-6 px-4">
+      <div className="flex-1">
         <Outlet context={{ notes, setNotes }} />
       </div>
       <Footer darkMode={darkMode} />

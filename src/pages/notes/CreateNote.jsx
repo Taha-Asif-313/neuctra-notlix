@@ -32,6 +32,7 @@ import {
   Bold,
   Italic,
   Underline,
+  Languages,
 } from "lucide-react";
 import RichTextEditor from "../../components/RichTextEditor";
 import { CreateNoteAiAgent } from "../../agent/NoteMaker";
@@ -55,7 +56,7 @@ const CreateNote = () => {
   const [wordCount, setWordCount] = useState(0);
   const [mobileView, setMobileView] = useState(false);
   const [showFormatMenu, setShowFormatMenu] = useState(false);
-
+  const [isAnimating, setIsAnimating] = useState(false);
   const existingNote = isEditing
     ? notes.find((note) => note.id.toString() === id)
     : null;
@@ -100,6 +101,10 @@ const CreateNote = () => {
       .filter((word) => word.length > 0).length;
     setWordCount(words);
   }, [title, content]);
+
+  useEffect(() => {
+    if (showModal) setIsAnimating(true);
+  }, [showModal]);
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -152,6 +157,11 @@ const CreateNote = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setTimeout(() => setIsAnimating(false), 500); // sync with transition
   };
 
   // Export note as HTML
@@ -419,75 +429,77 @@ const CreateNote = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-300 lg:bg-gray-50 lg:dark:bg-zinc-950">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-lg border-b border-gray-200/60 dark:border-zinc-700/60 safe-area-top">
-        <div className="flex items-center justify-between p-4 lg:p-6 max-w-6xl mx-auto">
-          <Link
-            to="/notes"
-            className="flex items-center gap-3 p-2 rounded-xl active:scale-95 lg:active:scale-100 transition-transform active:bg-gray-100 dark:active:bg-zinc-800 lg:hover:bg-gray-100 lg:dark:hover:bg-zinc-800"
-          >
-            <ArrowLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
-            {!mobileView && (
-              <span className="font-semibold text-gray-700 dark:text-gray-300">
-                Back to Notes
-              </span>
-            )}
-          </Link>
+   {/* Modern Header with Dark/Light Mode Support */}
+<header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-lg transition-colors duration-500">
+  <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-4 lg:px-6 lg:py-5">
+    
+    {/* Back Button */}
+    <Link
+      to="/notes"
+      className="flex items-center gap-3 group p-2 rounded-xl transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95"
+    >
+      <ArrowLeft className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors" />
+      {!mobileView && (
+        <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary">
+          Back to Notes
+        </span>
+      )}
+    </Link>
 
-          <div className="flex items-center gap-4">
-            {isTyping && (
-              <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10">
-                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-primary">
-                  Saving...
-                </span>
-              </div>
-            )}
+    {/* Title */}
+    <div className="text-center select-none">
+      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+        {isEditing ? "Edit Note" : "New Note"}
+      </h1>
+      <p className="text-gray-600 dark:text-gray-400 max-sm:hidden text-xs sm:text-sm mt-0.5">
+        {isEditing ? "Update your thoughts" : "Start capturing your ideas"}
+      </p>
+    </div>
 
-            {mobileView ? (
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {wordCount} words
-              </div>
-            ) : (
-              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-700 px-3 py-1 rounded-full">
-                  <Type className="w-4 h-4" />
-                  <span>{wordCount} words</span>
-                </div>
-                <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-700 px-3 py-1 rounded-full">
-                  <Clock className="w-4 h-4" />
-                  <span>
-                    Saved{" "}
-                    {lastSaved.toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-              </div>
-            )}
+    {/* Status & Info */}
+    <div className="flex items-center justify-end gap-4">
+      {isTyping && (
+        <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 animate-fade-in">
+          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+          <span className="text-sm font-medium text-primary">Saving...</span>
+        </div>
+      )}
+
+      {/* Word Count + Last Saved */}
+      {mobileView ? (
+        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+          {wordCount} words
+        </span>
+      ) : (
+        <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-800/80 backdrop-blur-sm">
+            <Languages size={12}  />
+            <span>{wordCount} words</span>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-800/80 backdrop-blur-sm">
+            <Clock size={12} />
+            <span>
+              Saved{" "}
+              {lastSaved.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
         </div>
-      </header>
+      )}
+    </div>
+  </div>
+</header>
+
 
       <main
-        className={`max-w-4xl mx-auto ${
+        className={`max-w-6xl mx-auto ${
           mobileView ? "px-4 pb-24" : "px-6 pb-32 lg:pb-20"
         }`}
       >
         {/* Title Section */}
         <div className="mb-6 lg:mb-8">
-          <div className="text-center mb-6 lg:mb-8">
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {isEditing ? "Edit Note" : "New Note"}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm lg:text-base">
-              {isEditing
-                ? "Update your thoughts"
-                : "Start capturing your ideas"}
-            </p>
-          </div>
-
           <div className="relative">
             <input
               type="text"
@@ -508,14 +520,14 @@ const CreateNote = () => {
         {/* Editor/Preview Area */}
         <div className="mb-6 lg:mb-8">
           {!isPreview ? (
-            <div className="rounded-2xl lg:rounded-3xl border-2 border-dashed border-gray-300/60 dark:border-zinc-600/60 hover:border-primary/30 dark:hover:border-primary/40 transition-colors duration-300 min-h-[50vh] lg:min-h-[60vh]">
+
               <RichTextEditor
                 ref={editorRef}
                 content={content}
                 setContent={setContent}
                 mobileOptimized={mobileView}
               />
-            </div>
+      
           ) : (
             <div className="bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl lg:rounded-3xl border border-gray-200/60 dark:border-zinc-700/60 p-6 min-h-[50vh] lg:min-h-[60vh]">
               <div className="flex items-center gap-2 mb-4">
@@ -540,92 +552,110 @@ const CreateNote = () => {
       {/* Unified Bottom Navigation */}
       <BottomNavigation />
 
-      {/* AI Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center lg:items-center lg:p-4">
-          <div
-            onClick={() => setShowModal(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:bg-black/40"
-          />
+      {/* AI Drawer Modal */}
+      <div
+        className={`fixed inset-0 z-50 flex items-end lg:items-center justify-center lg:p-4 
+  transition-all duration-500 ease-in-out ${
+    showModal ? "pointer-events-auto" : "pointer-events-none"
+  }`}
+      >
+        {/* Overlay */}
+        <div
+          onClick={handleCloseModal}
+          className={`absolute inset-0 bg-transparent backdrop-blur-sm lg:bg-black/40 ${
+            showModal ? "opacity-100" : "opacity-0"
+          }`}
+        />
 
-          <div className="relative w-full lg:max-w-2xl bg-white dark:bg-zinc-900 rounded-t-3xl lg:rounded-3xl border border-gray-200/80 dark:border-zinc-700/80 shadow-2xl animate-slide-up lg:animate-scale-in max-h-[90vh] lg:max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200/60 dark:border-zinc-700/60">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-primary/10">
-                  <Sparkles className="w-6 h-6 text-amber-500" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    AI Note Assistant
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Let AI help you write better
-                  </p>
-                </div>
+        {/* Drawer Content */}
+        <div
+          className={`relative w-full lg:max-w-2xl bg-white dark:bg-zinc-900 
+    rounded-t-3xl lg:rounded-3xl border border-gray-200/80 dark:border-zinc-700/80 shadow-2xl
+    transform !transition-transform duration-100 ease-in-out
+    ${showModal ? "translate-y-0" : "translate-y-full"}  ${
+            showModal ? "opacity-100" : "opacity-0"
+          }
+    max-h-[90vh] lg:max-h-[80vh] flex flex-col`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200/60 dark:border-zinc-700/60">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-primary/10">
+                <Sparkles className="w-6 h-6 text-amber-500" />
               </div>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-200"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              <textarea
-                rows={4}
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="What would you like to write about? (e.g., 'Create a meeting agenda for project planning')"
-                className="w-full p-4 rounded-2xl border-2 border-gray-300/60 dark:border-zinc-600/60 bg-transparent text-gray-900 dark:text-white resize-none focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition-all duration-300 text-base"
-              />
-
-              <div className="mt-6">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                  Quick Templates
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {quickPrompts.map((prompt, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setAiPrompt(prompt)}
-                      className="text-left p-3 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  AI Note Assistant
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Let AI help you write better
+                </p>
               </div>
             </div>
+            <button
+              onClick={handleCloseModal}
+              className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-200"
+            >
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            </button>
+          </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-gray-200/60 dark:border-zinc-700/60 bg-gray-50/50 dark:bg-zinc-800/50 rounded-b-3xl">
-              <button
-                onClick={() => setShowModal(false)}
-                className="flex-1 px-6 py-4 rounded-xl border-2 border-gray-300/60 dark:border-zinc-600/60 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-zinc-800 transition-all duration-300 font-medium text-base"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAIGenerate}
-                disabled={loading || !aiPrompt.trim()}
-                className="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-primary text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    Generate
-                  </>
-                )}
-              </button>
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto p-6">
+            <textarea
+              rows={4}
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="What would you like to write about?"
+              className="w-full p-4 rounded-2xl border-2 border-gray-300/60 dark:border-zinc-600/60 bg-transparent text-gray-900 dark:text-white resize-none focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition-all duration-300 text-base"
+            />
+
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                Quick Templates
+              </h3>
+              <div className="grid md:grid-cols-2 grid-cols-1 gap-2">
+                {quickPrompts.map((prompt, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setAiPrompt(prompt)}
+                    className="text-left p-3 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
+
+          {/* Footer */}
+          <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-gray-200/60 dark:border-zinc-700/60 bg-gray-50/50 dark:bg-zinc-800/50 rounded-b-3xl">
+            <button
+              onClick={handleCloseModal}
+              className="flex-1 px-6 py-4 rounded-xl border-2 border-gray-300/60 dark:border-zinc-600/60 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-zinc-800 transition-all duration-300 font-medium text-base"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAIGenerate}
+              disabled={loading || !aiPrompt.trim()}
+              className="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-primary text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5" />
+                  Generate
+                </>
+              )}
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
