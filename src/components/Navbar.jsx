@@ -37,7 +37,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center  space-x-4">
             <Link
               to="/notes"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center ${
@@ -67,7 +67,8 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <ReactUserButton/>
+            <ReactSignedIn ><ReactUserButton/></ReactSignedIn>
+          
           </div>
 
           {/* Mobile menu button */}

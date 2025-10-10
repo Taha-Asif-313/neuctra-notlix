@@ -8,6 +8,16 @@ import {
   FileText,
   Trash2,
   Ellipsis,
+  Zap,
+  Sparkles,
+  Type,
+  Clock,
+  Smartphone,
+  Monitor,
+  Tablet,
+  Palette,
+  Layout,
+  Settings,
 } from "lucide-react";
 
 const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
@@ -16,10 +26,35 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
   const [isQuillLoaded, setIsQuillLoaded] = useState(false);
+  const [lastSaved, setLastSaved] = useState(new Date());
+  const [isTyping, setIsTyping] = useState(false);
+  const [mobileView, setMobileView] = useState(false);
   const quillRef = useRef(null);
   const editorRef = useRef(null);
 
-  // Custom toolbar configuration
+  // Auto-detect mobile and auto-save
+  useEffect(() => {
+    const checkMobile = () => {
+      setMobileView(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (content.trim()) {
+      setIsTyping(true);
+      const timer = setTimeout(() => {
+        setIsTyping(false);
+        setLastSaved(new Date());
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [content]);
+
+  // Custom toolbar configuration (unchanged)
   const toolbarOptions = [
     [{ header: [1, 2, 3, 4, 5, 6, false] }],
     [{ font: [] }],
@@ -36,19 +71,17 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     ["clean"],
   ];
 
-  // Load Quill dynamically
+  // Load Quill dynamically (unchanged)
   useEffect(() => {
     const loadQuill = async () => {
       if (typeof window !== "undefined" && !window.Quill) {
-        // Load Quill CSS from public
         const link = document.createElement("link");
         link.rel = "stylesheet";
-        link.href = "/quill/quill.snow.min.css"; // from public
+        link.href = "/quill/quill.snow.min.css";
         document.head.appendChild(link);
 
-        // Load Quill JS from public
         const script = document.createElement("script");
-        script.src = "/quill/quill.min.js"; // from public
+        script.src = "/quill/quill.min.js";
         script.onload = () => {
           setIsQuillLoaded(true);
         };
@@ -61,7 +94,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     loadQuill();
   }, []);
 
-  // Initialize Quill editor when loaded
+  // Initialize Quill editor when loaded (unchanged)
   useEffect(() => {
     if (isQuillLoaded && editorRef.current && !quillRef.current) {
       const imageHandler = () => {
@@ -133,13 +166,11 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
         placeholder: "Start writing something amazing...",
       });
 
-      // Set initial content
       if (content) {
         quill.root.innerHTML = content;
         updateCounts(quill.getText());
       }
 
-      // Handle content changes
       quill.on("text-change", () => {
         const html = quill.root.innerHTML;
         if (setContent) {
@@ -152,7 +183,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     }
   }, [isQuillLoaded]);
 
-  // Update content when prop changes
+  // Update content when prop changes (unchanged)
   useEffect(() => {
     if (quillRef.current && content !== undefined) {
       const currentContent = quillRef.current.root.innerHTML;
@@ -163,7 +194,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     }
   }, [content]);
 
-  // Update word and character counts
+  // Update word and character counts (unchanged)
   const updateCounts = (text) => {
     const cleanText = text.trim();
     const words = cleanText.split(/\s+/).filter((word) => word.length > 0);
@@ -171,7 +202,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     setCharCount(text.length);
   };
 
-  // Save content as HTML
+  // All action functions remain exactly the same
   const saveContent = () => {
     const blob = new Blob([content], { type: "text/html" });
     const url = URL.createObjectURL(blob);
@@ -184,7 +215,6 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     URL.revokeObjectURL(url);
   };
 
-  // Load content from file
   const loadContent = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -205,7 +235,6 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     input.click();
   };
 
-  // Clear all content
   const clearContent = () => {
     if (
       window.confirm(
@@ -219,7 +248,6 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     }
   };
 
-  // Export as plain text
   const exportAsText = () => {
     const plainText = quillRef.current?.getText() || "";
     const blob = new Blob([plainText], { type: "text/plain" });
@@ -233,90 +261,59 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     URL.revokeObjectURL(url);
   };
 
+
   return (
-    <div className="w-full">
-      <div className="max-w-full">
-        {/* Header */}
-        <div className="bg-white rounded-t-2xl shadow-lg">
-          <div className="flex items-center justify-between max-md:flex-col px-6 py-5 border-b border-gray-200">
-            <div className="flex items-center space-x-2">
-              <div className="rounded-lg flex items-center justify-center">
-                <img src="/logo-white.png" alt="logo" height={36} width={36}/>
+    <div className="w-full h-full bg-gray-50 dark:bg-zinc-950 transition-colors duration-300">
+      {/* Mobile Header */}
+      {mobileView && (
+        <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-lg border-b border-gray-200/60 dark:border-zinc-700/60 safe-area-top">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center space-x-3">
+              <div className="rounded-xl bg-gradient-to-br from-primary to-amber-500 p-2">
+                <Zap className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-lg font-bold text-gray-800">
-                Neuctra Text Editor
-              </h1>
+              <div>
+                <h1 className="text-lg font-bold text-gray-800 dark:text-white">
+                  Neuctra Editor
+                </h1>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {wordCount} words • {charCount} chars
+                </p>
+              </div>
             </div>
 
-            <div className="flex flex-row items-center gap-2 text-xs mt-2 md:mt-0">
-              {/* Stats */}
-              <div className="text-xs text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                {wordCount} words • {charCount} characters
-              </div>
+            <div className="flex items-center gap-2">
+              {isTyping && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-primary">
+                    Saving...
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+      )}
 
-              {/* Dropdown for mobile */}
-              <div className="md:hidden relative">
+      {/* Desktop Header */}
+      {!mobileView && (
+        <div className="bg-white dark:bg-zinc-800 rounded-t-2xl shadow-lg border border-gray-200 dark:border-zinc-700">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-600">
+            <div className="flex items-center justify-center w-full gap-4">
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="px-4 py-1 bg-primary/10 text-primary rounded-lg hover:bg-indigo-200 transition-colors flex items-center space-x-2"
+                  onClick={() => setIsPreviewMode(!isPreviewMode)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-300 hover:shadow-lg transition-all"
                 >
-                  <Ellipsis/>
+                  {isPreviewMode ? <EyeOff size={18} /> : <Eye size={18} />}
+                  <span>{isPreviewMode ? "Edit" : "Preview"}</span>
                 </button>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg flex flex-col gap-2 p-2 z-10 border">
-                    <button
-                      onClick={() => {
-                        saveContent();
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded text-left"
-                    >
-                      <Download size={16} />
-                      <span>Export HTML</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        exportAsText();
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded text-left"
-                    >
-                      <FileText size={16} />
-                      <span>Export Text</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        loadContent();
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded text-left"
-                    >
-                      <Upload size={16} />
-                      <span>Import</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        clearContent();
-                        setIsDropdownOpen(false);
-                      }}
-                      className="flex items-center space-x-2 px-4 py-2 hover:bg-gray-100 rounded text-left"
-                    >
-                      <Trash2 size={16} />
-                      <span>Clear</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Horizontal buttons for desktop */}
-              <div className="hidden md:flex flex-wrap items-center gap-2">
                 <button
                   onClick={saveContent}
-                  className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition-colors"
                 >
                   <Download size={18} />
                   <span>Export HTML</span>
@@ -324,7 +321,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
 
                 <button
                   onClick={exportAsText}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                 >
                   <FileText size={18} />
                   <span>Export Text</span>
@@ -332,7 +329,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
 
                 <button
                   onClick={loadContent}
-                  className="flex items-center space-x-2 px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-white hover:bg-amber-600 transition-colors"
                 >
                   <Upload size={18} />
                   <span>Import</span>
@@ -340,7 +337,7 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
 
                 <button
                   onClick={clearContent}
-                  className="flex items-center space-x-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors"
                 >
                   <Trash2 size={18} />
                   <span>Clear</span>
@@ -349,43 +346,57 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
             </div>
           </div>
         </div>
+      )}
 
-        {/* Editor Container */}
-        <div className="bg-white rounded-b-2xl shadow-lg border-l border-r border-b border-gray-200">
-          <div className="">
-            {!isQuillLoaded && (
-              <div className="min-h-[500px] flex items-center justify-center">
-                <div className="text-gray-500">Loading editor...</div>
+      {/* Editor Container */}
+      <div
+        className={`bg-white dark:bg-zinc-800 ${
+          !mobileView
+            ? "rounded-b-2xl shadow-lg border border-gray-200 dark:border-zinc-700 border-t-0"
+            : ""
+        }`}
+      >
+        <div
+          className={
+            mobileView ? "min-h-[70vh] safe-area-padding" : "min-h-[500px]"
+          }
+        >
+          {!isQuillLoaded ? (
+            <div className="min-h-[500px] flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Loading editor...
+                </p>
               </div>
-            )}
+            </div>
+          ) : (
             <div
               ref={editorRef}
+              className="rich-text-editor"
               style={{
-                minHeight: "500px",
-                fontSize: "16px",
-                lineHeight: "1.6",
+                minHeight: mobileView ? "60vh" : "500px",
                 display: isQuillLoaded ? "block" : "none",
               }}
             />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-4 text-center text-sm text-gray-600 bg-white/80 backdrop-blur-sm rounded-lg p-4">
-          <p>
-            💡 <strong>Tips:</strong> Use formatting toolbar • Drag and drop
-            images • Rich formatting with keyboard shortcuts • Export in
-            multiple formats
-          </p>
+          )}
         </div>
       </div>
 
+
+
       {/* Custom Styles for Quill */}
       <style jsx>{`
+        .rich-text-editor {
+          font-size: 16px !important;
+          line-height: 1.6 !important;
+        }
+
         .ql-editor {
           font-size: 16px !important;
           line-height: 1.6 !important;
           color: #000000 !important;
+          padding: ${mobileView ? "20px 16px" : "24px"} !important;
         }
 
         .ql-editor h1 {
@@ -433,12 +444,8 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           border-left: none !important;
           border-right: none !important;
           border-bottom: 1px solid #e5e7eb !important;
-          padding: 0px 20px !important;
+          padding: ${mobileView ? "8px 12px" : "12px 20px"} !important;
           background-color: #ffffff !important;
-        }
-
-        .ql-toolbar.ql-snow .ql-formats {
-          padding: 10px 0;
         }
 
         .ql-container.ql-snow {
@@ -449,6 +456,36 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
         .ql-editor.ql-blank::before {
           color: #9ca3af !important;
           font-style: italic !important;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+          .ql-toolbar .ql-formats {
+            margin-right: 8px !important;
+          }
+
+          .ql-toolbar button {
+            padding: 6px !important;
+            margin: 2px !important;
+          }
+        }
+
+        /* Dark mode support */
+        .dark .ql-snow .ql-stroke {
+          stroke: #d1d5db !important;
+        }
+
+        .dark .ql-snow .ql-fill {
+          fill: #d1d5db !important;
+        }
+
+        .dark .ql-snow .ql-picker {
+          color: #d1d5db !important;
+        }
+
+        .dark .ql-snow .ql-picker-options {
+          background-color: #374151 !important;
+          border-color: #4b5563 !important;
         }
       `}</style>
     </div>

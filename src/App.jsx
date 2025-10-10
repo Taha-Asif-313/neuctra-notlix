@@ -12,11 +12,11 @@ import ProfilePage from "./pages/auth/ProfilePage";
 
 function App() {
   // Configure once at app startup
-setSdkConfig({
-  baseUrl: "https://server.authix.neuctra.com/api",
-  apiKey: "850a8c32c35f008d28295f065526825a656af0a784ea7b0910fc2a1f748adda3",
-  appId: "ba73c20458ba4be9f11dab081550a960"
-});
+  setSdkConfig({
+    baseUrl: "https://server.authix.neuctra.com/api",
+    apiKey: "850a8c32c35f008d28295f065526825a656af0a784ea7b0910fc2a1f748adda3",
+    appId: "ba73c20458ba4be9f11dab081550a960",
+  });
   const [darkMode, setDarkMode] = useLocalStorage("neuctra-dark-mode", false);
   const [notes, setNotes] = useLocalStorage("neuctra-notes", []);
 
@@ -64,9 +64,9 @@ setSdkConfig({
               <Route path="create" element={<CreateNote />} />
               <Route path="edit/:id" element={<CreateNote />} />
             </Route>
-              <Route path="/login" element={<LoginPage/>} />
-                  <Route path="/signup" element={<SignupPage/>} />
-                  <Route path="/profile" element={<ProfilePage/>} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Routes>
         </main>
       </div>
