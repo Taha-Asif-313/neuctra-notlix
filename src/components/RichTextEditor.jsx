@@ -1,3 +1,4 @@
+// RichTextEditor.jsx
 import React, { useEffect, useRef, useState } from "react";
 import {
   Bold,
@@ -10,7 +11,7 @@ import {
   Type,
   Clock,
   Sparkles,
-  Link,
+  Link as LinkIcon,
   Quote,
   Table,
   Trash2,
@@ -21,92 +22,290 @@ import {
   Plus,
   Minus,
   Settings,
-  MousePointer2,
   Upload,
   FileText,
   Eye,
   Edit3,
   Save,
   Download,
+  Droplets,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * RichTextEditor
- * - primary color: #00d616
- * - responsive, compact (text-xs where helpful)
- * - table cell bg color support
- * - Optimize menu (clean, autofit, equalize, reset)
+ * RichTextEditor (modernized)
+ * - Tailwind (dark/light)
+ * - modular small components inside file
+ * - color picker modal with active color
+ * - retains table/link/import/export functionality
  *
  * Props:
- * - content (initial HTML)
- * - setContent (callback)
- * - mobileOptimized (bool)
+ *  - content (initial HTML)
+ *  - setContent (callback)
+ *  - mobileOptimized (bool)
  */
+
 const PRIMARY = "#00d616";
 
-const ToolbarButton = ({ title, children, onClick, compact }) => (
+/* Modern color palette — dark/light friendly */
+const COLOR_PRESETS = [
+  "#000000",
+  "#1e293b",
+  "#475569",
+  "#94a3b8",
+  "#ffffff",
+  "#ef4444",
+  "#f97316",
+  "#facc15",
+  "#22c55e",
+  "#16a34a",
+  "#3b82f6",
+  "#2563eb",
+  "#7c3aed",
+  "#a78bfa",
+  "#ec4899",
+  "#00d616",
+];
+
+const ToolbarButton = ({ title, children, onClick, compact = false, active }) => (
   <button
     type="button"
     onClick={onClick}
     title={title}
+    aria-pressed={!!active}
     className={`inline-flex items-center justify-center rounded-md transition-all duration-150
-      ${
-        compact ? "p-1.5" : "p-2"
-      } text-gray-700 hover:bg-gray-100 active:scale-95`}
+      ${compact ? "p-1.5" : "p-2"} text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95
+      ${active ? "ring-2 ring-green-400" : ""}`}
     style={{ minWidth: compact ? 34 : 40 }}
   >
     {children}
   </button>
 );
 
-/* ===== Modals & small UI pieces ===== */
-
-const SimpleModal = ({ open, onClose, children, width = 420 }) => {
-  if (!open) return null;
+/* Simple Modal (reusable) */
+const SimpleModal = ({ open, onClose, children, width = 440 }) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onClose}
-        aria-hidden
-      />
-      <motion.div
-        initial={{ y: 12, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 12, opacity: 0 }}
-        className="relative bg-white dark:bg-zinc-900 rounded-xl shadow-2xl p-4"
-        style={{ width, maxWidth: "94vw" }}
-      >
-        {children}
-      </motion.div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+          <motion.div
+            className="absolute inset-0 bg-black/40"
+            onClick={onClose}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          <motion.div
+            initial={{ y: 12, opacity: 0, scale: 0.98 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 12, opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.16 }}
+            className="relative bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-4"
+            style={{ width, maxWidth: "94vw" }}
+          >
+            {children}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
 
-/* Color palette used in multiple places */
-const COLOR_PRESETS = [
-  "#000000",
-  "#dc2626",
-  "#ea580c",
-  "#ca8a04",
-  "#00d616", // primary
-  "#0891b2",
-  "#2563eb",
-  "#7c3aed",
-  "#c026d3",
-  "#4c0519",
-  "#374151",
-  "#6b7280",
-];
+/* InsertLinkForm */
+const InsertLinkForm = ({ onInsert, onClose }) => {
+  const [url, setUrl] = useState("");
+  const [text, setText] = useState("");
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onInsert(url.trim(), text.trim());
+      }}
+      className="space-y-4 p-1"
+    >
+      <div className="space-y-1.5">
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
+          URL
+        </label>
+        <input
+          type="url"
+          required
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://example.com"
+          className="w-full p-2 text-sm rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-green-400 outline-none transition"
+        />
+      </div>
 
-/* ===== Main Component ===== */
+      <div className="space-y-1.5">
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
+          Display text (optional)
+        </label>
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Link text"
+          className="w-full p-2 text-sm rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-green-400 outline-none transition"
+        />
+      </div>
 
-const RichTextEditor = ({
-  content = "<p><br/></p>",
-  setContent,
-  mobileOptimized = false,
+      <div className="flex gap-3 pt-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 p-2 text-sm font-medium rounded-md border border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="flex-1 p-2 text-sm font-medium rounded-md bg-green-600 hover:bg-green-700 text-white transition-colors"
+        >
+          Insert
+        </button>
+      </div>
+    </form>
+  );
+};
+
+/* CreateTableForm */
+const CreateTableForm = ({ onCreate, onClose }) => {
+  const [rows, setRows] = useState(3);
+  const [cols, setCols] = useState(3);
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onCreate(Math.max(1, rows), Math.max(1, cols));
+      }}
+      className="space-y-3"
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+            Rows
+          </label>
+          <input
+            type="number"
+            value={rows}
+            onChange={(e) => setRows(parseInt(e.target.value) || 1)}
+            min={1}
+            className="w-full p-2 text-sm rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-400 outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+            Columns
+          </label>
+          <input
+            type="number"
+            value={cols}
+            onChange={(e) => setCols(parseInt(e.target.value) || 1)}
+            min={1}
+            className="w-full p-2 text-sm rounded-md border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-400 outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 p-2 text-sm rounded-md border border-gray-300 dark:border-zinc-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white transition-colors"
+        >
+          Create
+        </button>
+      </div>
+    </form>
+  );
+};
+
+/* ColorPickerModal */
+const ColorPickerModal = ({
+  open,
+  colorType,
+  onClose,
+  applyColor,
+  activeColor,
+  setActiveColor,
 }) => {
+  return (
+    <SimpleModal open={open} onClose={onClose} width={420}>
+      <div className="p-5 bg-gradient-to-b from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-950 text-gray-800 dark:text-gray-100 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)] transition-all duration-300">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
+            <Droplets className="w-4 h-4 text-green-500" />
+            {colorType === "cell" ? "Cell Background Color" : colorType === "text" ? "Text Color" : "Background Color"}
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md hover:bg-gray-200/60 dark:hover:bg-zinc-800/80 transition-colors duration-150"
+            aria-label="Close color picker"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-6 gap-2 mb-4">
+          {COLOR_PRESETS.map((c) => {
+            const lower = (c || "").toLowerCase();
+            const isActive = activeColor && lower === activeColor.toLowerCase();
+            return (
+              <button
+                key={c}
+                onClick={() => {
+                  applyColor(colorType === "cell" ? "cell" : colorType, c);
+                  setActiveColor(c);
+                  onClose();
+                }}
+                title={c}
+                style={{ backgroundColor: c }}
+                className={`relative w-9 h-9 rounded-xl border transition-all duration-200 hover:scale-110 active:scale-95 ${
+                  isActive ? "ring-2 ring-green-400 border-green-400" : "border-gray-300 dark:border-zinc-700"
+                }`}
+                aria-pressed={isActive}
+              >
+                {c === "#ffffff" && <div className="absolute inset-0 rounded-xl border border-gray-300/50" />}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Or pick custom color</div>
+        <div className="flex items-center gap-3">
+          <input
+            type="color"
+            defaultValue={activeColor || PRIMARY}
+            className="w-full h-10 rounded-lg border border-gray-300 dark:border-zinc-700 cursor-pointer bg-transparent hover:scale-[1.02] transition-transform"
+            onChange={(e) => {
+              const val = e.target.value;
+              applyColor(colorType === "cell" ? "cell" : colorType, val);
+              setActiveColor(val);
+              onClose();
+            }}
+            aria-label="Pick custom color"
+          />
+          <div
+            className="px-3 py-1.5 text-xs rounded-md border border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
+            style={{ color: activeColor || PRIMARY }}
+          >
+            {(activeColor || PRIMARY).toUpperCase()}
+          </div>
+        </div>
+      </div>
+    </SimpleModal>
+  );
+};
+
+/* ===== Main component ===== */
+const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized = false }) => {
   const editorRef = useRef(null);
   const [html, setHtml] = useState(content || "<p><br/></p>");
   const [wordCount, setWordCount] = useState(0);
@@ -116,16 +315,17 @@ const RichTextEditor = ({
   // modals / tool states
   const [linkModal, setLinkModal] = useState(false);
   const [tableModal, setTableModal] = useState(false);
-  const [colorModal, setColorModal] = useState({ open: false, type: "text" }); // type: 'text' | 'background' | 'cell'
+  const [colorModal, setColorModal] = useState({ open: false, type: "text" }); // {open, type}
   const [optOpen, setOptOpen] = useState(false);
   const [quoteStyle, setQuoteStyle] = useState(1); // 1..3
   const [selectedTable, setSelectedTable] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null);
 
+  const [activeColor, setActiveColor] = useState(PRIMARY);
+
   const saveTimerRef = useRef(null);
 
   useEffect(() => {
-    // initialize editor content
     if (editorRef.current) {
       editorRef.current.innerHTML = content || "<p><br/></p>";
       updateCounts(editorRef.current.innerText || "");
@@ -134,17 +334,14 @@ const RichTextEditor = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // attach click handlers to tables to show options
   const attachTableListeners = () => {
     const el = editorRef.current;
     if (!el) return;
     el.querySelectorAll("table").forEach((t) => {
-      // avoid duplicate listener
       if (!t.__rich_attached) {
         t.addEventListener("click", (ev) => {
           ev.stopPropagation();
           setSelectedTable(t);
-          // detect clicked cell
           const cell = ev.target.closest("td,th");
           if (cell) setSelectedCell(cell);
         });
@@ -153,13 +350,11 @@ const RichTextEditor = ({
     });
   };
 
-  // helper: get selection range
   const getRange = () => {
     const sel = window.getSelection();
     return sel && sel.rangeCount > 0 ? sel.getRangeAt(0) : null;
   };
 
-  // wrapper "execCommand" to keep older shortcuts
   const exec = (cmd, value = null) => {
     document.execCommand(cmd, false, value);
     triggerChange();
@@ -171,7 +366,6 @@ const RichTextEditor = ({
     setHtml(newHtml);
     setContent?.(newHtml);
     updateCounts(editorRef.current.innerText || "");
-    // typing indicator / auto-save
     setIsTyping(true);
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
@@ -179,27 +373,24 @@ const RichTextEditor = ({
       setLastSaved(new Date());
       saveTimerRef.current = null;
     }, 900);
-    // re-attach table listeners because DOM might have changed
     setTimeout(attachTableListeners, 50);
   };
 
   const updateCounts = (text) => {
-    const clean = text.replace(/\u00A0/g, " ").trim();
+    const clean = (text || "").replace(/\u00A0/g, " ").trim();
     if (!clean) return setWordCount(0);
     setWordCount(clean.split(/\s+/).filter(Boolean).length);
   };
 
-  /* ===== Actions ===== */
-
+  /* Actions */
   const applyColor = (type, color) => {
-    // type: 'text' | 'background' | 'cell'
     const range = getRange();
     if (!range && type !== "cell") return;
 
     if (type === "cell") {
-      // apply to selectedCell if present
       if (selectedCell) {
         selectedCell.style.backgroundColor = color;
+        setActiveColor(color);
         triggerChange();
       }
       return;
@@ -211,6 +402,7 @@ const RichTextEditor = ({
     const contents = range.extractContents();
     span.appendChild(contents);
     range.insertNode(span);
+    setActiveColor(color);
     triggerChange();
   };
 
@@ -237,8 +429,7 @@ const RichTextEditor = ({
     for (let r = 0; r < rows; r++) {
       const tr = document.createElement("tr");
       for (let c = 0; c < cols; c++) {
-        const cell =
-          r === 0 ? document.createElement("th") : document.createElement("td");
+        const cell = r === 0 ? document.createElement("th") : document.createElement("td");
         cell.innerHTML = "<br/>";
         cell.style.border = "1px solid rgba(0,0,0,0.08)";
         cell.style.padding = "10px";
@@ -251,7 +442,6 @@ const RichTextEditor = ({
       setSelectedTable(table);
       setSelectedCell(ev.target.closest("td,th"));
     });
-
     if (range) {
       range.deleteContents();
       range.insertNode(table);
@@ -261,12 +451,10 @@ const RichTextEditor = ({
     triggerChange();
   };
 
-  // Table actions (add row/col, delete, equalize widths, autofit)
   const performTableAction = (action) => {
     if (!selectedTable) return;
     const rows = selectedTable.rows.length;
     const cols = selectedTable.rows[0]?.cells.length || 0;
-
     switch (action) {
       case "addRow": {
         const tr = selectedTable.insertRow();
@@ -306,7 +494,6 @@ const RichTextEditor = ({
         break;
       }
       case "equalize": {
-        // set equal widths
         const percent = Math.floor(100 / cols);
         Array.from(selectedTable.rows).forEach((r) =>
           Array.from(r.cells).forEach((cell) => {
@@ -316,7 +503,6 @@ const RichTextEditor = ({
         break;
       }
       case "autofit": {
-        // remove fixed widths to let content determine widths
         Array.from(selectedTable.rows).forEach((r) =>
           Array.from(r.cells).forEach((cell) => {
             cell.style.width = "";
@@ -334,18 +520,13 @@ const RichTextEditor = ({
     triggerChange();
   };
 
-  // Optimize actions
   const optimizeAction = (act) => {
     switch (act) {
       case "cleanFormatting": {
-        // remove inline styles and tags we don't want; keep basic tags
         const el = editorRef.current;
         if (!el) return;
-        // convert to plain text then re-insert basic tags (simple approach)
         const plain = el.innerText;
-        el.innerHTML = `<p>${plain
-          .replace(/\n\n/g, "</p><p>")
-          .replace(/\n/g, "<br/>")}</p>`;
+        el.innerHTML = `<p>${plain.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br/>")}</p>`;
         triggerChange();
         break;
       }
@@ -367,19 +548,12 @@ const RichTextEditor = ({
     setOptOpen(false);
   };
 
-  const clearFormatting = () => {
-    exec("removeFormat");
-  };
-
-  // Quote styles - apply blockquote with different classes
   const applyQuoteStyle = (styleIndex) => {
     const range = getRange();
     if (!range) return;
-    // create blockquote wrapper
     const block = document.createElement("blockquote");
     block.className = `quote-style-${styleIndex}`;
     const contents = range.extractContents();
-    // ensure text goes into a paragraph inside blockquote
     const p = document.createElement("p");
     p.appendChild(contents);
     block.appendChild(p);
@@ -387,48 +561,20 @@ const RichTextEditor = ({
     triggerChange();
   };
 
-  // Basic paste cleanup (strip dangerous tags)
   const handlePaste = (e) => {
     e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData(
-      "text/plain"
-    );
-    // simple conversion of newlines to <br/>
+    const text = (e.clipboardData || window.clipboardData).getData("text/plain");
     const html = text.replace(/\n/g, "<br/>");
     document.execCommand("insertHTML", false, html);
     triggerChange();
   };
 
-  // editor input handler
   const handleInput = () => {
     triggerChange();
   };
 
-  /* ===== Exports helpers (HTML / TXT) ===== */
   const exportHTML = (title = "note") => {
-    const noteHTML = `
-      <!doctype html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>${title}</title>
-          <meta name="viewport" content="width=device-width,initial-scale=1" />
-          <style>
-            body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; color: #111827; }
-            .note-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; color: ${PRIMARY}; }
-            .note-content { line-height: 1.6; }
-            table { border-collapse: collapse; width: 100%; }
-            table td, table th { border: 1px solid #e5e7eb; padding: 8px; }
-            blockquote { border-left: 4px solid ${PRIMARY}; padding: 8px 16px; background: #f7fff2; }
-          </style>
-        </head>
-        <body>
-          <div class="note-title">${title}</div>
-          <div class="note-meta">Exported: ${new Date().toLocaleString()}</div>
-          <div class="note-content">${editorRef.current?.innerHTML || ""}</div>
-        </body>
-      </html>
-    `;
+    const noteHTML = `<!doctype html><html><head><meta charset="utf-8" /><title>${title}</title><meta name="viewport" content="width=device-width,initial-scale=1" /><style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111827;} .note-title{font-size:1.6rem;font-weight:700;margin-bottom:8px;color:${PRIMARY};} .note-content{line-height:1.6;} table{border-collapse:collapse;width:100%;} table td,table th{border:1px solid #e5e7eb;padding:8px;} blockquote{border-left:4px solid ${PRIMARY};padding:8px 16px;background:#f7fff2;}</style></head><body><div class="note-title">${title}</div><div class="note-meta">Exported: ${new Date().toLocaleString()}</div><div class="note-content">${editorRef.current?.innerHTML || ""}</div></body></html>`;
     const blob = new Blob([noteHTML], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -449,7 +595,6 @@ const RichTextEditor = ({
     URL.revokeObjectURL(url);
   };
 
-  /* ===== Import (html or txt) ===== */
   const importFile = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -462,7 +607,6 @@ const RichTextEditor = ({
         const text = ev.target.result;
         const ext = (f.name.split(".").pop() || "").toLowerCase();
         if (ext === "html" || ext === "htm") {
-          // parse HTML, take body innerHTML
           try {
             const parser = new DOMParser();
             const doc = parser.parseFromString(text, "text/html");
@@ -472,7 +616,6 @@ const RichTextEditor = ({
             editorRef.current.innerHTML = text;
           }
         } else {
-          // txt / md -> simple newline -> <br/>
           const html = text.replace(/\n/g, "<br/>");
           editorRef.current.innerHTML = `<p>${html}</p>`;
         }
@@ -483,28 +626,18 @@ const RichTextEditor = ({
     input.click();
   };
 
-  /* ===== UI Rendering ===== */
   return (
-    <div className="w-full h-full bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden">
-      {/* header */}
+    <div className="w-full h-full bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden">
+      {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-zinc-700">
         <div className="flex items-center gap-3">
-          <div
-            className="p-2 rounded-md"
-            style={{ background: "linear-gradient(90deg,#f0fff3, #e8fff7)" }}
-          >
+          <div className="p-2 rounded-md" style={{ background: "linear-gradient(90deg,#f0fff3,#e8fff7)" }}>
             <Sparkles size={16} color={PRIMARY} />
           </div>
           <div>
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">
-              Text Editor
-            </div>
+            <div className="text-sm font-semibold text-gray-900 dark:text-white">Text Editor</div>
             <div className="text-xs text-gray-500">
-              {wordCount} words • updated{" "}
-              {lastSaved.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {wordCount} words • updated {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </div>
           </div>
         </div>
@@ -512,118 +645,69 @@ const RichTextEditor = ({
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-2 bg-gray-50 dark:bg-zinc-800 px-2 py-1 rounded-md">
             <Type size={14} className="text-gray-600" />
-            <span className="text-xs text-gray-700 dark:text-gray-300">
-              {wordCount}
-            </span>
+            <span className="text-xs text-gray-700 dark:text-gray-300">{wordCount}</span>
           </div>
+
           <div className="flex items-center gap-2">
             <ToolbarButton title="Import" onClick={importFile} compact>
               <Upload size={16} />
             </ToolbarButton>
-            <ToolbarButton
-              title="Export HTML"
-              onClick={() => exportHTML("exported")}
-              compact
-            >
+            <ToolbarButton title="Export HTML" onClick={() => exportHTML("exported")} compact>
               <Download size={16} />
             </ToolbarButton>
-            <ToolbarButton
-              title="Export TXT"
-              onClick={() => exportTXT("exported")}
-              compact
-            >
+            <ToolbarButton title="Export TXT" onClick={() => exportTXT("exported")} compact>
               <FileText size={16} />
             </ToolbarButton>
           </div>
         </div>
       </div>
 
-      {/* toolbar */}
-      <div className="flex flex-wrap items-center gap-2 p-3 border-b border-gray-100 dark:border-zinc-700 bg-white dark:bg-zinc-900">
-        {/* basics */}
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-2 p-3 border-b border-gray-100 dark:border-zinc-700 bg-white dark:bg-black">
         <ToolbarButton title="Bold" onClick={() => exec("bold")} compact>
           <Bold size={16} />
         </ToolbarButton>
-        <ToolbarButton
-          title="Underline"
-          onClick={() => exec("underline")}
-          compact
-        >
+
+        <ToolbarButton title="Underline" onClick={() => exec("underline")} compact>
           <Underline size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-        <ToolbarButton
-          title="Align left"
-          onClick={() => exec("justifyLeft")}
-          compact
-        >
+        <ToolbarButton title="Align left" onClick={() => exec("justifyLeft")} compact>
           <AlignLeft size={16} />
         </ToolbarButton>
-        <ToolbarButton
-          title="Align center"
-          onClick={() => exec("justifyCenter")}
-          compact
-        >
+        <ToolbarButton title="Align center" onClick={() => exec("justifyCenter")} compact>
           <AlignCenter size={16} />
         </ToolbarButton>
-        <ToolbarButton
-          title="Align right"
-          onClick={() => exec("justifyRight")}
-          compact
-        >
+        <ToolbarButton title="Align right" onClick={() => exec("justifyRight")} compact>
           <AlignRight size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-        <ToolbarButton
-          title="Bullet list"
-          onClick={() => exec("insertUnorderedList")}
-          compact
-        >
+        <ToolbarButton title="Bullet list" onClick={() => exec("insertUnorderedList")} compact>
           <List size={16} />
         </ToolbarButton>
-        <ToolbarButton
-          title="Numbered list"
-          onClick={() => exec("insertOrderedList")}
-          compact
-        >
+        <ToolbarButton title="Numbered list" onClick={() => exec("insertOrderedList")} compact>
           <ListOrdered size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-        <ToolbarButton
-          title="Text color"
-          onClick={() => setColorModal({ open: true, type: "text" })}
-          compact
-        >
+        <ToolbarButton title="Text color" onClick={() => setColorModal({ open: true, type: "text" })} compact active={colorModal.type === "text"}>
           <Palette size={16} />
         </ToolbarButton>
-        <ToolbarButton
-          title="Cell / Background color"
-          onClick={() => setColorModal({ open: true, type: "cell" })}
-          compact
-        >
+        <ToolbarButton title="Cell / Background color" onClick={() => setColorModal({ open: true, type: "cell" })} compact active={colorModal.type === "cell"}>
           <Highlighter size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-        <ToolbarButton
-          title="Insert link"
-          onClick={() => setLinkModal(true)}
-          compact
-        >
-          <Link size={16} />
+        <ToolbarButton title="Insert link" onClick={() => setLinkModal(true)} compact>
+          <LinkIcon size={16} />
         </ToolbarButton>
-        <ToolbarButton
-          title="Insert table"
-          onClick={() => setTableModal(true)}
-          compact
-        >
+        <ToolbarButton title="Insert table" onClick={() => setTableModal(true)} compact>
           <Table size={16} />
         </ToolbarButton>
 
@@ -634,6 +718,7 @@ const RichTextEditor = ({
           onClick={() => {
             const next = (quoteStyle % 3) + 1;
             setQuoteStyle(next);
+            applyQuoteStyle(next);
           }}
           compact
         >
@@ -642,13 +727,9 @@ const RichTextEditor = ({
 
         <div className="flex-1" />
 
-        {/* optimize / clear */}
+        {/* optimize */}
         <div className="relative">
-          <ToolbarButton
-            title="Optimize"
-            onClick={() => setOptOpen(!optOpen)}
-            compact
-          >
+          <ToolbarButton title="Optimize" onClick={() => setOptOpen(!optOpen)} compact>
             <Settings size={16} />
           </ToolbarButton>
 
@@ -660,54 +741,26 @@ const RichTextEditor = ({
                 exit={{ opacity: 0, y: 6 }}
                 className="absolute right-0 mt-2 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2 w-48 z-40"
               >
-                <button
-                  className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
-                  onClick={() => optimizeAction("cleanFormatting")}
-                >
-                  Clean Formatting
-                </button>
-                <button
-                  className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
-                  onClick={() => optimizeAction("autofitTable")}
-                >
-                  Auto-fit Table
-                </button>
-                <button
-                  className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
-                  onClick={() => optimizeAction("equalizeCells")}
-                >
-                  Equalize Cell Widths
-                </button>
-                <button
-                  className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded text-red-600"
-                  onClick={() => optimizeAction("resetColors")}
-                >
-                  Reset Table Colors
-                </button>
+                <button className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded" onClick={() => optimizeAction("cleanFormatting")}>Clean Formatting</button>
+                <button className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded" onClick={() => optimizeAction("autofitTable")}>Auto-fit Table</button>
+                <button className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded" onClick={() => optimizeAction("equalizeCells")}>Equalize Cell Widths</button>
+                <button className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded text-red-600" onClick={() => optimizeAction("resetColors")}>Reset Table Colors</button>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <ToolbarButton
-          title="Clear formatting"
-          onClick={clearFormatting}
-          compact
-        >
+        <ToolbarButton title="Clear formatting" onClick={() => optimizeAction("cleanFormatting")} compact>
           <Eraser size={16} />
         </ToolbarButton>
 
-        <ToolbarButton
-          title="Delete selected table"
-          onClick={() => performTableAction("deleteTable")}
-          compact
-        >
+        <ToolbarButton title="Delete selected table" onClick={() => performTableAction("deleteTable")} compact>
           <Trash2 size={16} />
         </ToolbarButton>
       </div>
 
-      {/* editor area */}
-      <div className="p-4 min-h-[280px] bg-white dark:bg-zinc-900">
+      {/* Editor Area */}
+      <div className="p-4 min-h-[280px] bg-white dark:bg-black">
         <div
           ref={editorRef}
           contentEditable
@@ -715,68 +768,28 @@ const RichTextEditor = ({
           onInput={handleInput}
           onPaste={handlePaste}
           className="rich-text-editor min-h-[220px] p-2 text-sm leading-6 text-gray-900 dark:text-gray-100"
-          style={{
-            fontFamily:
-              'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
-          }}
+          style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}
         />
       </div>
 
-      {/* TABLE OPTIONS floating when a table is selected */}
+      {/* Table Actions */}
       <AnimatePresence>
         {selectedTable && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            className="fixed z-40 right-6 p-4 top-6 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl shadow-xl"
-            style={{ width: 220 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} className="fixed z-40 right-6 p-4 top-6 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-xl shadow-xl" style={{ width: 220 }}>
             <div className="flex items-center justify-between">
               <div className="text-xs font-semibold mb-1">
-                Table ({selectedTable.rows.length}×
-                {selectedTable.rows[0]?.cells.length || 0})
+                Table ({selectedTable.rows.length}×{selectedTable.rows[0]?.cells.length || 0})
               </div>
-              <X onClick={() => setSelectedTable(null)} size={16} />
+              <button onClick={() => setSelectedTable(null)} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700"><X size={16} /></button>
             </div>
 
-            <div className="grid grid-cols-2 gap-1">
-              <button
-                className="text-xs flex items-center gap-2 p-2 rounded hover:bg-gray-50"
-                onClick={() => performTableAction("addRow")}
-              >
-                <Plus size={14} /> Row
-              </button>
-              <button
-                className="text-xs flex items-center gap-2 p-2 rounded hover:bg-gray-50"
-                onClick={() => performTableAction("addColumn")}
-              >
-                <Plus size={14} /> Col
-              </button>
-              <button
-                className="text-xs flex items-center gap-2 p-2 rounded hover:bg-gray-50"
-                onClick={() => performTableAction("deleteRow")}
-              >
-                <Minus size={14} /> Row
-              </button>
-              <button
-                className="text-xs flex items-center gap-2 p-2 rounded hover:bg-gray-50"
-                onClick={() => performTableAction("deleteColumn")}
-              >
-                <Minus size={14} /> Col
-              </button>
-              <button
-                className="col-span-2 text-xs p-2 rounded hover:bg-gray-50"
-                onClick={() => performTableAction("equalize")}
-              >
-                Equalize Widths
-              </button>
-              <button
-                className="col-span-2 flex items-center gap-2 justify-center text-xs p-2 rounded text-red-600 hover:bg-red-50"
-                onClick={() => performTableAction("deleteTable")}
-              >
-                <Trash2 size={14} /> Delete Table
-              </button>
+            <div className="grid grid-cols-2 gap-1 mt-2">
+              <button className="text-xs flex items-center gap-2 p-2 rounded hover:bg-gray-50" onClick={() => performTableAction("addRow")}><Plus size={14} /> Row</button>
+              <button className="text-xs flex items-center gap-2 p-2 rounded hover:bg-gray-50" onClick={() => performTableAction("addColumn")}><Plus size={14} /> Col</button>
+              <button className="text-xs flex items-center gap-2 p-2 rounded hover:bg-gray-50" onClick={() => performTableAction("deleteRow")}><Minus size={14} /> Row</button>
+              <button className="text-xs flex items-center gap-2 p-2 rounded hover:bg-gray-50" onClick={() => performTableAction("deleteColumn")}><Minus size={14} /> Col</button>
+              <button className="col-span-2 text-xs p-2 rounded hover:bg-gray-50" onClick={() => performTableAction("equalize")}>Equalize Widths</button>
+              <button className="col-span-2 flex items-center gap-2 justify-center text-xs p-2 rounded text-red-600 hover:bg-red-50" onClick={() => performTableAction("deleteTable")}><Trash2 size={14} /> Delete Table</button>
             </div>
           </motion.div>
         )}
@@ -784,76 +797,23 @@ const RichTextEditor = ({
 
       {/* Modals */}
       <SimpleModal open={linkModal} onClose={() => setLinkModal(false)}>
-        <InsertLinkForm
-          onInsert={(u, t) => {
-            insertLink(u, t);
-            setLinkModal(false);
-          }}
-          onClose={() => setLinkModal(false)}
-        />
+        <InsertLinkForm onInsert={(u, t) => { insertLink(u, t); setLinkModal(false); }} onClose={() => setLinkModal(false)} />
       </SimpleModal>
 
       <SimpleModal open={tableModal} onClose={() => setTableModal(false)}>
-        <CreateTableForm
-          onCreate={(r, c) => {
-            insertTable(r, c);
-            setTableModal(false);
-          }}
-          onClose={() => setTableModal(false)}
-        />
+        <CreateTableForm onCreate={(r, c) => { insertTable(r, c); setTableModal(false); }} onClose={() => setTableModal(false)} />
       </SimpleModal>
 
-      <SimpleModal
+      <ColorPickerModal
         open={colorModal.open}
+        colorType={colorModal.type}
         onClose={() => setColorModal({ open: false, type: "text" })}
-      >
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-sm font-semibold">
-              {colorModal.type === "cell"
-                ? "Cell Background Color"
-                : colorModal.type === "text"
-                ? "Text Color"
-                : "Background Color"}
-            </div>
-            <button
-              onClick={() => setColorModal({ open: false, type: "text" })}
-            >
-              <X />
-            </button>
-          </div>
-          <div className="grid grid-cols-6 gap-2 mb-3">
-            {COLOR_PRESETS.map((c) => (
-              <button
-                key={c}
-                className="w-8 h-8 rounded-md border"
-                style={{ background: c }}
-                onClick={() => {
-                  applyColor(
-                    colorModal.type === "cell" ? "cell" : colorModal.type,
-                    c
-                  );
-                  setColorModal({ open: false, type: "text" });
-                }}
-              />
-            ))}
-          </div>
-          <div className="text-xs text-gray-600 mb-2">Or pick custom</div>
-          <input
-            type="color"
-            className="w-full h-10 rounded-md"
-            onChange={(e) => {
-              applyColor(
-                colorModal.type === "cell" ? "cell" : colorModal.type,
-                e.target.value
-              );
-              setColorModal({ open: false, type: "text" });
-            }}
-          />
-        </div>
-      </SimpleModal>
+        applyColor={applyColor}
+        activeColor={activeColor}
+        setActiveColor={setActiveColor}
+      />
 
-      {/* Styles: primary color, quotes, table */}
+      {/* Styles */}
       <style>{`
         :root { --primary: ${PRIMARY}; }
         .rich-text-editor:focus { outline: none; }
@@ -864,115 +824,9 @@ const RichTextEditor = ({
         .rich-text-editor table.modern-table th { background: #f8fafc; font-weight: 600; }
         .rich-text-editor table.modern-table td, .rich-text-editor table.modern-table th { border: 1px solid rgba(0,0,0,0.06); padding: 10px; vertical-align: top; }
         .rich-text-editor a { color: var(--primary); text-decoration: underline; }
-        @media (max-width: 640px) {
-          .rich-text-editor { font-size: 14px; }
-        }
+        @media (max-width: 640px) {.rich-text-editor { font-size: 14px; }}
       `}</style>
     </div>
-  );
-};
-
-/* ===== small components used above ===== */
-
-const InsertLinkForm = ({ onInsert, onClose }) => {
-  const [url, setUrl] = useState("");
-  const [text, setText] = useState("");
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onInsert(url, text);
-      }}
-      className="space-y-3"
-    >
-      <div>
-        <label className="text-xs font-medium">URL</label>
-        <input
-          type="url"
-          required
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://example.com"
-          className="w-full p-2 border rounded-md mt-1 text-sm"
-        />
-      </div>
-      <div>
-        <label className="text-xs font-medium">Display text (optional)</label>
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Link text"
-          className="w-full p-2 border rounded-md mt-1 text-sm"
-        />
-      </div>
-      <div className="flex gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex-1 p-2 text-sm rounded-md border"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="flex-1 p-2 text-sm rounded-md bg-green-600 text-white"
-        >
-          Insert
-        </button>
-      </div>
-    </form>
-  );
-};
-
-const CreateTableForm = ({ onCreate, onClose }) => {
-  const [rows, setRows] = useState(3);
-  const [cols, setCols] = useState(3);
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onCreate(Math.max(1, rows), Math.max(1, cols));
-      }}
-      className="space-y-3"
-    >
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <label className="text-xs font-medium">Rows</label>
-          <input
-            type="number"
-            value={rows}
-            onChange={(e) => setRows(parseInt(e.target.value) || 1)}
-            min={1}
-            className="w-full p-2 border rounded-md text-sm"
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium">Columns</label>
-          <input
-            type="number"
-            value={cols}
-            onChange={(e) => setCols(parseInt(e.target.value) || 1)}
-            min={1}
-            className="w-full p-2 border rounded-md text-sm"
-          />
-        </div>
-      </div>
-      <div className="flex gap-2 pt-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex-1 p-2 text-sm rounded-md border"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="flex-1 p-2 text-sm rounded-md bg-green-600 text-white"
-        >
-          Create
-        </button>
-      </div>
-    </form>
   );
 };
 
