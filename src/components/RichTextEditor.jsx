@@ -28,6 +28,7 @@ import {
   Droplets,
   RotateCcw,
   RotateCw,
+  WholeWord,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -68,7 +69,14 @@ const COLOR_PRESETS = [
   "#00d616",
 ];
 
-const ToolbarButton = ({ title, children, onClick, compact = false, active, disabled }) => (
+const ToolbarButton = ({
+  title,
+  children,
+  onClick,
+  compact = false,
+  active,
+  disabled,
+}) => (
   <button
     type="button"
     onClick={onClick}
@@ -76,8 +84,12 @@ const ToolbarButton = ({ title, children, onClick, compact = false, active, disa
     disabled={disabled}
     aria-pressed={!!active}
     className={`inline-flex items-center justify-center rounded-md transition-all duration-150
-      ${compact ? "p-1.5" : "p-2"} text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95
-      ${active ? "ring-2 ring-green-400" : ""} ${disabled ? "opacity-60 pointer-events-none" : ""}`}
+      ${
+        compact ? "p-1.5" : "p-2"
+      } text-black dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95
+      ${
+      disabled ? "opacity-60 pointer-events-none" : ""
+    }`}
     style={{ minWidth: compact ? 34 : 40 }}
   >
     {children}
@@ -126,7 +138,9 @@ const InsertLinkForm = ({ onInsert, onClose }) => {
       className="space-y-4 p-1"
     >
       <div className="space-y-1.5">
-        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">URL</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
+          URL
+        </label>
         <input
           type="url"
           required
@@ -138,7 +152,9 @@ const InsertLinkForm = ({ onInsert, onClose }) => {
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">Display text (optional)</label>
+        <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
+          Display text (optional)
+        </label>
         <input
           type="text"
           value={text}
@@ -156,7 +172,10 @@ const InsertLinkForm = ({ onInsert, onClose }) => {
         >
           Cancel
         </button>
-        <button type="submit" className="flex-1 p-2 text-sm font-medium rounded-md bg-green-600 hover:bg-green-700 text-white transition-colors">
+        <button
+          type="submit"
+          className="flex-1 p-2 text-sm font-medium rounded-md bg-green-600 hover:bg-green-700 text-white transition-colors"
+        >
           Insert
         </button>
       </div>
@@ -178,7 +197,9 @@ const CreateTableForm = ({ onCreate, onClose }) => {
     >
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Rows</label>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+            Rows
+          </label>
           <input
             type="number"
             value={rows}
@@ -188,7 +209,9 @@ const CreateTableForm = ({ onCreate, onClose }) => {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Columns</label>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
+            Columns
+          </label>
           <input
             type="number"
             value={cols}
@@ -200,10 +223,17 @@ const CreateTableForm = ({ onCreate, onClose }) => {
       </div>
 
       <div className="flex gap-2 pt-2">
-        <button type="button" onClick={onClose} className="flex-1 p-2 text-sm rounded-md border border-gray-300 dark:border-zinc-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 p-2 text-sm rounded-md border border-gray-300 dark:border-zinc-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
+        >
           Cancel
         </button>
-        <button type="submit" className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white transition-colors">
+        <button
+          type="submit"
+          className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white transition-colors"
+        >
           Create
         </button>
       </div>
@@ -212,16 +242,31 @@ const CreateTableForm = ({ onCreate, onClose }) => {
 };
 
 /* ColorPickerModal */
-const ColorPickerModal = ({ open, colorType, onClose, applyColor, activeColor, setActiveColor }) => {
+const ColorPickerModal = ({
+  open,
+  colorType,
+  onClose,
+  applyColor,
+  activeColor,
+  setActiveColor,
+}) => {
   return (
     <SimpleModal open={open} onClose={onClose} width={420}>
       <div className="p-5 bg-gradient-to-b from-white to-gray-50 dark:from-zinc-900 dark:to-zinc-950 text-gray-800 dark:text-gray-100 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.15)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)] transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold">
             <Droplets className="w-4 h-4 text-green-500" />
-            {colorType === "cell" ? "Cell Background Color" : colorType === "text" ? "Text Color" : "Background Color"}
+            {colorType === "cell"
+              ? "Cell Background Color"
+              : colorType === "text"
+              ? "Text Color"
+              : "Background Color"}
           </h3>
-          <button onClick={onClose} className="p-1.5 rounded-md hover:bg-gray-200/60 dark:hover:bg-zinc-800/80 transition-colors duration-150" aria-label="Close color picker">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-md hover:bg-gray-200/60 dark:hover:bg-zinc-800/80 transition-colors duration-150"
+            aria-label="Close color picker"
+          >
             <X size={16} />
           </button>
         </div>
@@ -240,16 +285,24 @@ const ColorPickerModal = ({ open, colorType, onClose, applyColor, activeColor, s
                 }}
                 title={c}
                 style={{ backgroundColor: c }}
-                className={`relative w-9 h-9 rounded-xl border transition-all duration-200 hover:scale-110 active:scale-95 ${isActive ? "ring-2 ring-green-400 border-green-400" : "border-gray-300 dark:border-zinc-700"}`}
+                className={`relative w-9 h-9 rounded-xl border transition-all duration-200 hover:scale-110 active:scale-95 ${
+                  isActive
+                    ? "ring-2 ring-green-400 border-green-400"
+                    : "border-gray-300 dark:border-zinc-700"
+                }`}
                 aria-pressed={isActive}
               >
-                {c === "#ffffff" && <div className="absolute inset-0 rounded-xl border border-gray-300/50" />}
+                {c === "#ffffff" && (
+                  <div className="absolute inset-0 rounded-xl border border-gray-300/50" />
+                )}
               </button>
             );
           })}
         </div>
 
-        <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Or pick custom color</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          Or pick custom color
+        </div>
         <div className="flex items-center gap-3">
           <input
             type="color"
@@ -263,7 +316,10 @@ const ColorPickerModal = ({ open, colorType, onClose, applyColor, activeColor, s
             }}
             aria-label="Pick custom color"
           />
-          <div className="px-3 py-1.5 text-xs rounded-md border border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none" style={{ color: activeColor || PRIMARY }}>
+          <div
+            className="px-3 py-1.5 text-xs rounded-md border border-gray-300 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
+            style={{ color: activeColor || PRIMARY }}
+          >
             {(activeColor || PRIMARY).toUpperCase()}
           </div>
         </div>
@@ -273,7 +329,11 @@ const ColorPickerModal = ({ open, colorType, onClose, applyColor, activeColor, s
 };
 
 /* ===== Main component ===== */
-const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized = false }) => {
+const RichTextEditor = ({
+  content = "<p><br/></p>",
+  setContent,
+  mobileOptimized = false,
+}) => {
   const editorRef = useRef(null);
   const rootRef = useRef(null);
 
@@ -320,7 +380,10 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
         handleUndo();
       }
       // Redo (Ctrl/Cmd + Y) or Cmd/Ctrl+Shift+Z
-      if ((mod && e.key.toLowerCase() === "y") || (mod && e.shiftKey && e.key.toLowerCase() === "z")) {
+      if (
+        (mod && e.key.toLowerCase() === "y") ||
+        (mod && e.shiftKey && e.key.toLowerCase() === "z")
+      ) {
         e.preventDefault();
         handleRedo();
       }
@@ -478,7 +541,8 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
     for (let r = 0; r < rows; r++) {
       const tr = document.createElement("tr");
       for (let c = 0; c < cols; c++) {
-        const cell = r === 0 ? document.createElement("th") : document.createElement("td");
+        const cell =
+          r === 0 ? document.createElement("th") : document.createElement("td");
         cell.innerHTML = "<br/>";
         cell.style.border = "1px solid rgba(0,0,0,0.08)";
         cell.style.padding = "10px";
@@ -575,7 +639,9 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
         const el = editorRef.current;
         if (!el) return;
         const plain = el.innerText;
-        el.innerHTML = `<p>${plain.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br/>")}</p>`;
+        el.innerHTML = `<p>${plain
+          .replace(/\n\n/g, "</p><p>")
+          .replace(/\n/g, "<br/>")}</p>`;
         triggerChange();
         break;
       }
@@ -612,7 +678,9 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData("text/plain");
+    const text = (e.clipboardData || window.clipboardData).getData(
+      "text/plain"
+    );
     const html = text.replace(/\n/g, "<br/>");
     document.execCommand("insertHTML", false, html);
     triggerChange();
@@ -629,7 +697,11 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
       const sel = window.getSelection();
       if (!sel) return;
       // if inside list, indent/outdent
-      const li = (sel.anchorNode && sel.anchorNode.closest && sel.anchorNode.closest("li")) || null;
+      const li =
+        (sel.anchorNode &&
+          sel.anchorNode.closest &&
+          sel.anchorNode.closest("li")) ||
+        null;
       if (li) {
         e.preventDefault();
         if (e.shiftKey) document.execCommand("outdent");
@@ -641,7 +713,9 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
   };
 
   const exportHTML = (title = "note") => {
-    const noteHTML = `<!doctype html><html><head><meta charset="utf-8" /><title>${title}</title><meta name="viewport" content="width=device-width,initial-scale=1" /><style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111827;} .note-title{font-size:1.6rem;font-weight:700;margin-bottom:8px;color:${PRIMARY};} .note-content{line-height:1.6;} table{border-collapse:collapse;width:100%;} table td,table th{border:1px solid #e5e7eb;padding:8px;} blockquote{border-left:4px solid ${PRIMARY};padding:8px 16px;background:#f7fff2;}</style></head><body><div class="note-title">${title}</div><div class="note-meta">Exported: ${new Date().toLocaleString()}</div><div class="note-content">${editorRef.current?.innerHTML || ""}</div></body></html>`;
+    const noteHTML = `<!doctype html><html><head><meta charset="utf-8" /><title>${title}</title><meta name="viewport" content="width=device-width,initial-scale=1" /><style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111827;} .note-title{font-size:1.6rem;font-weight:700;margin-bottom:8px;color:${PRIMARY};} .note-content{line-height:1.6;} table{border-collapse:collapse;width:100%;} table td,table th{border:1px solid #e5e7eb;padding:8px;} blockquote{border-left:4px solid ${PRIMARY};padding:8px 16px;background:#f7fff2;}</style></head><body><div class="note-title">${title}</div><div class="note-meta">Exported: ${new Date().toLocaleString()}</div><div class="note-content">${
+      editorRef.current?.innerHTML || ""
+    }</div></body></html>`;
     const blob = new Blob([noteHTML], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -694,35 +768,52 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
   };
 
   return (
-    <div ref={rootRef} className="w-full h-full bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden">
+    <div
+      ref={rootRef}
+      className="w-full h-full bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden"
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-zinc-700">
         <div className="flex items-center gap-3">
           <div className="">
-           <img src="/logo-dark.png" alt="logo" width={20} height={20} />
+            <img src="/logo-dark.png" alt="logo" width={30} height={30} />
           </div>
           <div>
-            <div className="text-sm font-semibold text-gray-900 dark:text-white">Text Editor</div>
-            <div className="text-xs text-gray-500">
-              Updated {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+            <div className="text-sm font-semibold text-black dark:text-white">
+              Text Editor
+            </div>
+            <div className="text-xs">
+              Updated{" "}
+              {lastSaved.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-2 bg-gray-50 dark:bg-zinc-800 px-2 py-1 rounded-md">
-            <Type size={14} className="text-gray-600" />
-            <span className="text-xs text-gray-700 dark:text-gray-300">{wordCount}</span>
+          <div className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-md">
+            <WholeWord size={20} />
+            <span className="text-xs">{wordCount}</span>
           </div>
 
           <div className="flex items-center gap-2">
             <ToolbarButton title="Import" onClick={importFile} compact>
               <Upload size={16} />
             </ToolbarButton>
-            <ToolbarButton title="Export HTML" onClick={() => exportHTML("exported")} compact>
+            <ToolbarButton
+              title="Export HTML"
+              onClick={() => exportHTML("exported")}
+              compact
+            >
               <Download size={16} />
             </ToolbarButton>
-            <ToolbarButton title="Export TXT" onClick={() => exportTXT("exported")} compact>
+            <ToolbarButton
+              title="Export TXT"
+              onClick={() => exportTXT("exported")}
+              compact
+            >
               <FileText size={16} />
             </ToolbarButton>
           </div>
@@ -744,46 +835,88 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
           <Bold size={16} />
         </ToolbarButton>
 
-        <ToolbarButton title="Underline" onClick={() => exec("underline")} compact>
+        <ToolbarButton
+          title="Underline"
+          onClick={() => exec("underline")}
+          compact
+        >
           <Underline size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-        <ToolbarButton title="Align left" onClick={() => exec("justifyLeft")} compact>
+        <ToolbarButton
+          title="Align left"
+          onClick={() => exec("justifyLeft")}
+          compact
+        >
           <AlignLeft size={16} />
         </ToolbarButton>
-        <ToolbarButton title="Align center" onClick={() => exec("justifyCenter")} compact>
+        <ToolbarButton
+          title="Align center"
+          onClick={() => exec("justifyCenter")}
+          compact
+        >
           <AlignCenter size={16} />
         </ToolbarButton>
-        <ToolbarButton title="Align right" onClick={() => exec("justifyRight")} compact>
+        <ToolbarButton
+          title="Align right"
+          onClick={() => exec("justifyRight")}
+          compact
+        >
           <AlignRight size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-        <ToolbarButton title="Bullet list" onClick={() => exec("insertUnorderedList")} compact>
+        <ToolbarButton
+          title="Bullet list"
+          onClick={() => exec("insertUnorderedList")}
+          compact
+        >
           <List size={16} />
         </ToolbarButton>
-        <ToolbarButton title="Numbered list" onClick={() => exec("insertOrderedList")} compact>
+        <ToolbarButton
+          title="Numbered list"
+          onClick={() => exec("insertOrderedList")}
+          compact
+        >
           <ListOrdered size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-        <ToolbarButton title="Text color" onClick={() => setColorModal({ open: true, type: "text" })} compact active={colorModal.type === "text"}>
+        <ToolbarButton
+          title="Text color"
+          onClick={() => setColorModal({ open: true, type: "text" })}
+          compact
+          active={colorModal.type === "text"}
+        >
           <Palette size={16} />
         </ToolbarButton>
-        <ToolbarButton title="Cell / Background color" onClick={() => setColorModal({ open: true, type: "cell" })} compact active={colorModal.type === "cell"}>
+        <ToolbarButton
+          title="Cell / Background color"
+          onClick={() => setColorModal({ open: true, type: "cell" })}
+          compact
+          active={colorModal.type === "cell"}
+        >
           <Highlighter size={16} />
         </ToolbarButton>
 
         <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-        <ToolbarButton title="Insert link" onClick={() => setLinkModal(true)} compact>
+        <ToolbarButton
+          title="Insert link"
+          onClick={() => setLinkModal(true)}
+          compact
+        >
           <LinkIcon size={16} />
         </ToolbarButton>
-        <ToolbarButton title="Insert table" onClick={() => setTableModal(true)} compact>
+        <ToolbarButton
+          title="Insert table"
+          onClick={() => setTableModal(true)}
+          compact
+        >
           <Table size={16} />
         </ToolbarButton>
 
@@ -805,27 +938,64 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
 
         {/* optimize */}
         <div className="relative">
-          <ToolbarButton title="Optimize" onClick={() => setOptOpen(!optOpen)} compact>
+          <ToolbarButton
+            title="Optimize"
+            onClick={() => setOptOpen(!optOpen)}
+            compact
+          >
             <Settings size={16} />
           </ToolbarButton>
 
           <AnimatePresence>
             {optOpen && (
-              <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} className="absolute right-0 mt-2 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2 w-48 z-40">
-                <button className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded" onClick={() => optimizeAction("cleanFormatting")}>Clean Formatting</button>
-                <button className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded" onClick={() => optimizeAction("autofitTable")}>Auto-fit Table</button>
-                <button className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded" onClick={() => optimizeAction("equalizeCells")}>Equalize Cell Widths</button>
-                <button className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded text-red-600" onClick={() => optimizeAction("resetColors")}>Reset Table Colors</button>
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                className="absolute right-0 mt-2 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2 w-48 z-40"
+              >
+                <button
+                  className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
+                  onClick={() => optimizeAction("cleanFormatting")}
+                >
+                  Clean Formatting
+                </button>
+                <button
+                  className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
+                  onClick={() => optimizeAction("autofitTable")}
+                >
+                  Auto-fit Table
+                </button>
+                <button
+                  className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
+                  onClick={() => optimizeAction("equalizeCells")}
+                >
+                  Equalize Cell Widths
+                </button>
+                <button
+                  className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded text-red-600"
+                  onClick={() => optimizeAction("resetColors")}
+                >
+                  Reset Table Colors
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <ToolbarButton title="Clear formatting" onClick={() => optimizeAction("cleanFormatting")} compact>
+        <ToolbarButton
+          title="Clear formatting"
+          onClick={() => optimizeAction("cleanFormatting")}
+          compact
+        >
           <Eraser size={16} />
         </ToolbarButton>
 
-        <ToolbarButton title="Delete selected table" onClick={() => performTableAction("deleteTable")} compact>
+        <ToolbarButton
+          title="Delete selected table"
+          onClick={() => performTableAction("deleteTable")}
+          compact
+        >
           <Trash2 size={16} />
         </ToolbarButton>
       </div>
@@ -840,26 +1010,73 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
           onPaste={handlePaste}
           onKeyDown={handleEditorKeyDown}
           className="rich-text-editor min-h-[220px] p-2 text-sm leading-6 text-gray-900 dark:text-gray-100"
-          style={{ fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial' }}
+          style={{
+            fontFamily:
+              'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
+          }}
         />
       </div>
 
       {/* Table Actions (floating panel) */}
       <AnimatePresence>
         {selectedTable && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.25, ease: "easeOut" }} className="fixed right-6 top-6 z-40 w-56 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl p-4 transition-all">
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed right-6 top-6 z-40 w-56 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl p-4 transition-all"
+          >
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-semibold text-gray-700 dark:text-gray-200">Table ({selectedTable.rows.length}×{selectedTable.rows[0]?.cells.length || 0})</div>
-              <button onClick={() => setSelectedTable(null)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"><X size={16} className="text-gray-600 dark:text-gray-400" /></button>
+              <div className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+                Table ({selectedTable.rows.length}×
+                {selectedTable.rows[0]?.cells.length || 0})
+              </div>
+              <button
+                onClick={() => setSelectedTable(null)}
+                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                <X size={16} className="text-gray-600 dark:text-gray-400" />
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-1.5">
-              <button onClick={() => performTableAction("addRow")} className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"><Plus size={14} /> Row</button>
-              <button onClick={() => performTableAction("addColumn")} className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"><Plus size={14} /> Col</button>
-              <button onClick={() => performTableAction("deleteRow")} className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"><Minus size={14} /> Row</button>
-              <button onClick={() => performTableAction("deleteColumn")} className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"><Minus size={14} /> Col</button>
-              <button onClick={() => performTableAction("equalize")} className="col-span-2 text-xs font-medium text-gray-700 dark:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition">Equalize Widths</button>
-              <button onClick={() => performTableAction("deleteTable")} className="col-span-2 flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-950/40 transition"><Trash2 size={14} /> Delete Table</button>
+              <button
+                onClick={() => performTableAction("addRow")}
+                className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                <Plus size={14} /> Row
+              </button>
+              <button
+                onClick={() => performTableAction("addColumn")}
+                className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                <Plus size={14} /> Col
+              </button>
+              <button
+                onClick={() => performTableAction("deleteRow")}
+                className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                <Minus size={14} /> Row
+              </button>
+              <button
+                onClick={() => performTableAction("deleteColumn")}
+                className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                <Minus size={14} /> Col
+              </button>
+              <button
+                onClick={() => performTableAction("equalize")}
+                className="col-span-2 text-xs font-medium text-gray-700 dark:text-gray-200 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+              >
+                Equalize Widths
+              </button>
+              <button
+                onClick={() => performTableAction("deleteTable")}
+                className="col-span-2 flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-950/40 transition"
+              >
+                <Trash2 size={14} /> Delete Table
+              </button>
             </div>
           </motion.div>
         )}
@@ -867,14 +1084,33 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
 
       {/* Modals */}
       <SimpleModal open={linkModal} onClose={() => setLinkModal(false)}>
-        <InsertLinkForm onInsert={(u, t) => { insertLink(u, t); setLinkModal(false); }} onClose={() => setLinkModal(false)} />
+        <InsertLinkForm
+          onInsert={(u, t) => {
+            insertLink(u, t);
+            setLinkModal(false);
+          }}
+          onClose={() => setLinkModal(false)}
+        />
       </SimpleModal>
 
       <SimpleModal open={tableModal} onClose={() => setTableModal(false)}>
-        <CreateTableForm onCreate={(r, c) => { insertTable(r, c); setTableModal(false); }} onClose={() => setTableModal(false)} />
+        <CreateTableForm
+          onCreate={(r, c) => {
+            insertTable(r, c);
+            setTableModal(false);
+          }}
+          onClose={() => setTableModal(false)}
+        />
       </SimpleModal>
 
-      <ColorPickerModal open={colorModal.open} colorType={colorModal.type} onClose={() => setColorModal({ open: false, type: "text" })} applyColor={applyColor} activeColor={activeColor} setActiveColor={setActiveColor} />
+      <ColorPickerModal
+        open={colorModal.open}
+        colorType={colorModal.type}
+        onClose={() => setColorModal({ open: false, type: "text" })}
+        applyColor={applyColor}
+        activeColor={activeColor}
+        setActiveColor={setActiveColor}
+      />
 
       {/* Styles: quotes, tables, responsiveness */}
       <style>{`

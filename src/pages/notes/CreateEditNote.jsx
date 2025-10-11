@@ -7,7 +7,6 @@ import {
   Edit3,
   Sparkles,
   Clock,
-  Type,
   Download,
   Upload,
   FileText,
@@ -15,16 +14,16 @@ import {
   Trash2,
   X,
   Send,
-  Languages,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "../../components/RichTextEditor";
 import { CreateNoteAiAgent } from "../../agent/NoteMaker";
 
-const CreateNote = () => {
+const CreateEditNote = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const editorRef = useRef();
+
   const quickPrompts = [
     "Meeting notes template",
     "Study summary outline",
@@ -33,6 +32,7 @@ const CreateNote = () => {
     "Shopping list organizer",
     "Recipe instructions",
   ];
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPreview, setIsPreview] = useState(false);
@@ -40,7 +40,6 @@ const CreateNote = () => {
   const [aiPrompt, setAiPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState(new Date());
-  const [isTyping, setIsTyping] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [mobileView, setMobileView] = useState(false);
@@ -53,19 +52,32 @@ const CreateNote = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Auto-save typing indicator
   useEffect(() => {
-    if (title.trim() || content.trim()) {
-      setIsTyping(true);
-      const timer = setTimeout(() => {
-        setIsTyping(false);
-        setLastSaved(new Date());
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [title, content]);
+    if (!id) return;
+    const savedNotes = JSON.parse(
+      localStorage.getItem("neuctra-notes") || "[]"
+    );
+    const existing = savedNotes.find((n) => n.id === id);
+    if (!existing) return;
+    console.log(existing.content);
 
-  // Word count
+    setTitle(existing.title);
+    setContent(existing.content);
+    setWordCount(existing.wordCount || 0);
+    setLastSaved(new Date(existing.date));
+
+    // Wait until the editor is mounted before injecting content
+    const timer = setInterval(() => {
+      if (editorRef.current) {
+        editorRef.current.setEditorContent(existing.content);
+        clearInterval(timer);
+      }
+    }, 100);
+
+    return () => clearInterval(timer);
+  }, [id]);
+
+  // Auto-update word count
   useEffect(() => {
     const words = (title + " " + content)
       .trim()
@@ -74,8 +86,10 @@ const CreateNote = () => {
     setWordCount(words);
   }, [title, content]);
 
+  // Save note (create or update)
   const handleSubmit = (e) => {
     e?.preventDefault();
+
     if (!title.trim()) {
       alert("Please enter a title before saving!");
       return;
@@ -89,14 +103,36 @@ const CreateNote = () => {
       wordCount,
     };
 
-    localStorage.setItem(`note_${noteData.id}`, JSON.stringify(noteData));
-    setLastSaved(new Date());
-    navigate("/notes");
+    try {
+      // Read stored notes safely
+      const stored = localStorage.getItem("neuctra-notes");
+      const notes =
+        stored && stored !== "false" && stored !== "null"
+          ? JSON.parse(stored)
+          : [];
+
+      // If editing → update; else add new
+      const updatedNotes = id
+        ? notes.map((n) => (n.id === id ? noteData : n))
+        : [...notes, noteData];
+
+      // Save back to localStorage
+      localStorage.setItem("neuctra-notes", JSON.stringify(updatedNotes));
+
+      // Optional: store the latest note separately if needed
+      localStorage.setItem("last-note", JSON.stringify(noteData));
+
+      setLastSaved(new Date());
+      navigate("/notes");
+    } catch (err) {
+      console.error("Error saving note:", err);
+      alert("Failed to save note. Please try again.");
+    }
   };
 
-  // --- Export Note as HTML ---
+  // --- Export as HTML ---
   const exportNote = () => {
-    const noteHTML = `
+    const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -116,7 +152,7 @@ const CreateNote = () => {
   <div>${content}</div>
 </body>
 </html>`;
-    const blob = new Blob([noteHTML], { type: "text/html" });
+    const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -125,10 +161,10 @@ const CreateNote = () => {
     URL.revokeObjectURL(url);
   };
 
-  // --- Export Note as Text ---
+  // --- Export as TXT ---
   const exportAsText = () => {
-    const plainText = `# ${title}\n\n${content.replace(/<[^>]+>/g, "")}`;
-    const blob = new Blob([plainText], { type: "text/plain" });
+    const plain = `# ${title}\n\n${content.replace(/<[^>]+>/g, "")}`;
+    const blob = new Blob([plain], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -137,7 +173,7 @@ const CreateNote = () => {
     URL.revokeObjectURL(url);
   };
 
-  // --- Import File (HTML, TXT, MD) ---
+  // --- Import file ---
   const importContent = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -167,15 +203,15 @@ const CreateNote = () => {
     input.click();
   };
 
-  // --- Clear all content ---
+  // --- Clear content ---
   const clearContent = () => {
-    if (window.confirm("Clear all content? This cannot be undone.")) {
+    if (window.confirm("Clear all content?")) {
       setContent("");
       editorRef.current?.setEditorContent("");
     }
   };
 
-  // --- AI Generation ---
+  // --- AI Writer ---
   const handleAIGenerate = async () => {
     if (!aiPrompt.trim()) return;
     setLoading(true);
@@ -195,12 +231,10 @@ const CreateNote = () => {
     }
   };
 
-  const handleCloseModal = () => setShowModal(false);
-
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-black text-black dark:text-white">
+      <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-black backdrop-blur-md">
         <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-4">
           <Link
             to="/notes"
@@ -216,34 +250,27 @@ const CreateNote = () => {
             </h1>
           </div>
 
-          <div
-            className="
-    flex flex-wrap items-center justify-end gap-x-3 gap-y-1 
-    text-[11px] sm:text-xs 
-  "
-          >
-            {/* Last Saved */}
-            <div className="flex items-center gap-1">
-              <Clock size={13} className="shrink-0" />
-              <span className="truncate">
-                {lastSaved.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
+          {/* Right Side Info */}
+          <div className="flex items-center justify-end gap-2 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
+            <Clock size={14} />
+            <span className="truncate">
+              {lastSaved.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
         </div>
       </header>
 
-      {/* Body */}
-      <main className="max-w-6xl mx-auto px-4 py-6 text-black dark:text-white">
+      {/* Editor */}
+      <main className="max-w-6xl mx-auto px-4 py-6">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Note title..."
-          className="w-full text-2xl pb-2 font-bold bg-transparent border-0 border-b border-gray-200/60 dark:border-white/60 outline-none mb-4"
+          className="w-full text-2xl font-bold bg-transparent border-0 border-b border-gray-200/60 dark:border-white/60 outline-none mb-4"
         />
 
         {!isPreview ? (
@@ -252,6 +279,7 @@ const CreateNote = () => {
             content={content}
             setContent={setContent}
             mobileOptimized={mobileView}
+            key={id || "new-note"} // force re-render on note switch
           />
         ) : (
           <div
@@ -265,27 +293,19 @@ const CreateNote = () => {
         )}
       </main>
 
-      {/* Bottom Actions */}
+      {/* Floating Toolbar */}
       <motion.div
         className="fixed bottom-6 inset-x-0 flex justify-center z-50"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+        transition={{ duration: 0.3 }}
       >
-        <div
-          className="flex items-center justify-between gap-4
-               bg-white/70 dark:bg-zinc-900/70 
-               backdrop-blur-xl border border-gray-200/50 dark:border-zinc-700/50
-               shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]
-               rounded-full px-5 py-3 
-               transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)]"
-          style={{ width: "fit-content" }}
-        >
+        <div className="flex items-center justify-between gap-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-lg border border-gray-200/50 dark:border-zinc-700/50 shadow-lg rounded-full px-5 py-3">
           {[
             {
               icon: isPreview ? <Edit3 size={18} /> : <Eye size={18} />,
               onClick: () => setIsPreview(!isPreview),
-              label: isPreview ? "Edit mode" : "Preview",
+              label: isPreview ? "Edit" : "Preview",
             },
             {
               icon: <Sparkles size={18} className="text-amber-500" />,
@@ -311,24 +331,15 @@ const CreateNote = () => {
             <button
               key={i}
               onClick={item.onClick}
-              className="relative group p-2 rounded-full transition-all duration-200
-                   hover:bg-gray-100 dark:hover:bg-zinc-800"
+              className="relative group p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
             >
               {item.icon}
-              {/* Tooltip */}
-              <span
-                className="absolute -top-8 left-1/2 -translate-x-1/2 
-                     opacity-0 group-hover:opacity-100
-                     bg-gray-800 text-white text-xs py-1 px-2 rounded-md 
-                     whitespace-nowrap pointer-events-none 
-                     transition-opacity duration-200"
-              >
+              <span className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-gray-800 text-white text-xs py-1 px-2 rounded-md whitespace-nowrap transition">
                 {item.label}
               </span>
             </button>
           ))}
 
-          {/* More Menu */}
           <AnimatePresence>
             {moreMenuOpen && (
               <motion.div
@@ -336,31 +347,25 @@ const CreateNote = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
                 transition={{ duration: 0.2 }}
-                className="absolute bottom-16 right-0 
-                     bg-white dark:bg-zinc-800 
-                     border border-gray-200/60 dark:border-zinc-700/60 
-                     rounded-2xl shadow-2xl overflow-hidden"
+                className="absolute bottom-16 right-0 bg-white dark:bg-zinc-800 border border-gray-200/60 dark:border-zinc-700/60 rounded-2xl shadow-2xl overflow-hidden"
               >
                 <button
                   onClick={exportAsText}
-                  className="flex items-center gap-2 px-4 py-3 text-sm
-                       hover:bg-gray-100 dark:hover:bg-zinc-700 w-full"
+                  className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 w-full"
                 >
                   <FileText size={16} className="text-blue-500" />
                   Export TXT
                 </button>
                 <button
                   onClick={importContent}
-                  className="flex items-center gap-2 px-4 py-3 text-sm
-                       hover:bg-gray-100 dark:hover:bg-zinc-700 w-full"
+                  className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 w-full"
                 >
                   <Upload size={16} className="text-amber-500" />
-                  Import File
+                  Import
                 </button>
                 <button
                   onClick={clearContent}
-                  className="flex items-center gap-2 px-4 py-3 text-sm
-                       hover:bg-gray-100 dark:hover:bg-zinc-700 text-red-500 w-full"
+                  className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 text-red-500 w-full"
                 >
                   <Trash2 size={16} />
                   Clear
@@ -373,91 +378,69 @@ const CreateNote = () => {
 
       {/* AI Modal */}
       <AnimatePresence>
-        {/* AI Modal - Mobile Optimized */}
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-end justify-center lg:items-center lg:p-4">
-            {/* Backdrop */}
             <div
               onClick={() => setShowModal(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:bg-black/40"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
-
-            {/* Modal - Bottom Sheet on Mobile */}
-            <div className="relative w-full lg:max-w-2xl bg-white dark:bg-zinc-900 rounded-t-3xl lg:rounded-3xl border border-gray-200/80 dark:border-zinc-700/80 shadow-2xl animate-slide-up lg:animate-scale-in max-h-[90vh] lg:max-h-[80vh] flex flex-col">
-              {/* Header */}
+            <div className="relative w-full lg:max-w-2xl bg-white dark:bg-zinc-900 rounded-t-3xl lg:rounded-3xl border border-gray-200/80 dark:border-zinc-700/80 shadow-2xl flex flex-col">
               <div className="flex items-center justify-between p-6 border-b border-gray-200/60 dark:border-zinc-700/60">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-primary/10">
-                    <Sparkles className="w-6 h-6 text-amber-500" />
-                  </div>
+                  <Sparkles className="w-6 h-6 text-amber-500" />
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                      AI Note Assistant
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <h2 className="text-xl font-bold">AI Note Assistant</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Let AI help you write better
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-200"
+                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800"
                 >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Content */}
               <div className="flex-1 overflow-y-auto p-6">
                 <textarea
                   rows={4}
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="What would you like to write about? (e.g., 'Create a meeting agenda for project planning')"
-                  className="w-full p-4 rounded-2xl border-2 border-gray-300/60 dark:border-zinc-600/60 bg-transparent text-gray-900 dark:text-white resize-none focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition-all duration-300 text-base"
+                  placeholder="What would you like to write about?"
+                  className="w-full p-4 rounded-xl border dark:border-zinc-600 bg-transparent resize-none outline-none"
                 />
-
-                {/* Quick Suggestions */}
-                <div className="mt-6">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                    Quick Templates
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {quickPrompts.map((prompt, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setAiPrompt(prompt)}
-                        className="text-left p-3 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm"
-                      >
-                        {prompt}
-                      </button>
-                    ))}
-                  </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {quickPrompts.map((prompt, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setAiPrompt(prompt)}
+                      className="p-3 text-left rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-amber-100/60 dark:hover:bg-amber-500/10 transition"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-gray-200/60 dark:border-zinc-700/60 bg-gray-50/50 dark:bg-zinc-800/50 rounded-b-3xl">
+              <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/50">
                 <button
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-6 py-4 rounded-xl border-2 border-gray-300/60 dark:border-zinc-600/60 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-zinc-800 transition-all duration-300 font-medium text-base"
+                  className="flex-1 px-6 py-4 rounded-xl border text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleAIGenerate}
                   disabled={loading || !aiPrompt.trim()}
-                  className="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-primary text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
+                  className="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-green-500 text-white font-semibold shadow hover:scale-105 transition disabled:opacity-50"
                 >
                   {loading ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Generating...
-                    </>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <Send className="w-5 h-5" />
-                      Generate
+                      <Send size={18} /> Generate
                     </>
                   )}
                 </button>
@@ -470,4 +453,4 @@ const CreateNote = () => {
   );
 };
 
-export default CreateNote;
+export default CreateEditNote;

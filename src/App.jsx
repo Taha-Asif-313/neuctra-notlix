@@ -1,14 +1,14 @@
 import { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/notes/Home";
-import CreateNote from "./pages/notes/CreateNote";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import LandingPage from "./pages/LandingPage";
 import NotesLayout from "./pages/notes/NotesLayout";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
-import { setSdkConfig } from "@neuctra/authix";
+import { ReactSignedIn, setSdkConfig } from "@neuctra/authix";
 import ProfilePage from "./pages/auth/ProfilePage";
+import CreateEditNote from "./pages/notes/CreateEditNote";
 
 function App() {
   // Configure once at app startup
@@ -37,40 +37,36 @@ function App() {
 
   return (
     <Router>
-      <div>
-        <main>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <LandingPage
-                  darkMode={darkMode}
-                  toggleDarkMode={toggleDarkMode}
-                />
-              }
-            />
-            <Route
-              path="/notes"
-              element={
-                <NotesLayout
-                  darkMode={darkMode}
-                  toggleDarkMode={toggleDarkMode}
-                  notes={notes}
-                  setNotes={setNotes}
-                />
-              }
-            >
-              <Route index element={<Home />} />
-       
-              <Route path="edit/:id" element={<CreateNote />} />
-            </Route>
-                   <Route path="/create" element={<CreateNote />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <LandingPage darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+          }
+        />
+        <Route
+          path="/notes"
+          element={
+            <ReactSignedIn fallback={<Navigate to={"/login"} />}>
+              {" "}
+              <NotesLayout
+                darkMode={darkMode}
+                toggleDarkMode={toggleDarkMode}
+                notes={notes}
+                setNotes={setNotes}
+              />
+            </ReactSignedIn>
+          }
+        >
+          <Route index element={<Home />} />
+
+          <Route path="edit/:id" element={<CreateEditNote />} />
+        </Route>
+        <Route path="/create" element={<CreateEditNote />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+      </Routes>
     </Router>
   );
 }
