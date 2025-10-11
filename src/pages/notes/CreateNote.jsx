@@ -31,7 +31,7 @@ const CreateNote = () => {
     "Project ideas brainstorm",
     "Daily reflection template",
     "Shopping list organizer",
-    "Recipe instructions"
+    "Recipe instructions",
   ];
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -200,13 +200,13 @@ const CreateNote = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-black text-black dark:text-white">
         <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-4">
           <Link
             to="/notes"
             className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            <ArrowLeft className="w-6 h-6" />
             {!mobileView && <span>Back</span>}
           </Link>
 
@@ -216,28 +216,34 @@ const CreateNote = () => {
             </h1>
           </div>
 
-          <div className="flex items-center justify-end gap-3 text-xs text-gray-600 dark:text-gray-400">
-            <Type size={14} />
-            <span>{wordCount} words</span>
-            <Clock size={14} />
-            <span>
-              {lastSaved.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
+          <div
+            className="
+    flex flex-wrap items-center justify-end gap-x-3 gap-y-1 
+    text-[11px] sm:text-xs 
+  "
+          >
+            {/* Last Saved */}
+            <div className="flex items-center gap-1">
+              <Clock size={13} className="shrink-0" />
+              <span className="truncate">
+                {lastSaved.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Body */}
-      <main className="max-w-6xl mx-auto px-4 py-6">
+      <main className="max-w-6xl mx-auto px-4 py-6 text-black dark:text-white">
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Note title..."
-          className="w-full text-2xl font-bold bg-transparent border-0 border-b border-gray-200/60 dark:border-zinc-700/60 outline-none mb-4"
+          className="w-full text-2xl pb-2 font-bold bg-transparent border-0 border-b border-gray-200/60 dark:border-white/60 outline-none mb-4"
         />
 
         {!isPreview ? (
@@ -367,98 +373,98 @@ const CreateNote = () => {
 
       {/* AI Modal */}
       <AnimatePresence>
-         {/* AI Modal - Mobile Optimized */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center lg:items-center lg:p-4">
-          {/* Backdrop */}
-          <div 
-            onClick={() => setShowModal(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:bg-black/40"
-          />
-          
-          {/* Modal - Bottom Sheet on Mobile */}
-          <div className="relative w-full lg:max-w-2xl bg-white dark:bg-zinc-900 rounded-t-3xl lg:rounded-3xl border border-gray-200/80 dark:border-zinc-700/80 shadow-2xl animate-slide-up lg:animate-scale-in max-h-[90vh] lg:max-h-[80vh] flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200/60 dark:border-zinc-700/60">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-primary/10">
-                  <Sparkles className="w-6 h-6 text-amber-500" />
+        {/* AI Modal - Mobile Optimized */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center lg:items-center lg:p-4">
+            {/* Backdrop */}
+            <div
+              onClick={() => setShowModal(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:bg-black/40"
+            />
+
+            {/* Modal - Bottom Sheet on Mobile */}
+            <div className="relative w-full lg:max-w-2xl bg-white dark:bg-zinc-900 rounded-t-3xl lg:rounded-3xl border border-gray-200/80 dark:border-zinc-700/80 shadow-2xl animate-slide-up lg:animate-scale-in max-h-[90vh] lg:max-h-[80vh] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200/60 dark:border-zinc-700/60">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-r from-amber-500/10 to-primary/10">
+                    <Sparkles className="w-6 h-6 text-amber-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      AI Note Assistant
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Let AI help you write better
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    AI Note Assistant
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Let AI help you write better
-                  </p>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-200"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <textarea
+                  rows={4}
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  placeholder="What would you like to write about? (e.g., 'Create a meeting agenda for project planning')"
+                  className="w-full p-4 rounded-2xl border-2 border-gray-300/60 dark:border-zinc-600/60 bg-transparent text-gray-900 dark:text-white resize-none focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition-all duration-300 text-base"
+                />
+
+                {/* Quick Suggestions */}
+                <div className="mt-6">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                    Quick Templates
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {quickPrompts.map((prompt, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setAiPrompt(prompt)}
+                        className="text-left p-3 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setShowModal(false)}
-                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-200"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <textarea
-                rows={4}
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="What would you like to write about? (e.g., 'Create a meeting agenda for project planning')"
-                className="w-full p-4 rounded-2xl border-2 border-gray-300/60 dark:border-zinc-600/60 bg-transparent text-gray-900 dark:text-white resize-none focus:border-primary focus:ring-4 focus:ring-primary/20 outline-none transition-all duration-300 text-base"
-              />
-
-              {/* Quick Suggestions */}
-              <div className="mt-6">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                  Quick Templates
-                </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {quickPrompts.map((prompt, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setAiPrompt(prompt)}
-                      className="text-left p-3 rounded-xl bg-gray-100/80 dark:bg-zinc-800/80 text-gray-700 dark:text-gray-300 hover:bg-primary/10 hover:text-primary dark:hover:text-primary transition-colors duration-200 text-sm"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
+              {/* Footer */}
+              <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-gray-200/60 dark:border-zinc-700/60 bg-gray-50/50 dark:bg-zinc-800/50 rounded-b-3xl">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-6 py-4 rounded-xl border-2 border-gray-300/60 dark:border-zinc-600/60 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-zinc-800 transition-all duration-300 font-medium text-base"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAIGenerate}
+                  disabled={loading || !aiPrompt.trim()}
+                  className="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-primary text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      Generate
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-
-            {/* Footer */}
-            <div className="flex flex-col sm:flex-row gap-3 p-6 border-t border-gray-200/60 dark:border-zinc-700/60 bg-gray-50/50 dark:bg-zinc-800/50 rounded-b-3xl">
-              <button
-                onClick={() => setShowModal(false)}
-                className="flex-1 px-6 py-4 rounded-xl border-2 border-gray-300/60 dark:border-zinc-600/60 text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-zinc-800 transition-all duration-300 font-medium text-base"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAIGenerate}
-                disabled={loading || !aiPrompt.trim()}
-                className="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-primary text-white font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-base"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    Generate
-                  </>
-                )}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </AnimatePresence>
     </div>
   );

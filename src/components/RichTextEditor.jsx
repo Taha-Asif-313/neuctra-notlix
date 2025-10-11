@@ -698,13 +698,13 @@ const RichTextEditor = ({ content = "<p><br/></p>", setContent, mobileOptimized 
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-zinc-700">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md" style={{ background: "linear-gradient(90deg,#f0fff3,#e8fff7)" }}>
-            <Sparkles size={16} color={PRIMARY} />
+          <div className="">
+           <img src="/logo-dark.png" alt="logo" width={20} height={20} />
           </div>
           <div>
             <div className="text-sm font-semibold text-gray-900 dark:text-white">Text Editor</div>
             <div className="text-xs text-gray-500">
-              {wordCount} words • updated {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              Updated {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
             </div>
           </div>
         </div>
