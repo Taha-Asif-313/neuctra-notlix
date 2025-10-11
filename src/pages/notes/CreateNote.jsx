@@ -39,7 +39,6 @@ import { CreateNoteAiAgent } from "../../agent/NoteMaker";
 
 const CreateNote = () => {
   const { id } = useParams();
-  const { notes, setNotes } = useOutletContext();
   const navigate = useNavigate();
   const isEditing = Boolean(id);
 
@@ -429,69 +428,67 @@ const CreateNote = () => {
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-300 lg:bg-gray-50 lg:dark:bg-zinc-950">
-   {/* Modern Header with Dark/Light Mode Support */}
-<header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-lg transition-colors duration-500">
-  <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-4 lg:px-6 lg:py-5">
-    
-    {/* Back Button */}
-    <Link
-      to="/notes"
-      className="flex items-center gap-3 group p-2 rounded-xl transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95"
-    >
-      <ArrowLeft className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors" />
-      {!mobileView && (
-        <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary">
-          Back to Notes
-        </span>
-      )}
-    </Link>
+      {/* Modern Header with Dark/Light Mode Support */}
+      <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl supports-[backdrop-filter]:backdrop-blur-lg transition-colors duration-500">
+        <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-4 ">
+          {/* Back Button */}
+          <Link
+            to="/notes"
+            className="flex items-center gap-3 group p-2 rounded-xl transition-all duration-300 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95"
+          >
+            <ArrowLeft className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors" />
+            {!mobileView && (
+              <span className="font-semibold text-gray-700 dark:text-gray-300 group-hover:text-primary">
+                Back to Notes
+              </span>
+            )}
+          </Link>
 
-    {/* Title */}
-    <div className="text-center select-none">
-      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-        {isEditing ? "Edit Note" : "New Note"}
-      </h1>
-      <p className="text-gray-600 dark:text-gray-400 max-sm:hidden text-xs sm:text-sm mt-0.5">
-        {isEditing ? "Update your thoughts" : "Start capturing your ideas"}
-      </p>
-    </div>
-
-    {/* Status & Info */}
-    <div className="flex items-center justify-end gap-4">
-      {isTyping && (
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 animate-fade-in">
-          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-          <span className="text-sm font-medium text-primary">Saving...</span>
-        </div>
-      )}
-
-      {/* Word Count + Last Saved */}
-      {mobileView ? (
-        <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-          {wordCount} words
-        </span>
-      ) : (
-        <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-800/80 backdrop-blur-sm">
-            <Languages size={12}  />
-            <span>{wordCount} words</span>
+          {/* Title */}
+          <div className="text-center select-none">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+              {isEditing ? "Edit Note" : "New Note"}
+            </h1>
+           
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-800/80 backdrop-blur-sm">
-            <Clock size={12} />
-            <span>
-              Saved{" "}
-              {lastSaved.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
+
+          {/* Status & Info */}
+          <div className="flex items-center justify-end gap-4">
+            {isTyping && (
+              <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 animate-fade-in">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-primary">
+                  Saving...
+                </span>
+              </div>
+            )}
+
+            {/* Word Count + Last Saved */}
+            {mobileView ? (
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                {wordCount} words
+              </span>
+            ) : (
+              <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-800/80 backdrop-blur-sm">
+                  <Languages size={12} />
+                  <span>{wordCount} words</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-zinc-800/80 backdrop-blur-sm">
+                  <Clock size={12} />
+                  <span>
+                    Saved{" "}
+                    {lastSaved.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
-    </div>
-  </div>
-</header>
-
+      </header>
 
       <main
         className={`max-w-6xl mx-auto ${
@@ -520,14 +517,12 @@ const CreateNote = () => {
         {/* Editor/Preview Area */}
         <div className="mb-6 lg:mb-8">
           {!isPreview ? (
-
-              <RichTextEditor
-                ref={editorRef}
-                content={content}
-                setContent={setContent}
-                mobileOptimized={mobileView}
-              />
-      
+            <RichTextEditor
+              ref={editorRef}
+              content={content}
+              setContent={setContent}
+              mobileOptimized={mobileView}
+            />
           ) : (
             <div className="bg-gray-50/50 dark:bg-zinc-900/50 rounded-2xl lg:rounded-3xl border border-gray-200/60 dark:border-zinc-700/60 p-6 min-h-[50vh] lg:min-h-[60vh]">
               <div className="flex items-center gap-2 mb-4">

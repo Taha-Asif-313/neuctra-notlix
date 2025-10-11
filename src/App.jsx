@@ -61,9 +61,10 @@ function App() {
               }
             >
               <Route index element={<Home />} />
-              <Route path="create" element={<CreateNote />} />
+       
               <Route path="edit/:id" element={<CreateNote />} />
             </Route>
+                   <Route path="/create" element={<CreateNote />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/profile" element={<ProfilePage />} />

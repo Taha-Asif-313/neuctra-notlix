@@ -25,6 +25,16 @@ import {
   ArrowRightLeft,
   X,
   Plus,
+  Minus,
+  SquareDashed,
+  
+  Square,
+
+  Settings,
+  Layout,
+  Columns,
+  Rows,
+  MousePointer2,
 } from "lucide-react";
 
 // Modal Components
@@ -103,17 +113,18 @@ const LinkModal = ({ isOpen, onClose, onInsert }) => {
 const TableModal = ({ isOpen, onClose, onInsert }) => {
   const [rows, setRows] = useState(3);
   const [cols, setCols] = useState(3);
+  const [hasHeader, setHasHeader] = useState(true);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onInsert(rows, cols);
+    onInsert(rows, cols, hasHeader);
     onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 top-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-6 w-96 max-w-[90vw] shadow-2xl">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Insert Table</h3>
@@ -130,7 +141,7 @@ const TableModal = ({ isOpen, onClose, onInsert }) => {
               <input
                 type="number"
                 min="1"
-                max="10"
+                max="20"
                 value={rows}
                 onChange={(e) => setRows(parseInt(e.target.value) || 1)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -149,6 +160,18 @@ const TableModal = ({ isOpen, onClose, onInsert }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               />
             </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="hasHeader"
+              checked={hasHeader}
+              onChange={(e) => setHasHeader(e.target.checked)}
+              className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-500"
+            />
+            <label htmlFor="hasHeader" className="text-sm text-gray-700">
+              Include header row
+            </label>
           </div>
           <div className="flex gap-3 pt-2">
             <button
@@ -221,61 +244,195 @@ const ColorModal = ({ isOpen, onClose, onColorSelect, type }) => {
   );
 };
 
-const TableEditModal = ({ isOpen, onClose, onTableEdit }) => {
-  const [action, setAction] = useState('addRow');
+// Floating Table Context Menu Component
+const TableContextMenu = ({ table, position, onAction, onClose }) => {
+  const menuRef = useRef(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onTableEdit(action);
-    onClose();
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
+
+  if (!table || !position) return null;
+
+  const getTableInfo = () => {
+    const rows = table.rows.length;
+    const cols = table.rows[0]?.cells.length || 0;
+    return { rows, cols };
   };
 
-  if (!isOpen) return null;
+  const { rows, cols } = getTableInfo();
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-6 w-80 max-w-[90vw] shadow-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Edit Table</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <X size={20} />
+    <div
+      ref={menuRef}
+      className="fixed inset-0 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 min-w-64 overflow-hidden"
+    
+    >
+      {/* Header */}
+      <div className="bg-gradient-to-r from-emerald-50 to-green-50 p-4 border-b border-emerald-100">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Table className="w-5 h-5 text-emerald-600" />
+            <span className="font-semibold text-gray-900">Table Tools</span>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X size={16} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Action
-            </label>
-            <select
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="addRow">Add Row</option>
-              <option value="addColumn">Add Column</option>
-              <option value="deleteRow">Delete Row</option>
-              <option value="deleteColumn">Delete Column</option>
-              <option value="deleteTable">Delete Table</option>
-            </select>
+        <div className="text-xs text-gray-600 mt-1">
+          {rows} × {cols} table
+        </div>
+      </div>
+
+      <div className="max-h-96 overflow-y-auto">
+        {/* Row Operations */}
+        <div className="p-3 border-b border-gray-100">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+            Rows
           </div>
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
-            >
-              Apply
-            </button>
+          <div className="grid grid-cols-2 gap-1">
+            <MenuButton
+              icon={<Plus size={16} />}
+              label="Add Above"
+              color="green"
+              onClick={() => onAction('addRowAbove')}
+            />
+            <MenuButton
+              icon={<Plus size={16} />}
+              label="Add Below"
+              color="green"
+              onClick={() => onAction('addRowBelow')}
+            />
+            <MenuButton
+              icon={<Minus size={16} />}
+              label="Delete Row"
+              color="red"
+              disabled={rows <= 1}
+              onClick={() => onAction('deleteRow')}
+            />
+            <MenuButton
+              icon={<Rows size={16} />}
+              label="Select Row"
+              onClick={() => onAction('selectRow')}
+            />
           </div>
-        </form>
+        </div>
+
+        {/* Column Operations */}
+        <div className="p-3 border-b border-gray-100">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+            Columns
+          </div>
+          <div className="grid grid-cols-2 gap-1">
+            <MenuButton
+              icon={<Plus size={16} />}
+              label="Add Left"
+              color="green"
+              onClick={() => onAction('addColumnLeft')}
+            />
+            <MenuButton
+              icon={<Plus size={16} />}
+              label="Add Right"
+              color="green"
+              onClick={() => onAction('addColumnRight')}
+            />
+            <MenuButton
+              icon={<Minus size={16} />}
+              label="Delete Column"
+              color="red"
+              disabled={cols <= 1}
+              onClick={() => onAction('deleteColumn')}
+            />
+            <MenuButton
+              icon={<Columns size={16} />}
+              label="Select Column"
+              onClick={() => onAction('selectColumn')}
+            />
+          </div>
+        </div>
+
+        {/* Table Operations */}
+        <div className="p-3 border-b border-gray-100">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+            Table
+          </div>
+          <div className="space-y-1">
+            <MenuButton
+              icon={<SquareDashed size={16} />}
+              label="Toggle Borders"
+              onClick={() => onAction('toggleBorders')}
+            />
+            <MenuButton
+              icon={<Layout size={16} />}
+              label="Set Header Row"
+              onClick={() => onAction('setHeaderRow')}
+            />
+            <MenuButton
+              icon={<Square size={16} />}
+              label="Remove Header"
+              onClick={() => onAction('removeHeader')}
+            />
+            <MenuButton
+              icon={<MousePointer2 size={16} />}
+              label="Select Entire Table"
+              onClick={() => onAction('selectTable')}
+            />
+          </div>
+        </div>
+
+        {/* Advanced Operations */}
+        <div className="p-3">
+          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+            Advanced
+          </div>
+          <div className="space-y-1">
+            <MenuButton
+              icon={<Settings size={16} />}
+              label="Table Properties"
+              onClick={() => onAction('tableProperties')}
+            />
+            <MenuButton
+              icon={<Trash2 size={16} />}
+              label="Delete Table"
+              color="red"
+              onClick={() => onAction('deleteTable')}
+            />
+          </div>
+        </div>
       </div>
     </div>
+  );
+};
+
+const MenuButton = ({ icon, label, color = "gray", disabled = false, onClick }) => {
+  const colorClasses = {
+    gray: "text-gray-700 hover:bg-gray-50",
+    green: "text-green-700 hover:bg-green-50",
+    red: "text-red-700 hover:bg-red-50",
+    blue: "text-blue-700 hover:bg-blue-50",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+        colorClasses[color]
+      } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 };
 
@@ -293,8 +450,13 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
   // Modal states
   const [linkModal, setLinkModal] = useState(false);
   const [tableModal, setTableModal] = useState(false);
-  const [tableEditModal, setTableEditModal] = useState(false);
   const [colorModal, setColorModal] = useState({ open: false, type: 'text' });
+
+  // Table context menu state
+  const [tableContextMenu, setTableContextMenu] = useState({
+    table: null,
+    position: null,
+  });
 
   // Detect mobile layout
   useEffect(() => {
@@ -309,8 +471,31 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     if (editorRef.current) {
       editorRef.current.innerHTML = content || "<p><br></p>";
       updateCounts(editorRef.current.innerText || "");
+      attachTableEventListeners();
     }
   }, []);
+
+  // Attach click listeners to tables
+  const attachTableEventListeners = () => {
+    const tables = editorRef.current?.querySelectorAll('table');
+    tables?.forEach(table => {
+      table.addEventListener('click', handleTableClick);
+      table.classList.add('editor-table', 'interactive-table');
+    });
+  };
+
+  const handleTableClick = (e) => {
+    const table = e.currentTarget;
+    const rect = table.getBoundingClientRect();
+    
+    setTableContextMenu({
+      table,
+      position: {
+        x: rect.right + 10,
+        y: rect.top
+      }
+    });
+  };
 
   // Helpers
   const getRange = () => {
@@ -384,7 +569,6 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     } else if (type === "background") {
       span.style.backgroundColor = color;
     } else if (type === "cell") {
-      // For table cell background
       const cell = range.startContainer.closest('td, th');
       if (cell) {
         cell.style.backgroundColor = color;
@@ -435,14 +619,34 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
 
   const toggleBlockQuote = () => exec("formatBlock", "blockquote");
 
-  // Table utilities
-  const insertTable = (rows = 3, cols = 3) => {
+  // Advanced Table Functions
+  const insertTable = (rows = 3, cols = 3, hasHeader = true) => {
     const range = getRange();
     const table = document.createElement("table");
     table.style.width = "100%";
     table.style.borderCollapse = "collapse";
-    table.className = "editor-table";
+    table.className = "editor-table interactive-table";
+    table.setAttribute('data-table', 'true');
     
+    // Create header row if requested
+    if (hasHeader) {
+      const headerRow = document.createElement("tr");
+      headerRow.className = "table-header-row";
+      for (let c = 0; c < cols; c++) {
+        const th = document.createElement("th");
+        th.innerHTML = "Header " + (c + 1);
+        th.style.border = "1px solid #e5e7eb";
+        th.style.padding = "12px 16px";
+        th.style.background = "linear-gradient(135deg, #f8fafc, #f1f5f9)";
+        th.style.fontWeight = "600";
+        th.style.color = "#374151";
+        headerRow.appendChild(th);
+      }
+      table.appendChild(headerRow);
+      rows--; // Reduce data rows by one since we added header
+    }
+    
+    // Create data rows
     for (let r = 0; r < rows; r++) {
       const tr = document.createElement("tr");
       for (let c = 0; c < cols; c++) {
@@ -456,6 +660,9 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
       table.appendChild(tr);
     }
     
+    // Add click listener
+    table.addEventListener('click', handleTableClick);
+    
     if (range) {
       range.deleteContents();
       range.insertNode(table);
@@ -465,69 +672,166 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
     triggerChange();
   };
 
-  const handleTableEdit = (action) => {
-    const range = getRange();
-    if (!range) return;
-    
-    const cell = range.startContainer.closest('td, th');
-    if (!cell) return;
-    
-    const table = cell.closest('table');
+  // Table context menu actions
+  const handleTableAction = (action) => {
+    const { table } = tableContextMenu;
     if (!table) return;
-    
-    const row = cell.parentElement;
-    const rowIndex = Array.from(table.rows).indexOf(row);
-    const cellIndex = Array.from(row.cells).indexOf(cell);
-    
+
+    const currentRow = table.rows[0];
+    const rowCount = table.rows.length;
+    const colCount = currentRow?.cells.length || 0;
+
     switch (action) {
-      case 'addRow':
-        const newRow = document.createElement('tr');
-        for (let i = 0; i < table.rows[0].cells.length; i++) {
-          const newCell = document.createElement('td');
-          newCell.innerHTML = "<br/>";
-          newCell.style.border = "1px solid #e5e7eb";
-          newCell.style.padding = "12px 16px";
-          newRow.appendChild(newCell);
-        }
-        table.insertBefore(newRow, row.nextSibling);
+      case 'addRowAbove':
+        addTableRow(table, 0);
         break;
-        
-      case 'addColumn':
-        Array.from(table.rows).forEach(tr => {
-          const newCell = document.createElement('td');
-          newCell.innerHTML = "<br/>";
-          newCell.style.border = "1px solid #e5e7eb";
-          newCell.style.padding = "12px 16px";
-          tr.insertBefore(newCell, tr.cells[cellIndex + 1] || null);
-        });
+      case 'addRowBelow':
+        addTableRow(table, rowCount);
         break;
-        
       case 'deleteRow':
-        if (table.rows.length > 1) {
-          row.remove();
+        if (rowCount > 1) {
+          table.deleteRow(rowCount - 1);
         }
         break;
-        
+      case 'addColumnLeft':
+        addTableColumn(table, 0);
+        break;
+      case 'addColumnRight':
+        addTableColumn(table, colCount);
+        break;
       case 'deleteColumn':
-        if (table.rows[0].cells.length > 1) {
-          Array.from(table.rows).forEach(tr => {
-            if (tr.cells[cellIndex]) {
-              tr.deleteCell(cellIndex);
-            }
-          });
+        if (colCount > 1) {
+          deleteTableColumn(table, colCount - 1);
         }
         break;
-        
+      case 'toggleBorders':
+        toggleTableBorders(table);
+        break;
+      case 'setHeaderRow':
+        setHeaderRow(table);
+        break;
+      case 'removeHeader':
+        removeHeaderRow(table);
+        break;
+      case 'selectRow':
+        selectTableRow(table, 0);
+        break;
+      case 'selectColumn':
+        selectTableColumn(table, 0);
+        break;
+      case 'selectTable':
+        selectEntireTable(table);
+        break;
       case 'deleteTable':
         table.remove();
         break;
+      case 'tableProperties':
+        showTableProperties(table);
+        break;
     }
-    
+
     triggerChange();
+    setTableContextMenu({ table: null, position: null });
+  };
+
+  const addTableRow = (table, index) => {
+    const newRow = table.insertRow(index);
+    const colCount = table.rows[0].cells.length;
+    
+    for (let i = 0; i < colCount; i++) {
+      const cell = newRow.insertCell(i);
+      cell.innerHTML = "<br/>";
+      cell.style.border = "1px solid #e5e7eb";
+      cell.style.padding = "12px 16px";
+    }
+  };
+
+  const addTableColumn = (table, index) => {
+    Array.from(table.rows).forEach(row => {
+      const cell = row.insertCell(index);
+      cell.innerHTML = "<br/>";
+      cell.style.border = "1px solid #e5e7eb";
+      cell.style.padding = "12px 16px";
+      
+      // Style header cells differently
+      if (row.cells[0]?.tagName === 'TH') {
+        cell.style.background = "linear-gradient(135deg, #f8fafc, #f1f5f9)";
+        cell.style.fontWeight = "600";
+      }
+    });
+  };
+
+  const deleteTableColumn = (table, index) => {
+    Array.from(table.rows).forEach(row => {
+      if (row.cells[index]) {
+        row.deleteCell(index);
+      }
+    });
+  };
+
+  const toggleTableBorders = (table) => {
+    const hasBorder = table.rows[0]?.cells[0]?.style.border !== "none";
+    Array.from(table.rows).forEach(row => {
+      Array.from(row.cells).forEach(cell => {
+        cell.style.border = hasBorder ? "none" : "1px solid #e5e7eb";
+      });
+    });
+  };
+
+  const setHeaderRow = (table) => {
+    const firstRow = table.rows[0];
+    Array.from(firstRow.cells).forEach(cell => {
+      const th = document.createElement('th');
+      th.innerHTML = cell.innerHTML;
+      th.style.border = "1px solid #e5e7eb";
+      th.style.padding = "12px 16px";
+      th.style.background = "linear-gradient(135deg, #f8fafc, #f1f5f9)";
+      th.style.fontWeight = "600";
+      cell.replaceWith(th);
+    });
+  };
+
+  const removeHeaderRow = (table) => {
+    const firstRow = table.rows[0];
+    Array.from(firstRow.cells).forEach(cell => {
+      const td = document.createElement('td');
+      td.innerHTML = cell.innerHTML;
+      td.style.border = "1px solid #e5e7eb";
+      td.style.padding = "12px 16px";
+      cell.replaceWith(td);
+    });
+  };
+
+  const selectTableRow = (table, rowIndex) => {
+    // Implementation for row selection
+    console.log('Select row:', rowIndex);
+  };
+
+  const selectTableColumn = (table, colIndex) => {
+    // Implementation for column selection
+    console.log('Select column:', colIndex);
+  };
+
+  const selectEntireTable = (table) => {
+    const range = document.createRange();
+    range.selectNode(table);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
+
+  const showTableProperties = (table) => {
+    const rows = table.rows.length;
+    const cols = table.rows[0]?.cells.length || 0;
+    alert(`Table Properties:\nRows: ${rows}\nColumns: ${cols}\nTotal Cells: ${rows * cols}`);
   };
 
   // Input handler
-  const handleInput = () => triggerChange();
+  const handleInput = () => {
+    triggerChange();
+    // Reattach event listeners to any new tables
+    setTimeout(attachTableEventListeners, 0);
+  };
 
   const applyCustomFontSize = () => {
     const size = customSizeValue.trim();
@@ -543,11 +847,9 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 relative rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
       <div
-        className={`bg-white rounded-2xl shadow-xl border border-gray-100 transition-all duration-300 overflow-hidden ${
-          mobileView ? "rounded-none border-0" : "my-6 mx-4"
-        }`}
+        className={`bg-white  transition-all duration-300 overflow-hidden`}
       >
         {/* HEADER */}
         <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
@@ -556,8 +858,8 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Smart Editor</h2>
-              <p className="text-sm text-gray-500">Modern rich text editing</p>
+              <h2 className="text-xl font-bold text-gray-900">Advanced Editor</h2>
+              <p className="text-sm text-gray-500">Professional rich text editing</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -708,11 +1010,6 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
             title="Insert Table"
             onClick={() => setTableModal(true)}
           />
-          <ToolbarButton
-            icon={<Plus size={18} />}
-            title="Edit Table"
-            onClick={() => setTableEditModal(true)}
-          />
 
           <div className="w-px h-6 bg-gray-200 mx-1"></div>
 
@@ -752,6 +1049,14 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
         </div>
       </div>
 
+      {/* TABLE CONTEXT MENU */}
+      <TableContextMenu
+        table={tableContextMenu.table}
+        position={tableContextMenu.position}
+        onAction={handleTableAction}
+        onClose={() => setTableContextMenu({ table: null, position: null })}
+      />
+
       {/* MODALS */}
       <LinkModal
         isOpen={linkModal}
@@ -762,11 +1067,6 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
         isOpen={tableModal}
         onClose={() => setTableModal(false)}
         onInsert={insertTable}
-      />
-      <TableEditModal
-        isOpen={tableEditModal}
-        onClose={() => setTableEditModal(false)}
-        onTableEdit={handleTableEdit}
       />
       <ColorModal
         isOpen={colorModal.open}
@@ -833,6 +1133,15 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           overflow: hidden;
           box-shadow: 0 2px 8px rgba(0,0,0,0.1);
           background: white;
+          transition: all 0.3s ease;
+          position: relative;
+        }
+        .rich-text-editor table.interactive-table:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .rich-text-editor table.interactive-table:active {
+          transform: translateY(0);
         }
         .rich-text-editor td, .rich-text-editor th {
           border: 1px solid #e5e7eb;
@@ -840,14 +1149,19 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
           transition: all 0.2s ease;
           min-width: 100px;
           position: relative;
+          cursor: cell;
         }
         .rich-text-editor th {
-          background: #f8fafc;
+          background: linear-gradient(135deg, #f8fafc, #f1f5f9);
           font-weight: 600;
           color: #374151;
+          border-bottom: 2px solid #e5e7eb;
         }
         .rich-text-editor td:hover {
           background: #f9fafb;
+        }
+        .rich-text-editor th:hover {
+          background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
         }
         .rich-text-editor a {
           color: #059669;
@@ -864,6 +1178,18 @@ const RichTextEditor = ({ content = "<p><br></p>", setContent }) => {
         }
         .rich-text-editor li {
           margin: 4px 0;
+        }
+        
+        /* Table selection styles */
+        .table-selected-row {
+          background: #f0f9ff !important;
+        }
+        .table-selected-column {
+          background: #fff7ed !important;
+        }
+        .table-selected-cell {
+          background: #fefce8 !important;
+          outline: 2px solid #f59e0b;
         }
       `}</style>
     </div>
