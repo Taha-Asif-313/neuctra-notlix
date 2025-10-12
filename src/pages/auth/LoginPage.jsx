@@ -1,7 +1,10 @@
 import React from "react";
+import toast from "react-hot-toast";
 import { ReactUserLogin } from "@neuctra/authix";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const theme = localStorage.getItem("neuctra-dark-mode");
   const isDark = theme === "true" || theme === "dark";
 
@@ -14,7 +17,14 @@ const LoginPage = () => {
       <ReactUserLogin
         darkMode={isDark}
         signupUrl={"/signup"}
-        logoUrl={isDark ? "/logo-dark.png" : "/logo-light.png"}
+        logoUrl={isDark ? "/logo-dark.png" : "/logo-white.png"}
+        onSuccess={() => {
+          toast.success("Login Successfully");
+          navigate("/notes");
+        }}
+        onError={(err) => {
+          toast.error(err.message);
+        }}
       />
     </div>
   );

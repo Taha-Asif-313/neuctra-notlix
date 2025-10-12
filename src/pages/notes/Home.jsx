@@ -47,7 +47,7 @@ const Home = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto p-4 sm:p-4">
       <div className="flex flex-col lg:flex-row gap-8">
         <main className="flex-1">
           <div className="flex justify-between items-center mb-6">
@@ -55,7 +55,7 @@ const Home = () => {
               Your Notes
             </h2>
             <Link
-              to="/create"
+              to="/notes/create"
               className="flex items-center text-sm px-4 py-2 bg-primary text-white font-medium rounded transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <Plus size={20} className="mr-2" />

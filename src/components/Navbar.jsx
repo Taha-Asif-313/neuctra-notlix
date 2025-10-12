@@ -1,9 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Moon, Sun, Menu, X, Plus, Home, BookHeart } from "lucide-react";
-import { ReactSignedIn, ReactUserButton, ReactUserProfile } from "@neuctra/authix";
+import {
+  ReactSignedIn,
+  ReactUserButton,
+  ReactUserProfile,
+} from "@neuctra/authix";
 
 const Navbar = ({ darkMode, toggleDarkMode }) => {
+    const theme = localStorage.getItem("neuctra-dark-mode");
+  const isDark = theme === "true" || theme === "dark";
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -67,19 +73,24 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
             >
               {darkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <ReactSignedIn ><ReactUserButton/></ReactSignedIn>
-          
+            <ReactSignedIn>
+              <ReactUserButton darkMode={isDark} profileUrl={"/notes/profile"} />
+            </ReactSignedIn>
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-2">
             <button
               onClick={toggleMenu}
               className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
+              
             </button>
+            <ReactSignedIn>
+              <ReactUserButton profileUrl={"/profile"} />
+            </ReactSignedIn>
           </div>
         </div>
       </div>
@@ -128,7 +139,6 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                 </>
               )}
             </button>
-
           </div>
         </div>
       )}
