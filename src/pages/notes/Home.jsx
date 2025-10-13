@@ -1,29 +1,64 @@
-import { useState, useMemo } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import NoteCard from "../../components/NoteCard";
 import SearchBar from "../../components/SearchBar";
+import { useAppContext } from "../../context/useAppContext";
+import { deleteNote, getAllNotes } from "../../authix/authixinit";
 
 const Home = () => {
-  const { notes, setNotes } = useOutletContext();
+  const { notes, setNotes, user } = useAppContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("grid");
-
+  const [loading, setLoading] = useState(false);
+  // 🔹 Filter notes by title or content
   const filteredNotes = useMemo(() => {
     if (!searchTerm) return notes;
     return notes.filter(
       (note) =>
-        note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.content.toLowerCase().includes(searchTerm.toLowerCase())
+        note.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        note.content?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [notes, searchTerm]);
 
-  const handleDeleteNote = (id) => {
-    if (window.confirm("Are you sure you want to delete this note?")) {
-      setNotes(notes.filter((note) => note.id !== id));
+  // 🔹 Fetch user notes from API
+  useEffect(() => {
+    if (!user?.id) return; // Wait until user is loaded
+
+    const fetchNotes = async () => {
+      try {
+        const res = await getAllNotes(user.id);
+        if (res.success && Array.isArray(res.data)) {
+          setNotes(res.data);
+        } else {
+          console.warn("Unexpected response:", res);
+          setNotes([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch notes:", error);
+      }
+    };
+
+    fetchNotes();
+  }, [user?.id, setNotes]);
+
+  // 🔹 Handle delete
+  const handleDeleteNote = async (noteId) => {
+    if (!user || !noteId) return;
+    try {
+      setLoading(true);
+      await deleteNote(user.id, noteId);
+
+      // Remove from local notes state
+      setNotes((prev) => prev.filter((n) => n.id !== noteId));
+    } catch (error) {
+      console.error("Delete failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // 🔹 Download note as .txt
   const handleDownloadNote = (note) => {
     const element = document.createElement("a");
     const file = new Blob([`# ${note.title}\n\n${note.content}`], {
@@ -36,6 +71,7 @@ const Home = () => {
     document.body.removeChild(element);
   };
 
+  // 🔹 Duplicate note locally
   const handleDuplicateNote = (note) => {
     const duplicatedNote = {
       ...note,
@@ -110,7 +146,7 @@ const Home = () => {
                 <NoteCard
                   key={note.id}
                   note={note}
-                  onDelete={handleDeleteNote}
+                  onDelete={(noteId) => handleDeleteNote(noteId)}
                   onDownload={handleDownloadNote}
                   onDuplicate={handleDuplicateNote}
                   viewMode={viewMode}

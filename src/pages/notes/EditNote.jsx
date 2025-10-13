@@ -18,11 +18,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "../../components/RichTextEditor";
 import { CreateNoteAiAgent } from "../../agent/NoteMaker";
+import { getSingleNote, updateNote } from "../../authix/authixinit";
+import { useAppContext } from "../../context/useAppContext";
 
-const CreateEditNote = () => {
+const EditNote = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const editorRef = useRef();
+  const { user } = useAppContext();
 
   const quickPrompts = [
     "Meeting notes template",
@@ -43,8 +46,9 @@ const CreateEditNote = () => {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [mobileView, setMobileView] = useState(false);
+  const [loadingNote, setLoadingNote] = useState(true);
 
-  // Detect screen size
+  // ✅ Detect mobile view
   useEffect(() => {
     const checkMobile = () => setMobileView(window.innerWidth < 1024);
     checkMobile();
@@ -53,31 +57,36 @@ const CreateEditNote = () => {
   }, []);
 
   useEffect(() => {
-    if (!id) return;
-    const savedNotes = JSON.parse(
-      localStorage.getItem("neuctra-notes") || "[]"
-    );
-    const existing = savedNotes.find((n) => n.id === id);
-    if (!existing) return;
-    console.log(existing.content);
+    const fetchNote = async () => {
+      if (!user?.id) return;
 
-    setTitle(existing.title);
-    setContent(existing.content);
-    setWordCount(existing.wordCount || 0);
-    setLastSaved(new Date(existing.date));
+      setLoadingNote(true);
+      try {
+        const response = await getSingleNote(user.id, id);
+        console.log("Fetched note:", response);
 
-    // Wait until the editor is mounted before injecting content
-    const timer = setInterval(() => {
-      if (editorRef.current) {
-        editorRef.current.setEditorContent(existing.content);
-        clearInterval(timer);
+        if (response.success && response.data) {
+          const existing = response.data;
+          setTitle(existing.title || "");
+          setContent(existing.content || "");
+
+          // ✅ Ensure editor updates after mount
+          setTimeout(() => {
+            editorRef.current?.setEditorContent(existing.content || "");
+          }, 100);
+        } else {
+          console.warn("No note data found for this ID");
+        }
+      } catch (err) {
+        console.error("Failed to load note:", err);
+      } finally {
+        setLoadingNote(false);
       }
-    }, 100);
+    };
+    fetchNote();
+  }, [id, user]);
 
-    return () => clearInterval(timer);
-  }, [id]);
-
-  // Auto-update word count
+  // ✅ Word count watcher
   useEffect(() => {
     const words = (title + " " + content)
       .trim()
@@ -86,51 +95,33 @@ const CreateEditNote = () => {
     setWordCount(words);
   }, [title, content]);
 
-  // Save note (create or update)
-  const handleSubmit = (e) => {
-    e?.preventDefault();
-
-    if (!title.trim()) {
-      alert("Please enter a title before saving!");
+  // ✅ Save updated note
+  const handleUpdate = async () => {
+    if (!user?.id) {
+      alert("User not found. Please log in again.");
       return;
     }
 
-    const noteData = {
-      id: id || Date.now().toString(),
-      title: title.trim(),
-      content,
-      date: new Date().toISOString(),
-      wordCount,
-    };
-
     try {
-      // Read stored notes safely
-      const stored = localStorage.getItem("neuctra-notes");
-      const notes =
-        stored && stored !== "false" && stored !== "null"
-          ? JSON.parse(stored)
-          : [];
+      const updatedNote = {
+        title,
+        content,
+        date: new Date().toISOString(),
+        wordCount,
+      };
 
-      // If editing → update; else add new
-      const updatedNotes = id
-        ? notes.map((n) => (n.id === id ? noteData : n))
-        : [...notes, noteData];
-
-      // Save back to localStorage
-      localStorage.setItem("neuctra-notes", JSON.stringify(updatedNotes));
-
-      // Optional: store the latest note separately if needed
-      localStorage.setItem("last-note", JSON.stringify(noteData));
+      const response = await updateNote(user.id, id, updatedNote);
+      console.log("Note updated:", response);
 
       setLastSaved(new Date());
       navigate("/notes");
     } catch (err) {
-      console.error("Error saving note:", err);
-      alert("Failed to save note. Please try again.");
+      console.error("Error updating note:", err);
+      alert("Failed to update note. Please try again.");
     }
   };
 
-  // --- Export as HTML ---
+  // ✅ Export as HTML
   const exportNote = () => {
     const html = `
 <!DOCTYPE html>
@@ -146,9 +137,7 @@ const CreateEditNote = () => {
 </head>
 <body>
   <h1>${title}</h1>
-  <div class="meta">
-    Words: ${wordCount} | Exported: ${new Date().toLocaleDateString()}
-  </div>
+  <div class="meta">Words: ${wordCount} | Exported: ${new Date().toLocaleDateString()}</div>
   <div>${content}</div>
 </body>
 </html>`;
@@ -161,7 +150,7 @@ const CreateEditNote = () => {
     URL.revokeObjectURL(url);
   };
 
-  // --- Export as TXT ---
+  // ✅ Export as plain text
   const exportAsText = () => {
     const plain = `# ${title}\n\n${content.replace(/<[^>]+>/g, "")}`;
     const blob = new Blob([plain], { type: "text/plain" });
@@ -173,7 +162,7 @@ const CreateEditNote = () => {
     URL.revokeObjectURL(url);
   };
 
-  // --- Import file ---
+  // ✅ Import note content
   const importContent = () => {
     const input = document.createElement("input");
     input.type = "file";
@@ -181,12 +170,10 @@ const CreateEditNote = () => {
     input.onchange = (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = (event) => {
         let text = event.target.result;
         const ext = file.name.split(".").pop().toLowerCase();
-
         if (ext === "html") {
           const parser = new DOMParser();
           const doc = parser.parseFromString(text, "text/html");
@@ -194,7 +181,6 @@ const CreateEditNote = () => {
         } else {
           text = text.replace(/\n/g, "<br>");
         }
-
         setContent(text);
         editorRef.current?.setEditorContent(text);
       };
@@ -203,7 +189,7 @@ const CreateEditNote = () => {
     input.click();
   };
 
-  // --- Clear content ---
+  // ✅ Clear note content
   const clearContent = () => {
     if (window.confirm("Clear all content?")) {
       setContent("");
@@ -211,7 +197,7 @@ const CreateEditNote = () => {
     }
   };
 
-  // --- AI Writer ---
+  // ✅ AI Assist
   const handleAIGenerate = async () => {
     if (!aiPrompt.trim()) return;
     setLoading(true);
@@ -225,12 +211,13 @@ const CreateEditNote = () => {
       setShowModal(false);
       setAiPrompt("");
     } catch (err) {
-      console.error("AI generation failed", err);
+      console.error("AI generation failed:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  // ✅ UI
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">
       {/* Header */}
@@ -250,7 +237,6 @@ const CreateEditNote = () => {
             </h1>
           </div>
 
-          {/* Right Side Info */}
           <div className="flex items-center justify-end gap-2 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
             <Clock size={14} />
             <span className="truncate">
@@ -264,34 +250,45 @@ const CreateEditNote = () => {
       </header>
 
       {/* Editor */}
-      <main className="max-w-6xl mx-auto px-4 py-6">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Note title..."
-          className="w-full text-2xl font-bold bg-transparent border-0 border-b border-gray-200/60 dark:border-white/60 outline-none mb-4"
-        />
+      {loadingNote ? (
+        <div className="flex flex-col items-center justify-center h-[70vh] text-center gap-4">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Loading your note...
+          </p>
+        </div>
+      ) : (
+        <>
+          <main className="max-w-6xl mx-auto px-4 py-6">
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Note title..."
+              className="w-full text-2xl font-bold bg-transparent border-0 border-b border-gray-200/60 dark:border-white/60 outline-none mb-4"
+            />
 
-        {!isPreview ? (
-          <RichTextEditor
-            ref={editorRef}
-            content={content}
-            setContent={setContent}
-            mobileOptimized={mobileView}
-            key={id || "new-note"} // force re-render on note switch
-          />
-        ) : (
-          <div
-            className="prose dark:prose-invert max-w-none border p-4 rounded-xl"
-            dangerouslySetInnerHTML={{
-              __html:
-                content ||
-                '<p class="text-gray-400 italic">Start writing or import content...</p>',
-            }}
-          />
-        )}
-      </main>
+            {!isPreview ? (
+              <RichTextEditor
+                ref={editorRef}
+                content={content}
+                setContent={setContent}
+                mobileOptimized={mobileView}
+                key={id || "new-note"}
+              />
+            ) : (
+              <div
+                className="prose dark:prose-invert max-w-none border p-4 rounded-xl"
+                dangerouslySetInnerHTML={{
+                  __html:
+                    content ||
+                    '<p class="text-gray-400 italic">Start writing or import content...</p>',
+                }}
+              />
+            )}
+          </main>
+        </>
+      )}
 
       {/* Floating Toolbar */}
       <motion.div
@@ -314,7 +311,7 @@ const CreateEditNote = () => {
             },
             {
               icon: <Save size={18} className="text-green-500" />,
-              onClick: handleSubmit,
+              onClick: handleUpdate,
               label: "Save",
             },
             {
@@ -453,4 +450,4 @@ const CreateEditNote = () => {
   );
 };
 
-export default CreateEditNote;
+export default EditNote;

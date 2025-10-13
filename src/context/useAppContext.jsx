@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { getAllNotes } from "../authix/authixinit";
 
-// ---------- Custom hook for localStorage ----------
+
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
     try {
@@ -25,7 +26,6 @@ function useLocalStorage(key, initialValue) {
   return [storedValue, setValue];
 }
 
-// ---------- Context ----------
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
@@ -33,19 +33,30 @@ export const AppProvider = ({ children }) => {
   const [notes, setNotes] = useLocalStorage("neuctra-notes", []);
   const [userInfo, setUserInfo] = useLocalStorage("userInfo", null);
 
-  // Derived state: is user logged in
   const user = userInfo && typeof userInfo === "object" ? userInfo : null;
   const isUserSignedIn = Boolean(user);
 
-  // Optional: Automatically apply dark mode class to <html>
+  // Apply dark mode class
   useEffect(() => {
-    const html = document.documentElement;
-    if (darkMode) {
-      html.classList.add("dark");
-    } else {
-      html.classList.remove("dark");
-    }
+    document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
+
+  // 🔹 Auto-load notes when user logs in
+  useEffect(() => {
+    const loadNotes = async () => {
+      if (!isUserSignedIn) return;
+      try {
+        const res = await getAllNotes(user.id);
+        if (res && Array.isArray(res.data)) {
+          setNotes(res.data);
+        }
+      } catch (error) {
+        console.error("Failed to load notes:", error);
+      }
+    };
+
+    loadNotes();
+  }, [isUserSignedIn, user?.id]);
 
   const value = {
     darkMode,
@@ -60,7 +71,6 @@ export const AppProvider = ({ children }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-// ---------- Hook to use the context ----------
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {

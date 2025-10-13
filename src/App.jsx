@@ -5,16 +5,17 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Home from "./pages/notes/Home";
 import { useLocalStorage } from "./hooks/useLocalStorage";
+import { Toaster } from "react-hot-toast";
+import { ReactSignedIn, setSdkConfig } from "@neuctra/authix";
+import Home from "./pages/notes/Home";
 import LandingPage from "./pages/LandingPage";
 import NotesLayout from "./pages/notes/NotesLayout";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
-import { ReactSignedIn, setSdkConfig } from "@neuctra/authix";
 import ProfilePage from "./pages/auth/ProfilePage";
-import CreateEditNote from "./pages/notes/CreateEditNote";
-import { Toaster } from "react-hot-toast";
+import EditNote from "./pages/notes/EditNote";
+import CreateNote from "./pages/notes/CreateNote";
 
 function App() {
   // Configure once at app startup
@@ -69,8 +70,8 @@ function App() {
           >
             <Route index element={<Home />} />
             <Route path="profile" element={<ProfilePage />} />
-            <Route path="create" element={<CreateEditNote />} />
-            <Route path="edit/:id" element={<CreateEditNote />} />
+            <Route path="create" element={<CreateNote />} />
+            <Route path="edit/:id" element={<EditNote />} />
           </Route>
 
           <Route path="/login" element={<LoginPage />} />
