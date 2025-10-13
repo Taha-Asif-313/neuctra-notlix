@@ -8,7 +8,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   return (
     <div
-      className={`w-full min-h-screen flex items-center justify-center transition-colors duration-300 ${
+      className={`w-full flex items-center justify-center transition-colors duration-300 ${
         isDark ? "bg-black text-white" : "bg-white text-gray-900"
       }`}
     >
