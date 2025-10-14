@@ -34,7 +34,7 @@ const Navbar = () => {
       <motion.div
         className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
           scrolled
-            ? "bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl shadow-lg rounded-b-2xl border-b border-gray-200/50 dark:border-zinc-800/50 mt-2 mx-2"
+            ? "bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl shadow-lg rounded-b-2xl border-b border-gray-200/50 dark:border-zinc-800/50 mx-2"
             : "bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md rounded-b-2xl border-b border-gray-200 dark:border-zinc-800"
         }`}
         initial={{ y: -100 }}
@@ -80,10 +80,10 @@ const Navbar = () => {
                 >
                   <Link
                     to={item.path}
-                    className={`relative px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all duration-200 group ${
+                    className={`relative px-4 py-2.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-all duration-200 group ${
                       isActive(item.path)
                         ? "text-primary bg-primary/10 shadow-sm"
-                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                        : "text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary"
                     }`}
                   >
                     <Icon
@@ -93,7 +93,7 @@ const Navbar = () => {
                     {item.label}
                     {isActive(item.path) && (
                       <motion.div
-                        className="absolute bottom-0 left-1/2 w-1 h-1 bg-primary rounded-full -translate-x-1/2"
+                        className="absolute bottom-0 left-1/2 h-0.5 w-full bg-primary rounded-full -translate-x-1/2"
                         layoutId="activeIndicator"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
@@ -108,7 +108,7 @@ const Navbar = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200 shadow-sm ml-2"
+              className="m-2.5 rounded-xl transition-all duration-200 shadow-sm ml-2"
               aria-label="Toggle dark mode"
             >
               <motion.div
@@ -117,9 +117,9 @@ const Navbar = () => {
                 transition={{ duration: 0.3 }}
               >
                 {darkMode ? (
-                  <Sun size={18} className="text-amber-500" />
+                  <Sun size={20} className="text-primary" />
                 ) : (
-                  <Moon size={18} className="text-indigo-600" />
+                  <Moon size={20} className="text-primary" />
                 )}
               </motion.div>
             </motion.button>
