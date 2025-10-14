@@ -14,9 +14,6 @@ import {
   AlignRight,
   List,
   ListOrdered,
-  Type,
-  Clock,
-  Sparkles,
   Link as LinkIcon,
   Quote,
   Table,
@@ -797,7 +794,7 @@ const RichTextEditor = forwardRef(
             </div>
             <div>
               <div className="text-sm font-semibold text-black dark:text-white">
-                Text Editor
+                Notexa Text Editor
               </div>
               <div className="text-xs">
                 Updated{" "}

@@ -127,7 +127,7 @@ const Home = () => {
               {notes.length === 0 && (
                 <Link
                   to="/notes/create"
-                  className="px-5 py-2.5 w-60 mx-auto flex items-center justify-center gap-2 bg-primary text-sm text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="px-5 py-2.5 text-sm w-60 mx-auto flex items-center justify-center gap-2 bg-primary font-bold text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   <Plus />
                   Create Your First Note

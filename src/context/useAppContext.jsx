@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getAllNotes } from "../authix/authixinit";
 
-
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
     try {
@@ -29,6 +28,9 @@ function useLocalStorage(key, initialValue) {
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  // -------------------------------
+  // 🔹 Global States
+  // -------------------------------
   const [darkMode, setDarkMode] = useLocalStorage("neuctra-dark-mode", false);
   const [notes, setNotes] = useLocalStorage("neuctra-notes", []);
   const [userInfo, setUserInfo] = useLocalStorage("userInfo", null);
@@ -36,15 +38,46 @@ export const AppProvider = ({ children }) => {
   const user = userInfo && typeof userInfo === "object" ? userInfo : null;
   const isUserSignedIn = Boolean(user);
 
-  // Apply dark mode class
+  // -------------------------------
+  // 🔹 Dark Mode Sync + System Preference
+  // -------------------------------
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
+    const root = document.documentElement;
+
+    if (darkMode === "system") {
+      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      root.classList.toggle("dark", systemPrefersDark);
+    } else {
+      root.classList.toggle("dark", darkMode);
+    }
   }, [darkMode]);
 
-  // 🔹 Auto-load notes when user logs in
+  // Optional: auto-detect theme on first load
+  useEffect(() => {
+    if (localStorage.getItem("neuctra-dark-mode") === null) {
+      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setDarkMode(systemPrefersDark);
+    }
+  }, []);
+
+  // -------------------------------
+  // 🔹 Toggle Theme Function
+  // -------------------------------
+  const toggleTheme = () => {
+    if (darkMode === "system") {
+      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setDarkMode(!systemPrefersDark);
+    } else {
+      setDarkMode((prev) => !prev);
+    }
+  };
+
+  // -------------------------------
+  // 🔹 Auto-load notes when signed in
+  // -------------------------------
   useEffect(() => {
     const loadNotes = async () => {
-      if (!isUserSignedIn) return;
+      if (!isUserSignedIn || !user?.id) return;
       try {
         const res = await getAllNotes(user.id);
         if (res && Array.isArray(res.data)) {
@@ -58,9 +91,13 @@ export const AppProvider = ({ children }) => {
     loadNotes();
   }, [isUserSignedIn, user?.id]);
 
+  // -------------------------------
+  // 🔹 Context Value
+  // -------------------------------
   const value = {
     darkMode,
     setDarkMode,
+    toggleTheme,
     notes,
     setNotes,
     user,

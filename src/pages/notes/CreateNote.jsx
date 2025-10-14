@@ -205,15 +205,15 @@ const CreateNote = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">
+    <div className="min-h-screen w-full bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-black backdrop-blur-md">
-        <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-3 items-center px-4 py-4">
           <Link
             to="/notes"
-            className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition"
+            className="flex items-center text-sm gap-2 p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition"
           >
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowLeft className="w-4 h-4" />
             {!mobileView && <span>Back</span>}
           </Link>
 
@@ -234,7 +234,7 @@ const CreateNote = () => {
       </header>
 
       {/* Editor */}
-      <main className="max-w-6xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 py-6">
         <input
           type="text"
           value={title}

@@ -58,7 +58,7 @@ function App() {
           <Route
             path="/notes"
             element={
-              <ReactSignedIn fallback={<Navigate to={"/login"} />}>
+              <ReactSignedIn height={"100%"} width={"100%"} fallback={<Navigate to={"/login"} />}>
                 <NotesLayout
                   darkMode={darkMode}
                   toggleDarkMode={toggleDarkMode}

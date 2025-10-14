@@ -1,147 +1,306 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Moon, Sun, Menu, X, Plus, Home, BookHeart } from "lucide-react";
-import {
-  ReactSignedIn,
-  ReactUserButton,
-  ReactUserProfile,
-} from "@neuctra/authix";
+import { Moon, Sun, Menu, X, Plus, BookHeart, Home, User } from "lucide-react";
+import { ReactSignedIn, ReactUserButton } from "@neuctra/authix";
+import { useAppContext } from "../context/useAppContext";
+import { motion, AnimatePresence } from "framer-motion";
 
-const Navbar = ({ darkMode, toggleDarkMode }) => {
-    const theme = localStorage.getItem("neuctra-dark-mode");
-  const isDark = theme === "true" || theme === "dark";
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const Navbar = () => {
   const location = useLocation();
+  const { darkMode, toggleTheme } = useAppContext();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const isActive = (path) => location.pathname === path;
+  const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const navItems = [
+    { path: "/", label: "Home", icon: Home },
+    { path: "/notes", label: "Notes", icon: BookHeart },
+    { path: "/notes/create", label: "New Note", icon: Plus },
+  ];
 
   return (
-    <nav className="bg-white dark:bg-zinc-950 shadow-md border-b border-gray-200 dark:border-transparent">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-0">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <div className="mr-1">
+    <nav className="fixed top-0 left-0 right-0 z-50">
+      {/* Main Navigation Bar */}
+      <motion.div
+        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
+          scrolled
+            ? "bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl shadow-lg rounded-b-2xl border-b border-gray-200/50 dark:border-zinc-800/50 mt-2 mx-2"
+            : "bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md rounded-b-2xl border-b border-gray-200 dark:border-zinc-800"
+        }`}
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        <div className="h-16 flex justify-between items-center">
+          {/* Logo */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-3"
+          >
+            <Link to="/" className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 rounded-xl blur opacity-75"></div>
                 <img
                   src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
-                  height={38}
-                  width={38}
                   alt="Logo"
-                  className="object-cover"
+                  className="relative h-10 w-10 object-cover rounded-xl shadow-lg"
                 />
               </div>
-              <span className="text-sm text-gray-800 dark:text-white">
-                Neuctra <span className="text-primary font-bold">Notexa</span>
-              </span>
+              <div className="flex flex-col">
+                <span className="text-lg font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                  Neuctra
+                </span>
+                <span className="text-xs font-semibold text-primary -mt-1">
+                  Notexa
+                </span>
+              </div>
             </Link>
-          </div>
+          </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center  space-x-4">
-            <Link
-              to="/notes"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center ${
-                isActive("/notes")
-                  ? "text-primary dark:text-primary bg-primary/15 dark:bg-primary/5"
-                  : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
-              }`}
-            >
-              <BookHeart size={18} className="mr-1" />
-              Notes
-            </Link>
-            <Link
-              to="/notes/create"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 flex items-center ${
-                isActive("/notes/create")
-                  ? "text-primary dark:text-primary bg-primary/5 dark:bg-primary/5"
-                  : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
-              }`}
-            >
-              <Plus size={18} className="mr-1" />
-              New Note
-            </Link>
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-black text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <motion.div
+                  key={item.path}
+                  whileHover={{ y: -1 }}
+                  whileTap={{ y: 0 }}
+                >
+                  <Link
+                    to={item.path}
+                    className={`relative px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all duration-200 group ${
+                      isActive(item.path)
+                        ? "text-primary bg-primary/10 shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                    }`}
+                  >
+                    <Icon
+                      size={18}
+                      className={isActive(item.path) ? "text-primary" : ""}
+                    />
+                    {item.label}
+                    {isActive(item.path) && (
+                      <motion.div
+                        className="absolute bottom-0 left-1/2 w-1 h-1 bg-primary rounded-full -translate-x-1/2"
+                        layoutId="activeIndicator"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                  </Link>
+                </motion.div>
+              );
+            })}
+
+            {/* Theme Toggle */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleTheme}
+              className="p-2.5 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200 shadow-sm ml-2"
               aria-label="Toggle dark mode"
             >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <ReactSignedIn>
-              <ReactUserButton darkMode={isDark} profileUrl={"/notes/profile"} />
-            </ReactSignedIn>
+              <motion.div
+                initial={false}
+                animate={{ rotate: darkMode ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {darkMode ? (
+                  <Sun size={18} className="text-amber-500" />
+                ) : (
+                  <Moon size={18} className="text-indigo-600" />
+                )}
+              </motion.div>
+            </motion.button>
+
+            {/* User Button */}
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="ml-2"
+            >
+              <ReactSignedIn>
+                <ReactUserButton
+                  darkMode={darkMode}
+                  profileUrl="/notes/profile"
+                />
+              </ReactSignedIn>
+            </motion.div>
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-2">
-            <button
-              onClick={toggleMenu}
-              className="text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-              aria-label="Toggle menu"
-            >
-              {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-              
-            </button>
-            <ReactSignedIn>
-              <ReactUserButton profileUrl={"/profile"} />
-            </ReactSignedIn>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      {isMenuOpen && (
-        <div className="md:hidden text-sm bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-gray-700">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            <Link
-              to="/notes"
-              className={` px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 flex items-center ${
-                isActive("/notes")
-                  ? "text-primary dark:text-primary bg-blue-100 dark:bg-primary/10"
-                  : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
-              }`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <BookHeart size={18} className="mr-2" />
-              Notes
-            </Link>
-            <Link
-              to="/notes/create"
-              className={` px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 flex items-center ${
-                isActive("/notes/create")
-                  ? "text-primary dark:text-primary bg-blue-100 dark:bg-primary/10"
-                  : "text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
-              }`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Plus size={18} className="mr-2" />
-              New Note
-            </Link>
-            <button
-              onClick={toggleDarkMode}
-              className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors duration-200 flex items-center"
+            {/* Theme Toggle Mobile */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleTheme}
+              className="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
+              aria-label="Toggle dark mode"
             >
               {darkMode ? (
-                <>
-                  <Sun size={18} className="mr-2" />
-                  Light Mode
-                </>
+                <Sun size={18} className="text-primary" />
               ) : (
-                <>
-                  <Moon size={18} className="mr-2" />
-                  Dark Mode
-                </>
+                <Moon size={18} className="text-primary" />
               )}
-            </button>
+            </motion.button>
+
+            {/* User Button Mobile */}
+            <ReactSignedIn>
+              <ReactUserButton darkMode={darkMode} profileUrl="/profile" />
+            </ReactSignedIn>
+
+            {/* Menu Toggle */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleDrawer}
+              className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-all duration-200"
+              aria-label="Toggle menu"
+            >
+              {isDrawerOpen ? <X size={24} /> : <Menu size={24} />}
+            </motion.button>
           </div>
         </div>
-      )}
+      </motion.div>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isDrawerOpen && (
+          <>
+            {/* Backdrop Overlay */}
+            <motion.div
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={toggleDrawer}
+            />
+
+            {/* Drawer Panel */}
+            <motion.div
+              className="fixed top-0 right-0 w-80 h-full bg-white dark:bg-zinc-950 border-l border-gray-200 dark:border-zinc-800 shadow-2xl z-50 flex flex-col"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 400, damping: 40 }}
+            >
+              {/* Drawer Header */}
+              <div className="p-6 border-b border-gray-200 dark:border-zinc-800">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
+                      alt="Logo"
+                      className="h-12 w-12 object-cover rounded-xl shadow-lg"
+                    />
+                    <div className="flex flex-col">
+                      <span className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                        Neuctra
+                      </span>
+                      <span className="text-sm font-semibold text-primary">
+                        Notexa
+                      </span>
+                    </div>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={toggleDrawer}
+                    className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-all duration-200"
+                  >
+                    <X size={20} />
+                  </motion.button>
+                </div>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="flex-1 p-6 space-y-2">
+                {navItems.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <motion.div
+                      key={item.path}
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Link
+                        to={item.path}
+                        onClick={toggleDrawer}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                          isActive(item.path)
+                            ? "bg-primary/10 text-primary shadow-sm border border-primary/20"
+                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800"
+                        }`}
+                      >
+                        <Icon
+                          size={20}
+                          className={isActive(item.path) ? "text-primary" : ""}
+                        />
+                        <span className="font-medium">{item.label}</span>
+                        {isActive(item.path) && (
+                          <motion.div
+                            className="w-2 h-2 bg-primary rounded-full ml-auto"
+                            layoutId="mobileActiveIndicator"
+                          />
+                        )}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+
+                {/* Theme Toggle in Drawer */}
+                <motion.button
+                  initial={{ x: 20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  onClick={() => {
+                    toggleTheme();
+                    toggleDrawer();
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all duration-200"
+                >
+                  {darkMode ? (
+                    <>
+                      <Sun size={20} className="text-amber-500" />
+                      <span className="font-medium">Light Mode</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon size={20} className="text-indigo-600" />
+                      <span className="font-medium">Dark Mode</span>
+                    </>
+                  )}
+                </motion.button>
+              </nav>
+
+              {/* Drawer Footer */}
+              <div className="p-6 border-t border-gray-200 dark:border-zinc-800">
+                <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <ReactSignedIn>
+                    <ReactUserButton darkMode={darkMode} profileUrl="/profile" />
+                  </ReactSignedIn>
+                </motion.div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };
