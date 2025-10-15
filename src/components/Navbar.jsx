@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Moon, Sun, Menu, X, Plus, BookHeart, Home, User } from "lucide-react";
+import { Moon, Sun, Menu, X, Plus, BookHeart, Home, User, BookOpen } from "lucide-react";
 import { ReactSignedIn, ReactUserButton } from "@neuctra/authix";
 import { useAppContext } from "../context/useAppContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,19 +24,19 @@ const Navbar = () => {
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
-    { path: "/notes", label: "Notes", icon: BookHeart },
+    { path: "/notes", label: "Notes", icon: BookOpen },
     { path: "/notes/create", label: "New Note", icon: Plus },
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 ${
+        scrolled ? "bg-white/95 dark:bg-zinc-950/95" : ""
+      }`}
+    >
       {/* Main Navigation Bar */}
       <motion.div
-        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
-          scrolled
-            ? "bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl shadow-lg rounded-b-2xl border-b border-gray-200/50 dark:border-zinc-800/50 mx-2"
-            : "bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md rounded-b-2xl border-b border-gray-200 dark:border-zinc-800"
-        }`}
+        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-300 `}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -87,7 +87,7 @@ const Navbar = () => {
                     }`}
                   >
                     <Icon
-                      size={18}
+                      size={15}
                       className={isActive(item.path) ? "text-primary" : ""}
                     />
                     {item.label}
@@ -95,7 +95,11 @@ const Navbar = () => {
                       <motion.div
                         className="absolute bottom-0 left-1/2 h-0.5 w-full bg-primary rounded-full -translate-x-1/2"
                         layoutId="activeIndicator"
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 30,
+                        }}
                       />
                     )}
                   </Link>
@@ -200,7 +204,7 @@ const Navbar = () => {
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     <img
-                      src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
+                      src="/logo-dark.png"
                       alt="Logo"
                       className="h-12 w-12 object-cover rounded-xl shadow-lg"
                     />
@@ -293,7 +297,10 @@ const Navbar = () => {
                   transition={{ delay: 0.4 }}
                 >
                   <ReactSignedIn>
-                    <ReactUserButton darkMode={darkMode} profileUrl="/profile" />
+                    <ReactUserButton
+                      darkMode={darkMode}
+                      profileUrl="/profile"
+                    />
                   </ReactSignedIn>
                 </motion.div>
               </div>
