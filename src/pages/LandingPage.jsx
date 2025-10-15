@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import {
   Sparkles,
   Notebook,
-  Moon,
-  Sun,
   MoveRight,
   Brain,
   Zap,
@@ -14,50 +12,24 @@ import {
   Leaf,
   Sprout,
   Trees,
-  Menu,
-  X,
-  Cloud,
-  Lock,
   Palette,
   Search,
   Users,
-  Globe,
-  MessageCircle,
   CheckCircle,
   ArrowRight,
   Play,
-  Download,
-  Smartphone,
-  Laptop,
-  Tablet,
+  BrainCircuit,
+  BookHeart,
+  Rocket,
+  Crown,
 } from "lucide-react";
+import LandingPageNav from "../components/LandingPage/LandingPageNav";
+import LandingPageFooter from "../components/LandingPage/LandingPageFooter";
+import { useAppContext } from "../context/useAppContext";
 
 const LandingPage = () => {
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark"
-  );
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [darkMode]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+  const { darkMode } = useAppContext();
   // Auto-rotate features
   useEffect(() => {
     const interval = setInterval(() => {
@@ -77,6 +49,8 @@ const LandingPage = () => {
         "Auto-completion",
         "Style analysis",
       ],
+      image: "/ai-brain-illustration.svg",
+      color: "from-purple-500 to-blue-600",
     },
     {
       icon: <Zap className="w-12 h-12" />,
@@ -84,6 +58,8 @@ const LandingPage = () => {
       description:
         "Experience blazing fast note creation and retrieval with our cloud-optimized architecture and real-time synchronization.",
       highlights: ["Instant sync", "Offline access", "Quick search"],
+      image: "/sync-illustration.svg",
+      color: "from-yellow-500 to-orange-600",
     },
     {
       icon: <Shield className="w-12 h-12" />,
@@ -91,6 +67,8 @@ const LandingPage = () => {
       description:
         "Your notes are encrypted end-to-end with AES-256 encryption. Your privacy and data security are our top priority.",
       highlights: ["End-to-end encryption", "Two-factor auth", "Privacy first"],
+      image: "/security-illustration.svg",
+      color: "from-green-500 to-emerald-600",
     },
     {
       icon: <Palette className="w-12 h-12" />,
@@ -98,6 +76,8 @@ const LandingPage = () => {
       description:
         "Personalize your writing experience with themes, fonts, and layouts that inspire creativity and focus.",
       highlights: ["Multiple themes", "Custom fonts", "Flexible layouts"],
+      image: "/customization-illustration.svg",
+      color: "from-pink-500 to-rose-600",
     },
     {
       icon: <Search className="w-12 h-12" />,
@@ -105,6 +85,8 @@ const LandingPage = () => {
       description:
         "Find anything instantly with AI-powered search that understands context and relationships between your notes.",
       highlights: ["AI search", "Smart tags", "Quick filters"],
+      image: "/search-illustration.svg",
+      color: "from-blue-500 to-cyan-600",
     },
     {
       icon: <Users className="w-12 h-12" />,
@@ -112,6 +94,8 @@ const LandingPage = () => {
       description:
         "Work together seamlessly with real-time collaboration, comments, and version history for team projects.",
       highlights: ["Real-time collaboration", "Comments", "Version history"],
+      image: "/collaboration-illustration.svg",
+      color: "from-indigo-500 to-purple-600",
     },
   ];
 
@@ -123,6 +107,7 @@ const LandingPage = () => {
         "Neuctra Notes has transformed how I organize my thoughts. The AI features are incredibly useful for brainstorming and content creation!",
       avatar: "/avatar-1.jpg",
       rating: 5,
+      company: "TechInnovate",
     },
     {
       name: "Sarah Chen",
@@ -131,6 +116,7 @@ const LandingPage = () => {
         "I've tried dozens of note apps, but none combine simplicity and power like Neuctra Notes. The sync is flawless across all my devices.",
       avatar: "/avatar-2.jpg",
       rating: 5,
+      company: "CodeCraft",
     },
     {
       name: "Michael Torres",
@@ -139,6 +125,7 @@ const LandingPage = () => {
         "The dark mode is perfect for my late-night writing sessions. My productivity has doubled since switching to Neuctra Notes!",
       avatar: "/avatar-3.jpg",
       rating: 5,
+      company: "BioResearch Labs",
     },
     {
       name: "Emily Davis",
@@ -147,6 +134,7 @@ const LandingPage = () => {
         "The AI writing assistant has saved me hours of work. It's like having a creative partner that never gets tired.",
       avatar: "/avatar-4.jpg",
       rating: 5,
+      company: "CreativeFlow",
     },
   ];
 
@@ -175,53 +163,51 @@ const LandingPage = () => {
 
   const pricingPlans = [
     {
-      name: "Free",
-      price: "$0",
-      period: "forever",
-      description: "Perfect for getting started",
+      name: "Starter",
+      description: "Perfect for personal note-taking and quick ideas.",
+      price: "Free",
+      period: "Forever",
       features: [
         "Up to 100 notes",
-        "Basic AI features",
-        "1GB storage",
-        "Web & mobile apps",
+        "Basic text editing",
+        "Sync across devices",
+        "Community support",
       ],
       cta: "Get Started",
-      popular: false,
+      icon: Rocket,
     },
     {
       name: "Pro",
+      description: "Ideal for professionals who need AI-powered assistance.",
       price: "$9",
       period: "per month",
-      description: "For power users and professionals",
       features: [
         "Unlimited notes",
-        "Advanced AI features",
-        "50GB storage",
-        "All platforms",
+        "AI writing assistant",
+        "Advanced formatting tools",
+        "Cloud backup",
         "Priority support",
-        "Custom themes",
       ],
-      cta: "Start Free Trial",
+      cta: "Upgrade to Pro",
       popular: true,
+      icon: Sparkles,
     },
     {
-      name: "Team",
-      price: "$15",
-      period: "per user/month",
-      description: "Collaborative workspace for teams",
+      name: "Enterprise",
+      description: "Best for teams and organizations with collaboration needs.",
+      price: "$29",
+      period: "per month",
       features: [
-        "Everything in Pro",
-        "Team workspaces",
-        "Admin controls",
+        "Team collaboration",
+        "Custom integrations",
+        "Admin dashboard",
         "Advanced analytics",
-        "SSO integration",
-        "99.9% uptime SLA",
+        "24/7 premium support",
       ],
       cta: "Contact Sales",
-      popular: false,
+      icon: Crown,
     },
   ];
-
   return (
     <>
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950 text-gray-900 dark:text-white transition-all duration-300">
@@ -233,195 +219,107 @@ const LandingPage = () => {
         </div>
 
         {/* Modern Simplified Navbar */}
-        <header
-          className={`fixed w-full z-50 transition-all duration-300 ${
-            isScrolled
-              ? "py-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-800"
-              : "py-6 bg-transparent"
-          }`}
-        >
-          <div className="container mx-auto px-4 sm:px-6">
-            <div className="flex items-center justify-between">
-              {/* Logo */}
-              <Link to="/" className="flex items-center space-x-3 group">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl blur opacity-70 group-hover:opacity-90 transition-opacity"></div>
-                  <div className="relative">
-                    <img
-                      src={"/logo-dark.png"}
-                      alt="Neuctra Notes"
-                      className="h-8 w-8 object-cover"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-                    Neuctra
-                  </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
-                    Notes
-                  </span>
-                </div>
-              </Link>
+        <LandingPageNav />
 
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center space-x-6">
-                {["Features", "Testimonials", "Pricing", "FAQ"].map((item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase()}`}
-                    className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                  >
-                    {item}
-                  </a>
-                ))}
-              </nav>
+        {/* Hero Section with Image */}
+        <section className="relative flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-32 pb-20">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="text-left">
+              {/* Badge */}
+              <div className="inline-flex items-center text-xs space-x-2 bg-primary/10 dark:bg-primary/20 text-primary px-4 py-2 rounded-full mb-3 font-semibold border border-emerald-200 dark:border-emerald-800">
+                <BrainCircuit className="w-4 h-4" />
+                <span>Introducing AI-Powered Notes</span>
+              </div>
 
-              {/* Right Side Actions */}
-              <div className="flex items-center space-x-3">
-                {/* Dark Mode Toggle */}
-                <button
-                  onClick={() => setDarkMode(!darkMode)}
-                  className="p-2 rounded-lg bg-white dark:bg-zinc-800 shadow border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
-                  aria-label="Toggle dark mode"
-                >
-                  {darkMode ? (
-                    <Sun size={18} className="text-amber-400" />
-                  ) : (
-                    <Moon size={18} className="text-indigo-600" />
-                  )}
-                </button>
+              {/* Main Heading */}
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+                Where Ideas{" "}
+                <span className="bg-gradient-to-r from-primary via-green-500 to-emerald-400 bg-clip-text text-transparent animate-gradient">
+                  Grow & Flourish
+                </span>
+              </h1>
 
-                {/* Mobile Menu Button */}
-                <button
-                  className="md:hidden p-2 rounded-lg bg-white dark:bg-zinc-800 shadow border border-gray-200 dark:border-gray-700"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  aria-label="Toggle menu"
-                >
-                  {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-                </button>
+              {/* Subtitle */}
+              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed">
+                Neuctra Notes helps you capture, organize, and enhance your
+                ideas with built-in AI.
+                <span className="font-semibold text-primary dark:text-emerald-400">
+                  {" "}
+                  Cultivate your thoughts
+                </span>{" "}
+                and watch them transform into something extraordinary.
+              </p>
 
-                {/* Get Started Button */}
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-16">
                 <Link
-                  to="/notes"
-                  className="hidden sm:flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg font-medium shadow hover:shadow-md transition-all"
+                  to="/notes/create"
+                  className="group flex items-center justify-center space-x-3 px-8 py-4 bg-gradient-to-r from-primary to-green-600 text-white rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
                 >
-                  <span>Get Started</span>
-                  <MoveRight size={16} />
+                  <Sprout size={20} />
+                  <span>Start Writing with AI</span>
+                  <MoveRight
+                    size={18}
+                    className="group-hover:translate-x-1 !transition-transform"
+                  />
                 </Link>
+                <button className="group flex items-center justify-center space-x-3 px-8 py-4 border-2 border-emerald-200 dark:border-emerald-800 rounded-2xl font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all duration-300">
+                  <Play size={18} />
+                  <span>Watch Demo</span>
+                </button>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                {[
+                  { number: "50K+", label: "Active Users" },
+                  { number: "1M+", label: "Notes Created" },
+                  { number: "99.9%", label: "Uptime" },
+                  { number: "4.9/5", label: "Rating" },
+                ].map((stat, index) => (
+                  <div key={index} className="text-left">
+                    <div className="text-2xl font-bold text-primary">
+                      {stat.number}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
 
-          {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 shadow-lg">
-              <div className="container mx-auto px-4 py-4">
-                <div className="flex flex-col space-y-1">
-                  {["Features", "Testimonials", "Pricing", "FAQ"].map(
-                    (item) => (
-                      <a
-                        key={item}
-                        href={`#${item.toLowerCase()}`}
-                        className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        {item}
-                      </a>
-                    )
-                  )}
-                  <Link
-                    to="/notes"
-                    className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg font-medium mt-2"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <span>Get Started</span>
-                    <MoveRight size={16} />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-        </header>
-
-        {/* Hero Section */}
-        <section className="relative flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-32 pb-20">
-          <div className="max-w-6xl mx-auto">
-            {/* Badge */}
-            <div className="inline-flex items-center space-x-2 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-full mb-8 text-sm font-semibold border border-emerald-200 dark:border-emerald-800">
-              <Sparkles className="w-4 h-4" />
-              <span>Introducing AI-Powered Notes</span>
-            </div>
-
-            {/* Main Heading */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              Where Ideas{" "}
-              <span className="bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-400 bg-clip-text text-transparent animate-gradient">
-                Grow & Flourish
-              </span>
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-              Neuctra Notes helps you capture, organize, and enhance your ideas
-              with built-in AI.
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                {" "}
-                Cultivate your thoughts
-              </span>{" "}
-              and watch them transform into something extraordinary.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Link
-                to="/notes/create"
-                className="group flex items-center justify-center space-x-3 px-8 py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105"
-              >
-                <Sprout size={20} />
-                <span>Start Writing with AI</span>
-                <MoveRight
-                  size={18}
-                  className="group-hover:translate-x-1 transition-transform"
+            {/* 🌟 Hero Section Right Image */}
+            <div className="relative">
+              {/* Main Hero Image */}
+              <div className="relative rounded-3xl overflow-hidden transform hover:scale-[1.02] transition-all duration-500">
+                <img
+                  src={darkMode ? "/logo-dark.png":"/logo-white.png"}
+                  alt="Neuctra Notes App Interface"
+                  className="w-full h-auto object-cover"
                 />
-              </Link>
-              <button className="group flex items-center justify-center space-x-3 px-8 py-4 border-2 border-emerald-200 dark:border-emerald-800 rounded-2xl font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all duration-300">
-                <Play size={18} />
-                <span>Watch Demo</span>
-              </button>
-            </div>
+                <div className="absolute inset-0"></div>
+              </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
-              {[
-                { number: "50K+", label: "Active Users" },
-                { number: "1M+", label: "Notes Created" },
-                { number: "99.9%", label: "Uptime" },
-                { number: "4.9/5", label: "Rating" },
-              ].map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {stat.number}
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
+              {/* ✨ Floating Note Preview */}
+              <div className="absolute -top-6 -left-6 w-24 h-24 bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl flex items-center justify-center transform rotate-12 hover:rotate-6 transition-all duration-500">
+                <BookHeart size={48} className="text-primary drop-shadow-lg" />
+              </div>
 
-            {/* Scroll Indicator */}
-            <div className="animate-bounce flex justify-center mt-16">
-              <ChevronDown className="text-emerald-500" />
+              {/* 💡 Floating AI Icon */}
+              <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-gradient-to-br from-primary to-green-600 rounded-2xl shadow-2xl flex items-center justify-center transform -rotate-6 hover:-rotate-3 transition-all duration-500">
+                <BrainCircuit size={42} className="text-white drop-shadow-md" />
+              </div>
+
+              {/* 🔹 Optional Glow */}
+              <div className="absolute -inset-4 bg-emerald-500/10 blur-3xl rounded-3xl"></div>
             </div>
           </div>
 
-          {/* Floating Elements */}
-          <div className="absolute bottom-10 left-10 opacity-10">
-            <Trees size={120} className="text-emerald-400" />
-          </div>
-          <div className="absolute top-20 right-10 opacity-10">
-            <Leaf size={100} className="text-green-400" />
+          {/* Scroll Indicator */}
+          <div className="animate-bounce flex justify-center mt-16">
+            <ChevronDown className="text-primary" />
           </div>
         </section>
 
@@ -431,7 +329,7 @@ const LandingPage = () => {
             <div className="text-center mb-20">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                 Powerful Features for{" "}
-                <span className="bg-gradient-to-r from-emerald-600 to-green-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-green-500 bg-clip-text text-transparent">
                   Modern Thinkers
                 </span>
               </h2>
@@ -442,16 +340,19 @@ const LandingPage = () => {
             </div>
 
             {/* Featured Feature Showcase */}
-            <div className="bg-white dark:bg-zinc-800/50 rounded-3xl p-8 mb-16 shadow-2xl border border-emerald-100 dark:border-emerald-800/50">
+            <div className="bg-white dark:bg-zinc-800/50 rounded-3xl p-8 mb-16 shadow-2xl border border-emerald-100 dark:border-emerald-800/50 transition-all duration-700 ease-in-out">
               <div className="grid lg:grid-cols-2 gap-12 items-center">
-                <div>
-                  <div className="bg-emerald-100 dark:bg-emerald-900/50 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 text-emerald-600 dark:text-emerald-400">
+                <div
+                  key={activeFeature}
+                  className="transition-all duration-700 ease-in-out"
+                >
+                  <div className="bg-emerald-100 dark:bg-emerald-900/50 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 text-primary dark:text-emerald-400 transition-all duration-700 ease-in-out">
                     {features[activeFeature].icon}
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">
+                  <h3 className="text-2xl font-bold mb-4 transition-all duration-700 ease-in-out">
                     {features[activeFeature].title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6 text-lg">
+                  <p className="text-gray-600 dark:text-gray-300 mb-6 text-lg transition-all duration-700 ease-in-out">
                     {features[activeFeature].description}
                   </p>
                   <ul className="space-y-3">
@@ -459,11 +360,11 @@ const LandingPage = () => {
                       (highlight, index) => (
                         <li
                           key={index}
-                          className="flex items-center space-x-3 text-gray-600 dark:text-gray-400"
+                          className="flex items-center space-x-3 text-gray-600 dark:text-gray-400 transition-all duration-500 ease-in-out"
                         >
                           <CheckCircle
                             size={16}
-                            className="text-emerald-500 flex-shrink-0"
+                            className="text-primary flex-shrink-0 transition-transform duration-300 ease-in-out"
                           />
                           <span>{highlight}</span>
                         </li>
@@ -471,13 +372,16 @@ const LandingPage = () => {
                     )}
                   </ul>
                 </div>
-                <div className="relative">
-                  {/* Feature visualization would go here */}
-                  <div className="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl h-80 flex items-center justify-center text-white">
-                    <div className="text-center">
-                      <Notebook size={64} className="mx-auto mb-4 opacity-80" />
-                      <p className="text-lg font-semibold">Feature Preview</p>
-                    </div>
+
+                <div className="relative transition-all duration-700 ease-in-out">
+                  <div
+                    className={`bg-gradient-to-br ${features[activeFeature].color} rounded-2xl h-80 flex items-center justify-center text-white transition-all duration-700 ease-in-out hover:scale-[1.02] relative overflow-hidden`}
+                  >
+                    <img
+                      src={features[activeFeature].image}
+                      alt={features[activeFeature].title}
+                      className="w-4/5 h-4/5 object-contain"
+                    />
                   </div>
                 </div>
               </div>
@@ -488,13 +392,15 @@ const LandingPage = () => {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`bg-white dark:bg-zinc-800/50 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-emerald-100 dark:border-emerald-800/50 hover:-translate-y-2 cursor-pointer ${
-                    activeFeature === index ? "ring-2 ring-emerald-500" : ""
+                  className={`bg-white dark:bg-zinc-800/50 p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 border border-emerald-100 dark:border-emerald-800/50 hover:-translate-y-2 cursor-pointer group ${
+                    activeFeature === index ? "ring-2 ring-primary" : ""
                   }`}
                   onMouseEnter={() => setActiveFeature(index)}
                 >
-                  <div className="bg-emerald-100 dark:bg-emerald-900/50 w-16 h-16 rounded-2xl flex items-center justify-center mb-4 text-emerald-600 dark:text-emerald-400">
-                    {feature.icon}
+                  <div className="relative mb-6">
+                    <div className="bg-emerald-100 dark:bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center text-primary dark:text-primary group-hover:scale-110 transition-transform duration-300">
+                      {feature.icon}
+                    </div>
                   </div>
                   <h3 className="text-xl font-semibold mb-3">
                     {feature.title}
@@ -517,7 +423,7 @@ const LandingPage = () => {
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                 Loved by{" "}
-                <span className="bg-gradient-to-r from-emerald-600 to-green-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-green-500 bg-clip-text text-transparent">
                   Thousands
                 </span>
               </h2>
@@ -527,7 +433,7 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {testimonials.map((testimonial, index) => (
                 <div
                   key={index}
@@ -545,8 +451,11 @@ const LandingPage = () => {
                     "{testimonial.content}"
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
-                      {testimonial.name.charAt(0)}
+                    <div className="relative">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-green-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
+                        {testimonial.name.charAt(0)}
+                      </div>
+                      <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white"></div>
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900 dark:text-white">
@@ -555,10 +464,47 @@ const LandingPage = () => {
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {testimonial.role}
                       </p>
+                      <p className="text-xs text-primary dark:text-emerald-400">
+                        {testimonial.company}
+                      </p>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Trusted Companies */}
+            <div className="mt-20 text-center">
+              <p className="text-gray-500 dark:text-gray-400 mb-8">
+                Trusted by teams at
+              </p>
+              <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+                <img
+                  src="/company-logo-1.svg"
+                  alt="Company 1"
+                  className="h-8 dark:invert"
+                />
+                <img
+                  src="/company-logo-2.svg"
+                  alt="Company 2"
+                  className="h-8 dark:invert"
+                />
+                <img
+                  src="/company-logo-3.svg"
+                  alt="Company 3"
+                  className="h-8 dark:invert"
+                />
+                <img
+                  src="/company-logo-4.svg"
+                  alt="Company 4"
+                  className="h-8 dark:invert"
+                />
+                <img
+                  src="/company-logo-5.svg"
+                  alt="Company 5"
+                  className="h-8 dark:invert"
+                />
+              </div>
             </div>
           </div>
         </section>
@@ -571,7 +517,7 @@ const LandingPage = () => {
           <div className="container mx-auto max-w-6xl text-center">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
               Simple, Transparent{" "}
-              <span className="bg-gradient-to-r from-emerald-600 to-green-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-green-500 bg-clip-text text-transparent">
                 Pricing
               </span>
             </h2>
@@ -586,21 +532,27 @@ const LandingPage = () => {
                   key={index}
                   className={`relative bg-white dark:bg-zinc-800/50 p-8 rounded-3xl border shadow-lg hover:shadow-2xl transition-all duration-300 ${
                     plan.popular
-                      ? "border-emerald-400 ring-2 ring-emerald-500 scale-[1.02]"
+                      ? "border-emerald-400 ring-2 ring-primary scale-[1.02]"
                       : "border-emerald-100 dark:border-emerald-800/50"
                   }`}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-green-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-primary to-green-500 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
                       Most Popular
                     </div>
                   )}
 
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-gray-500 dark:text-gray-400 mb-6">
-                    {plan.description}
-                  </p>
-                  <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
+                  <div className="mb-6 flex flex-col items-center">
+                    <div className="p-4 rounded-2xl bg-emerald-100 dark:bg-primary/5 text-primary mb-4">
+                      <plan.icon size={40} />
+                    </div>
+                    <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      {plan.description}
+                    </p>
+                  </div>
+
+                  <div className="text-4xl font-bold text-primary mb-2">
                     {plan.price}
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-8">
@@ -612,7 +564,7 @@ const LandingPage = () => {
                       <li key={i} className="flex items-center space-x-2">
                         <CheckCircle
                           size={16}
-                          className="text-emerald-500 flex-shrink-0"
+                          className="text-primary flex-shrink-0"
                         />
                         <span className="text-gray-600 dark:text-gray-300">
                           {feature}
@@ -624,7 +576,7 @@ const LandingPage = () => {
                   <button
                     className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
                       plan.popular
-                        ? "bg-gradient-to-r from-emerald-600 to-green-600 text-white hover:scale-105"
+                        ? "bg-gradient-to-r from-primary to-green-600 text-white hover:scale-105"
                         : "border-2 border-emerald-200 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-800/30"
                     }`}
                   >
@@ -645,7 +597,7 @@ const LandingPage = () => {
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
                 Frequently Asked{" "}
-                <span className="bg-gradient-to-r from-emerald-600 to-green-500 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-primary to-green-500 bg-clip-text text-transparent">
                   Questions
                 </span>
               </h2>
@@ -662,7 +614,7 @@ const LandingPage = () => {
                 >
                   <summary className="flex justify-between items-center cursor-pointer p-6 text-lg font-medium text-gray-900 dark:text-white">
                     {faq.question}
-                    <ChevronDown className="text-emerald-500 transform group-open:rotate-180 transition-transform duration-300" />
+                    <ChevronDown className="text-primary transform group-open:rotate-180 transition-transform duration-300" />
                   </summary>
                   <div className="p-6 pt-0 text-gray-600 dark:text-gray-300 leading-relaxed">
                     {faq.answer}
@@ -676,7 +628,7 @@ const LandingPage = () => {
         {/* Final CTA Section */}
         <section className="py-20 px-4 sm:px-6 relative">
           <div className="container mx-auto max-w-4xl text-center">
-            <div className="bg-gradient-to-br from-emerald-600 via-green-600 to-emerald-500 rounded-3xl p-12 sm:p-16 shadow-2xl relative overflow-hidden">
+            <div className="bg-gradient-to-br from-primary via-green-600 to-primary rounded-3xl p-12 sm:p-16 shadow-2xl relative overflow-hidden">
               {/* Background Pattern */}
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-1/2 -translate-y-1/2"></div>
@@ -684,6 +636,11 @@ const LandingPage = () => {
               </div>
 
               <div className="relative z-10">
+                <img
+                  src="/logo-dark.png"
+                  alt="Get Started"
+                  className="w-32 h-32 mx-auto mb-8"
+                />
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
                   Ready to Transform Your Ideas?
                 </h2>
@@ -694,7 +651,7 @@ const LandingPage = () => {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link
                     to="/notes"
-                    className="inline-flex items-center justify-center space-x-3 px-8 py-4 bg-white text-emerald-600 rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group"
+                    className="inline-flex items-center justify-center space-x-3 px-8 py-4 bg-white text-primary rounded-2xl font-semibold shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 group"
                   >
                     <span>Start Free Trial</span>
                     <ArrowRight
@@ -702,7 +659,7 @@ const LandingPage = () => {
                       className="group-hover:translate-x-1 transition-transform"
                     />
                   </Link>
-                  <button className="inline-flex items-center justify-center space-x-3 px-8 py-4 bg-transparent border-2 border-white text-white rounded-2xl font-semibold hover:bg-white hover:text-emerald-600 transition-all duration-300">
+                  <button className="inline-flex items-center justify-center space-x-3 px-8 py-4 bg-transparent border-2 border-white text-white rounded-2xl font-semibold hover:bg-white hover:text-primary transition-all duration-300">
                     <span>Schedule Demo</span>
                     <Play size={18} />
                   </button>
@@ -716,103 +673,7 @@ const LandingPage = () => {
         </section>
 
         {/* Footer */}
-        <footer className="bg-white dark:bg-zinc-900 border-t border-emerald-100 dark:border-emerald-800">
-          <div className="container mx-auto px-4 sm:px-6 py-12">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="md:col-span-2">
-                <Link to="/" className="flex items-center space-x-3 mb-6">
-                  <img
-                    src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
-                    alt="Neuctra Notes"
-                    className="h-10 w-10 object-cover"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-                      Neuctra
-                    </span>
-                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                      Notes
-                    </span>
-                  </div>
-                </Link>
-                <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md">
-                  The intelligent note-taking app that helps you capture,
-                  organize, and bring your ideas to life with AI assistance.
-                </p>
-                <div className="flex space-x-4">
-                  {[Globe, MessageCircle, Users].map((Icon, index) => (
-                    <button
-                      key={index}
-                      className="p-2 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-lg hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
-                    >
-                      <Icon size={18} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {[
-                {
-                  title: "Product",
-                  links: ["Features", "Pricing", "Use Cases", "Integrations"],
-                },
-                {
-                  title: "Company",
-                  links: ["About", "Blog", "Careers", "Contact"],
-                },
-                {
-                  title: "Legal",
-                  links: ["Privacy", "Terms", "Security", "Compliance"],
-                },
-              ].map((column, index) => (
-                <div key={index}>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-                    {column.title}
-                  </h3>
-                  <ul className="space-y-3">
-                    {column.links.map((link, linkIndex) => (
-                      <li key={linkIndex}>
-                        <a
-                          href="#"
-                          className="text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                        >
-                          {link}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t border-emerald-100 dark:border-emerald-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-              <div className="text-gray-500 dark:text-gray-400 text-sm mb-4 md:mb-0">
-                © {new Date().getFullYear()} Neuctra Notes. Cultivate your ideas
-                🌱
-              </div>
-              <div className="flex space-x-6 text-sm">
-                <a
-                  href="#"
-                  className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                >
-                  Privacy Policy
-                </a>
-                <a
-                  href="#"
-                  className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                >
-                  Terms of Service
-                </a>
-                <a
-                  href="#"
-                  className="text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                >
-                  Cookie Policy
-                </a>
-              </div>
-            </div>
-          </div>
-        </footer>
+        <LandingPageFooter />
       </div>
     </>
   );

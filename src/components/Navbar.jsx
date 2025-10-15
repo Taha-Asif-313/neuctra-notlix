@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Moon, Sun, Menu, X, Plus, BookHeart, Home, User, BookOpen } from "lucide-react";
+import {
+  Moon,
+  Sun,
+  Menu,
+  X,
+  Plus,
+  BookHeart,
+  Home,
+  User,
+  BookOpen,
+} from "lucide-react";
 import { ReactSignedIn, ReactUserButton } from "@neuctra/authix";
 import { useAppContext } from "../context/useAppContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -43,30 +53,26 @@ const Navbar = () => {
       >
         <div className="h-16 flex justify-between items-center">
           {/* Logo */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-3"
-          >
-            <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center space-x-2 group">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary to-green-600 rounded-xl blur opacity-70 group-hover:opacity-90 transition-all duration-500"></div>
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary to-purple-600 rounded-xl blur opacity-75"></div>
                 <img
-                  src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
-                  alt="Logo"
-                  className="relative h-10 w-10 object-cover rounded-xl shadow-lg"
+                  src={"/logo-dark.png"}
+                  alt="Neuctra Notes"
+                  className="h-10 w-10 object-cover"
                 />
               </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold bg-gradient-to-r from-gray-800 to-gray-600 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
-                  Neuctra
-                </span>
-                <span className="text-xs font-semibold text-primary -mt-1">
-                  Notexa
-                </span>
-              </div>
-            </Link>
-          </motion.div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] text-primary leading-3">
+                Neuctra
+              </span>
+              <span className="text-lg dark:text-white text-black font-bold leading-3">
+                Notexa
+              </span>
+            </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
