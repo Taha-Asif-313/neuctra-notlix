@@ -102,7 +102,7 @@ const SimpleModal = ({ open, onClose, children, width = 440 }) => {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center">
+        <div className="fixed inset-0 z-[100000000] flex items-center justify-center">
           <motion.div
             className="absolute inset-0 bg-black/40"
             onClick={onClose}

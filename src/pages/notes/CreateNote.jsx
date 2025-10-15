@@ -74,33 +74,17 @@ const CreateNote = () => {
     }
 
     const noteData = {
-      id: id || Date.now().toString(),
       title: title.trim(),
       content,
       date: new Date().toISOString(),
       wordCount,
     };
 
-    if (!user?.id) {
-      alert("User not found. Please log in again.");
-      return;
-    }
-
     try {
       // 🔹 Save note to Authix backend
       const response = await createNote(user.id, noteData);
       console.log("Note created:", response);
-
-      // 🔹 Update context + localStorage automatically
-      const updatedNotes = id
-        ? notes.map((n) => (n.id === id ? noteData : n))
-        : [...notes, noteData];
-
       setNotes(updatedNotes); // automatically syncs to localStorage via useLocalStorage hook
-
-      // Optional: store last edited note
-      localStorage.setItem("last-note", JSON.stringify(noteData));
-
       setLastSaved(new Date());
       navigate("/notes");
     } catch (err) {

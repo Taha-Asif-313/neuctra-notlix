@@ -232,24 +232,24 @@ const LandingPage = () => {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-200 dark:bg-blue-900 rounded-full blur-3xl opacity-10 animate-pulse-slow delay-500"></div>
         </div>
 
-        {/* Modern Navbar */}
+        {/* Modern Simplified Navbar */}
         <header
-          className={`fixed w-full z-50 transition-all duration-500 ${
+          className={`fixed w-full z-50 transition-all duration-300 ${
             isScrolled
-              ? "py-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl shadow-lg border-b border-emerald-100/50 dark:border-emerald-800/50"
-              : "py-5 bg-transparent"
+              ? "py-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-800"
+              : "py-6 bg-transparent"
           }`}
         >
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between">
               {/* Logo */}
               <Link to="/" className="flex items-center space-x-3 group">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl blur group-hover:blur-md transition-all duration-300 opacity-70"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl blur opacity-70 group-hover:opacity-90 transition-opacity"></div>
                   <div className="relative">
                     <img
                       src={"/logo-dark.png"}
-                      alt="Neuctra Notes - AI-Powered Note Taking"
+                      alt="Neuctra Notes"
                       className="h-8 w-8 object-cover"
                     />
                   </div>
@@ -258,60 +258,56 @@ const LandingPage = () => {
                   <span className="text-lg font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
                     Neuctra
                   </span>
-                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 -mt-1">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
                     Notes
                   </span>
                 </div>
               </Link>
 
               {/* Desktop Navigation */}
-              <nav className="hidden lg:flex items-center space-x-8">
+              <nav className="hidden md:flex items-center space-x-6">
                 {["Features", "Testimonials", "Pricing", "FAQ"].map((item) => (
                   <a
                     key={item}
                     href={`#${item.toLowerCase()}`}
-                    className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-200 relative group"
+                    className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                   >
                     {item}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-emerald-500 group-hover:w-full transition-all duration-300"></span>
                   </a>
                 ))}
               </nav>
 
-              {/* CTA Buttons */}
-              <div className="flex items-center space-x-4">
+              {/* Right Side Actions */}
+              <div className="flex items-center space-x-3">
+                {/* Dark Mode Toggle */}
                 <button
                   onClick={() => setDarkMode(!darkMode)}
-                  className="p-2.5 rounded-xl bg-white dark:bg-zinc-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 border border-emerald-100 dark:border-emerald-800"
+                  className="p-2 rounded-lg bg-white dark:bg-zinc-800 shadow border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
                   aria-label="Toggle dark mode"
                 >
-                  <div className="relative">
-                    {darkMode ? (
-                      <Sun size={18} className="text-amber-400" />
-                    ) : (
-                      <Moon size={18} className="text-indigo-600" />
-                    )}
-                  </div>
+                  {darkMode ? (
+                    <Sun size={18} className="text-amber-400" />
+                  ) : (
+                    <Moon size={18} className="text-indigo-600" />
+                  )}
                 </button>
 
                 {/* Mobile Menu Button */}
                 <button
-                  className="lg:hidden p-2.5 rounded-xl bg-white dark:bg-zinc-800 shadow-lg border border-emerald-100 dark:border-emerald-800"
+                  className="md:hidden p-2 rounded-lg bg-white dark:bg-zinc-800 shadow border border-gray-200 dark:border-gray-700"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   aria-label="Toggle menu"
                 >
                   {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
                 </button>
 
+                {/* Get Started Button */}
                 <Link
                   to="/notes"
-                  className="hidden sm:flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                  className="hidden sm:flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg font-medium shadow hover:shadow-md transition-all"
                 >
                   <span>Get Started</span>
-                  <MoveRight
-                    size={16}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
+                  <MoveRight size={16} />
                 </Link>
               </div>
             </div>
@@ -319,15 +315,15 @@ const LandingPage = () => {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="lg:hidden absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-emerald-100 dark:border-emerald-800 shadow-xl">
-              <div className="container mx-auto px-4 py-6">
-                <div className="flex flex-col space-y-4">
+            <div className="md:hidden absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 shadow-lg">
+              <div className="container mx-auto px-4 py-4">
+                <div className="flex flex-col space-y-1">
                   {["Features", "Testimonials", "Pricing", "FAQ"].map(
                     (item) => (
                       <a
                         key={item}
                         href={`#${item.toLowerCase()}`}
-                        className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors py-3 border-b border-emerald-50 dark:border-emerald-800/50"
+                        className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {item}
@@ -336,7 +332,7 @@ const LandingPage = () => {
                   )}
                   <Link
                     to="/notes"
-                    className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-semibold mt-4"
+                    className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg font-medium mt-2"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <span>Get Started</span>
