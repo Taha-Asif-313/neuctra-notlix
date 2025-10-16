@@ -81,15 +81,17 @@ const CreateNote = () => {
     };
 
     try {
-      // 🔹 Save note to Authix backend
+      setLoading(true); // 🔹 start loading
+
       const response = await createNote(user.id, noteData);
       console.log("Note created:", response);
-      setNotes(updatedNotes); // automatically syncs to localStorage via useLocalStorage hook
       setLastSaved(new Date());
       navigate("/notes");
     } catch (err) {
       console.error("Error saving note:", err);
       alert("Failed to save note. Please try again.");
+    } finally {
+      setLoading(false); // 🔹 stop loading
     }
   };
 
@@ -187,6 +189,18 @@ const CreateNote = () => {
       setLoading(false);
     }
   };
+
+  // --- LOADING RETURN JSX ---
+  if (loading) {
+    return (
+      <div className="absolute top-0 left-0 w-full flex flex-col items-center justify-center h-screen text-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          Saving your note, please wait...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">

@@ -25,7 +25,7 @@ const LandingPageNav = () => {
           : "py-4 bg-transparent"
       }`}
     >
-      <div className="container mx-auto px-4 sm:px-6">
+      <div className="container max-w-[1300px] mx-auto px-4 sm:px-6 lg:p-0">
         <div className="grid lg:grid-cols-3 grid-cols-2 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">

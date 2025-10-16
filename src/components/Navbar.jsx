@@ -45,17 +45,17 @@ const Navbar = () => {
       }`}
     >
       {/* Main Navigation Bar */}
-      <motion.div
-        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 transition-all duration-300 `}
+      <div
+        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-0 transition-all duration-300 `}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <div className="h-16 flex justify-between items-center">
+        <div className="py-4 flex justify-between items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary to-green-600 rounded-xl blur opacity-70 group-hover:opacity-90 transition-all duration-500"></div>
+           
               <div className="relative">
                 <img
                   src={"/logo-dark.png"}
@@ -182,7 +182,7 @@ const Navbar = () => {
             </motion.button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Mobile Drawer */}
       <AnimatePresence>

@@ -7,7 +7,11 @@ const authix = new NeuctraAuthix({
   appId: "ba73c20458ba4be9f11dab081550a960", // Get from Authix dashboard
 });
 
+// 🔹 Utility: Wait for 1000 ms before each request
+const delay = (ms = 1000) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export async function createNote(userId, noteData) {
+  await delay();
   return await authix.addUserData({
     userId: userId,
     data: noteData,
@@ -15,6 +19,7 @@ export async function createNote(userId, noteData) {
 }
 
 export async function getSingleNote(userId, noteId) {
+  await delay();
   return await authix.getSingleUserData({
     userId: userId,
     dataId: noteId,
@@ -22,10 +27,12 @@ export async function getSingleNote(userId, noteId) {
 }
 
 export async function getAllNotes(userId) {
+  await delay();
   return await authix.getUserData({ userId });
 }
 
 export async function getNote(userId, noteId) {
+  await delay();
   return await authix.getSingleUserData({
     userId: userId,
     dataId: noteId,
@@ -33,6 +40,7 @@ export async function getNote(userId, noteId) {
 }
 
 export async function updateNote(userId, noteId, noteData) {
+  await delay();
   return await authix.updateUserData({
     userId: userId,
     dataId: noteId,
@@ -41,6 +49,7 @@ export async function updateNote(userId, noteId, noteData) {
 }
 
 export async function deleteNote(userId, noteId) {
+  await delay();
   return await authix.deleteUserData({
     userId: userId,
     dataId: noteId,

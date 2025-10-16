@@ -95,7 +95,7 @@ const EditNote = () => {
     setWordCount(words);
   }, [title, content]);
 
-  // ✅ Save updated note
+  // ✅ UPDATE EXISTING NOTE
   const handleUpdate = async () => {
     if (!user?.id) {
       alert("User not found. Please log in again.");
@@ -103,8 +103,10 @@ const EditNote = () => {
     }
 
     try {
+      setLoading(true);
+
       const updatedNote = {
-        title,
+        title: title.trim(),
         content,
         date: new Date().toISOString(),
         wordCount,
@@ -118,6 +120,8 @@ const EditNote = () => {
     } catch (err) {
       console.error("Error updating note:", err);
       alert("Failed to update note. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -216,6 +220,18 @@ const EditNote = () => {
       setLoading(false);
     }
   };
+
+  // 🔹 LOADING JSX
+  if (loading) {
+    return (
+      <div className="w-full absolute top-0 left-0 flex flex-col items-center justify-center h-screen text-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+          Updating your note...
+        </p>
+      </div>
+    );
+  }
 
   // ✅ UI
   return (

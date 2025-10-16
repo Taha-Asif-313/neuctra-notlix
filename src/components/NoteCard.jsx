@@ -3,11 +3,10 @@ import {
   Edit,
   Trash2,
   Download,
-  Calendar,
-  Clock,
   Copy,
   FileText,
   CodeXml,
+  Loader2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -20,6 +19,7 @@ const NoteCard = ({
 }) => {
   const [modal, setModal] = useState({
     show: false,
+    loading: false,
     message: "",
     onConfirm: null,
   });
@@ -31,7 +31,6 @@ const NoteCard = ({
     month: "short",
     day: "numeric",
   });
-
   const formattedTime = new Date(note.date).toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
@@ -49,16 +48,23 @@ const NoteCard = ({
   }, []);
 
   const showModal = (message, onConfirm) => {
-    setModal({ show: true, message, onConfirm });
+    setModal({ show: true, message, onConfirm, loading: false });
   };
 
   const hideModal = () =>
-    setModal({ show: false, message: "", onConfirm: null });
+    setModal({ show: false, loading: false, message: "", onConfirm: null });
 
   const handleDelete = () => {
-    showModal("Are you sure you want to delete this note?", () => {
-      onDelete(note.id);
-      hideModal();
+    showModal("Are you sure you want to delete this note?", async () => {
+      try {
+        setModal((m) => ({ ...m, loading: true }));
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // fake delay
+        await onDelete(note.id);
+        hideModal();
+      } catch (err) {
+        console.error("Error deleting note:", err);
+        hideModal();
+      }
     });
   };
 
@@ -67,26 +73,38 @@ const NoteCard = ({
     onDownload(note, format);
   };
 
-  // Modal Component
+  // Modern Modal Component
   const Modal = () =>
     modal.show ? (
-      <div className="fixed inset-0 flex items-center justify-center bg-black/90 z-50">
-        <div className="bg-white dark:bg-black p-6 rounded-xl shadow-lg max-w-sm w-full text-center">
-          <p className="mb-4 text-gray-800 dark:text-white">{modal.message}</p>
-          <div className="flex justify-center space-x-4">
-            <button
-              onClick={() => modal.onConfirm && modal.onConfirm()}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-            >
-              Confirm
-            </button>
-            <button
-              onClick={hideModal}
-              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-black dark:text-white rounded hover:bg-gray-400 transition"
-            >
-              Cancel
-            </button>
-          </div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center transform transition-all animate-slideUp border border-gray-200 dark:border-zinc-800">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
+            {modal.loading ? "Deleting..." : "Confirm Deletion"}
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            {modal.loading ? "Please wait while we remove your note..." : modal.message}
+          </p>
+
+          {modal.loading ? (
+            <div className="flex justify-center py-2">
+              <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
+            </div>
+          ) : (
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={modal.onConfirm}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium"
+              >
+                Delete
+              </button>
+              <button
+                onClick={hideModal}
+                className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
       </div>
     ) : null;
@@ -105,20 +123,20 @@ const NoteCard = ({
       <Modal />
       <div className="bg-white flex flex-col justify-between dark:bg-zinc-950 rounded-xl shadow-sm overflow-visible hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-black group p-5">
         <div className="flex justify-between items-start mb-3">
-          <h3 className="text-lg group-hover:text-primary font-semibold text-gray-800 dark:text-white truncate">
+          <h3 className="text-lg group-hover:text-blue-500 font-semibold text-gray-800 dark:text-white truncate">
             {note.title}
           </h3>
         </div>
+
         <span className="text-xs">{content}</span>
-        <div className="flex justify-between items-center">
+
+        <div className="flex justify-between items-center mt-3">
           <div className="text-sm flex max-md:flex-col md:gap-2 text-gray-500 dark:text-gray-500">
             <span>{formattedDate},</span>
             <span>{formattedTime}</span>
           </div>
-          <div
-            className="flex items-center space-x-2 relative"
-            ref={dropdownRef}
-          >
+
+          <div className="flex items-center space-x-2 relative" ref={dropdownRef}>
             {/* Download Button */}
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -129,7 +147,7 @@ const NoteCard = ({
 
             {/* Custom Dropdown */}
             {dropdownOpen && (
-              <div className="absolute -right-10 top-full mt-1 w-48 bg-white text-black dark:text-white text-xs dark:bg-black border border-gray-200 dark:border-gray-700 rounded shadow-lg z-50">
+              <div className="absolute -right-10 top-full mt-1 w-48 bg-white text-black dark:text-white text-xs dark:bg-zinc-900 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-50">
                 <button
                   className="flex items-center gap-2 w-full text-left px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800"
                   onClick={() => handleDownload("txt")}

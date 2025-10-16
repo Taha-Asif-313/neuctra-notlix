@@ -213,9 +213,9 @@ const LandingPage = () => {
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950 text-gray-900 dark:text-white transition-all duration-300">
         {/* Enhanced Animated Background */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-200 dark:bg-emerald-900 rounded-full blur-3xl opacity-20 animate-pulse-slow"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary rounded-full blur-3xl opacity-20 animate-pulse-slow"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-200 dark:bg-primary rounded-full blur-3xl opacity-20 animate-pulse-slow delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-200 dark:bg-blue-900 rounded-full blur-3xl opacity-10 animate-pulse-slow delay-500"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary rounded-full blur-3xl opacity-10 animate-pulse-slow delay-500"></div>
         </div>
 
         {/* Modern Simplified Navbar */}
@@ -223,11 +223,11 @@ const LandingPage = () => {
 
         {/* Hero Section with Image */}
         <section className="relative flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-32 pb-20">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          <div className="max-w-[1300px] mx-auto grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-left">
               {/* Badge */}
-              <div className="inline-flex items-center text-xs space-x-2 bg-primary/10 dark:bg-primary/20 text-primary px-4 py-2 rounded-full mb-3 font-semibold border border-emerald-200 dark:border-emerald-800">
+              <div className="inline-flex items-center text-xs space-x-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-3 font-semibold border border-emerald-200 dark:border-emerald-800">
                 <BrainCircuit className="w-4 h-4" />
                 <span>Introducing AI-Powered Notes</span>
               </div>
@@ -235,7 +235,7 @@ const LandingPage = () => {
               {/* Main Heading */}
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
                 Where Ideas{" "}
-                <span className="bg-gradient-to-r from-primary via-green-500 to-emerald-400 bg-clip-text text-transparent animate-gradient">
+                <span className="bg-gradient-to-r from-primary via-green-500 to-green-400 bg-clip-text text-transparent animate-gradient">
                   Grow & Flourish
                 </span>
               </h1>
@@ -244,7 +244,7 @@ const LandingPage = () => {
               <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed">
                 Neuctra Notes helps you capture, organize, and enhance your
                 ideas with built-in AI.
-                <span className="font-semibold text-primary dark:text-emerald-400">
+                <span className="font-semibold text-primary">
                   {" "}
                   Cultivate your thoughts
                 </span>{" "}
@@ -264,7 +264,7 @@ const LandingPage = () => {
                     className="group-hover:translate-x-1 !transition-transform"
                   />
                 </Link>
-                <button className="group flex items-center justify-center space-x-3 px-8 py-4 border-2 border-emerald-200 dark:border-emerald-800 rounded-2xl font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all duration-300">
+                <button className="group flex items-center justify-center space-x-3 px-8 py-4 border-2 border-primary rounded-2xl font-semibold hover:bg-primary/5 transition-all duration-300">
                   <Play size={18} />
                   <span>Watch Demo</span>
                 </button>
@@ -398,7 +398,7 @@ const LandingPage = () => {
                   onMouseEnter={() => setActiveFeature(index)}
                 >
                   <div className="relative mb-6">
-                    <div className="bg-emerald-100 dark:bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center text-primary dark:text-primary group-hover:scale-110 transition-transform duration-300">
+                    <div className="bg-emerald-100 dark:bg-primary/10 w-12 h-12 p-2 rounded-lg flex items-center justify-center text-primary dark:text-primary group-hover:scale-110 transition-transform duration-300">
                       {feature.icon}
                     </div>
                   </div>
