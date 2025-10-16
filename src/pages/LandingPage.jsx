@@ -233,7 +233,7 @@ const LandingPage = () => {
               </div>
 
               {/* Main Heading */}
-              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[60px]">
                 Where Ideas{" "}
                 <span className="bg-gradient-to-r from-primary via-green-500 to-green-400 bg-clip-text text-transparent animate-gradient">
                   Grow & Flourish
@@ -241,7 +241,7 @@ const LandingPage = () => {
               </h1>
 
               {/* Subtitle */}
-              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed">
+              <p className="text-lg text-black dark:text-gray-300 mb-10 leading-relaxed">
                 Neuctra Notes helps you capture, organize, and enhance your
                 ideas with built-in AI.
                 <span className="font-semibold text-primary">

@@ -16,6 +16,7 @@ import SignupPage from "./pages/auth/SignupPage";
 import ProfilePage from "./pages/auth/ProfilePage";
 import EditNote from "./pages/notes/EditNote";
 import CreateNote from "./pages/notes/CreateNote";
+import CollaborateNote from "./pages/notes/CollaborateNote";
 
 function App() {
   // Configure once at app startup
@@ -76,6 +77,8 @@ function App() {
 
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/collab/:token" element={<CollaborateNote />} />
+
         </Routes>
       </Router>
       <Toaster position="top-right" />

@@ -86,15 +86,15 @@ const Navbar = () => {
                 >
                   <Link
                     to={item.path}
-                    className={`relative px-4 py-2.5 rounded-xl text-xs font-medium flex items-center gap-2 transition-all duration-200 group ${
+                    className={`relative px-4 py-2.5 rounded-t-xl  text-xs font-medium flex items-center gap-2 transition-all duration-200 group ${
                       isActive(item.path)
-                        ? "text-primary bg-primary/10 shadow-sm"
+                        ? "text-white bg-primary shadow-sm"
                         : "text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary"
                     }`}
                   >
                     <Icon
                       size={15}
-                      className={isActive(item.path) ? "text-primary" : ""}
+                      className={isActive(item.path) ? "text-" : ""}
                     />
                     {item.label}
                     {isActive(item.path) && (

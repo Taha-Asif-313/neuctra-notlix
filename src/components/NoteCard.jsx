@@ -7,8 +7,12 @@ import {
   FileText,
   CodeXml,
   Loader2,
+  Share2,
+  CopyCheck,
 } from "lucide-react";
+import { encryptData } from "../utils/cryptoUtils";
 import { Link } from "react-router-dom";
+import { useAppContext } from "../context/useAppContext";
 
 const NoteCard = ({
   note,
@@ -17,6 +21,7 @@ const NoteCard = ({
   onDuplicate,
   viewMode = "grid",
 }) => {
+    const { user } = useAppContext();
   const [modal, setModal] = useState({
     show: false,
     loading: false,
@@ -82,7 +87,9 @@ const NoteCard = ({
             {modal.loading ? "Deleting..." : "Confirm Deletion"}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {modal.loading ? "Please wait while we remove your note..." : modal.message}
+            {modal.loading
+              ? "Please wait while we remove your note..."
+              : modal.message}
           </p>
 
           {modal.loading ? (
@@ -136,7 +143,10 @@ const NoteCard = ({
             <span>{formattedTime}</span>
           </div>
 
-          <div className="flex items-center space-x-2 relative" ref={dropdownRef}>
+          <div
+            className="flex items-center space-x-2 relative"
+            ref={dropdownRef}
+          >
             {/* Download Button */}
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -181,6 +191,41 @@ const NoteCard = ({
             >
               <Trash2 size={18} />
             </button>
+
+          <button
+  onClick={() => {
+    const encrypted = encryptData({
+      userId: user?.id,
+      noteId: note?.id,
+    });
+    const link = `${window.location.origin}/collab/${encodeURIComponent(encrypted)}`;
+
+    if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard
+        .writeText(link)
+        .then(() => {
+          alert("✅ Collaboration link copied to clipboard!");
+        })
+        .catch((err) => {
+          console.error("Clipboard error:", err);
+          alert("❌ Failed to copy link. Try manually copying it.");
+        });
+    } else {
+      // Fallback if clipboard API isn't supported
+      const textArea = document.createElement("textarea");
+      textArea.value = link;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      alert("✅ Collaboration link copied (fallback used)!");
+    }
+  }}
+  className="p-2 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors duration-200"
+>
+  <Share2 size={18} />
+</button>
+
           </div>
         </div>
       </div>

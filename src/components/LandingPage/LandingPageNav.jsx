@@ -21,7 +21,7 @@ const LandingPageNav = () => {
     <header
       className={`fixed w-full z-50 transition-all duration-300 ${
         isScrolled
-          ? "py-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-800"
+          ? "py-4 bg-white/95 dark:bg-zinc-900/95 "
           : "py-4 bg-transparent"
       }`}
     >
@@ -30,10 +30,9 @@ const LandingPageNav = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="relative">
-
               <div className="relative">
                 <img
-                  src={darkMode?"/logo-dark.png":"/logo-white.png"}
+                  src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
                   alt="Neuctra Notes"
                   className="h-10 w-10 object-cover"
                 />
