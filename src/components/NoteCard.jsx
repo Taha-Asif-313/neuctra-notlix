@@ -130,7 +130,7 @@ const NoteCard = ({
       <Modal />
       <div className="bg-white flex flex-col justify-between dark:bg-zinc-950 rounded-xl shadow-sm overflow-visible hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-black group p-5">
         <div className="flex justify-between items-start mb-3">
-          <h3 className="text-lg group-hover:text-blue-500 font-semibold text-gray-800 dark:text-white truncate">
+          <h3 className="text-lg group-hover:text-primary font-semibold text-gray-800 dark:text-white truncate">
             {note.title}
           </h3>
         </div>

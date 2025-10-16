@@ -92,7 +92,7 @@ const Home = () => {
             </h2>
             <Link
               to="/notes/create"
-              className="flex items-center text-sm px-4 py-2 bg-primary text-white font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+              className="flex items-center text-sm px-4 py-2 bg-primary text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <Plus size={20} className="mr-2" />
               New Note
@@ -102,7 +102,7 @@ const Home = () => {
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
 
           {filteredNotes.length === 0 ? (
-            <div className="text-center py-16 bg-white dark:bg-zinc-950 rounded-2xl shadow-sm border border-gray-100 dark:border-black transition-all duration-300">
+            <div className="text-center py-16  bg-white dark:bg-zinc-950 rounded-2xl shadow-sm border border-gray-100 dark:border-black transition-all duration-300">
               <div className="text-gray-400 dark:text-gray-500 mb-4">
                 <svg
                   className="w-20 h-20 mx-auto"
@@ -119,7 +119,7 @@ const Home = () => {
                   ></path>
                 </svg>
               </div>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+              <p className="text-gray-500 dark:text-gray-400 text-sm px-10 mb-4">
                 {notes.length === 0
                   ? "You don't have any notes yet. Create your first note!"
                   : "No notes match your search."}

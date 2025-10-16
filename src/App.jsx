@@ -59,7 +59,11 @@ function App() {
           <Route
             path="/notes"
             element={
-              <ReactSignedIn height={"100%"} width={"100%"} fallback={<Navigate to={"/login"} />}>
+              <ReactSignedIn
+                height={"100%"}
+                width={"100%"}
+                fallback={<Navigate to={"/login"} />}
+              >
                 <NotesLayout
                   darkMode={darkMode}
                   toggleDarkMode={toggleDarkMode}
@@ -78,10 +82,32 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/collab/:token" element={<CollaborateNote />} />
-
         </Routes>
       </Router>
-      <Toaster position="top-right" />
+      <Toaster
+        position="top-right"
+        containerClassName="text-xs"
+        toastOptions={{
+          className:
+            "!bg-primary !text-white !rounded-xl !shadow-lg !px-4 !py-3 !backdrop-blur-md !bg-opacity-90",
+          style: {
+            fontWeight: 500,
+            letterSpacing: "0.3px",
+          },
+          success: {
+            iconTheme: {
+              primary: "#fff",
+              secondary: "#22c55e", // optional: soft green ring
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#fff",
+              secondary: "#ef4444", // soft red ring
+            },
+          },
+        }}
+      />
     </>
   );
 }
