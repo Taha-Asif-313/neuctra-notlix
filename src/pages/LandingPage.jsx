@@ -210,7 +210,7 @@ const LandingPage = () => {
   ];
   return (
     <>
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950 text-gray-900 dark:text-white transition-all duration-300">
+      <div className="min-h-screen flex flex-col  bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950 text-gray-900 dark:text-white transition-all duration-300">
         {/* Enhanced Animated Background */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary rounded-full blur-3xl opacity-20 animate-pulse-slow"></div>
@@ -220,10 +220,10 @@ const LandingPage = () => {
 
         {/* Modern Simplified Navbar */}
         <LandingPageNav />
-
-        {/* Hero Section with Image */}
+<div className="lg:px-10">
+      {/* Hero Section with Image */}
         <section className="relative flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pt-32 pb-20">
-          <div className="max-w-[1300px] mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-left">
               {/* Badge */}
@@ -671,6 +671,8 @@ const LandingPage = () => {
             </div>
           </div>
         </section>
+</div>
+  
 
         {/* Footer */}
         <LandingPageFooter />
