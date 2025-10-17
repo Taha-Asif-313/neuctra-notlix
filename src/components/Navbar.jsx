@@ -41,7 +41,7 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 ${
-        scrolled ? "bg-white/95 dark:bg-zinc-950/95" : ""
+        scrolled ? "bg-white/95 dark:bg-black" : ""
       }`}
     >
       {/* Main Navigation Bar */}
@@ -55,7 +55,6 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="relative">
-           
               <div className="relative">
                 <img
                   src={"/logo-dark.png"}
