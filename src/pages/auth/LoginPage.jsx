@@ -18,7 +18,7 @@ const LoginPage = () => {
         darkMode={isDark}
         signupUrl={"/signup"}
         logoUrl={isDark ? "/logo-dark.png" : "/logo-white.png"}
-        onSuccess={() => {
+        onSuccess={async (user) => {
           toast.success("Login Successfully");
           navigate("/notes");
         }}

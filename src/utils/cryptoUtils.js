@@ -17,3 +17,11 @@ export function decryptData(ciphertext) {
     return null;
   }
 }
+
+
+export function generateId(prefix = "id") {
+  const randomBytes = crypto.getRandomValues(new Uint8Array(8));
+  const randomHex = Array.from(randomBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  const timestamp = Date.now().toString(36);
+  return `${prefix}_${timestamp}_${randomHex}`;
+}

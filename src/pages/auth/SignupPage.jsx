@@ -2,6 +2,7 @@ import React from "react";
 import { ReactUserSignUp } from "@neuctra/authix";
 import toast, { ToastBar } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { getPackage, updatePackage } from "../../authix/authixinit";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -18,8 +19,24 @@ const SignupPage = () => {
         darkMode={isDark}
         loginUrl={"/login"}
         logoUrl={isDark ? "/logo-dark.png" : "/logo-white.png"}
-        onSuccess={() => {
-          toast.success("Register Successfully");
+        onSuccess={async (user) => {
+          const userId = user?.id;
+          await updatePackage(userId, {
+            name: "Free",
+            tier: "starter",
+            price: 0,
+            aiPromptsPerMonth: 5,
+            collaborativeLinks: true,
+            features: [
+              "Up to 100 notes",
+              "Basic AI prompts (5/month)",
+              "Collaborative note links",
+              "Sync across devices",
+            ],
+            createdAt: new Date().toISOString(),
+          });
+
+          toast.success("Registered successfully! Free plan activated.");
           navigate("/notes");
         }}
         onError={(err) => {

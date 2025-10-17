@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import NoteCard from "../../components/NoteCard";
@@ -11,85 +11,92 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [loading, setLoading] = useState(false);
-  // 🔹 Filter notes by title or content
+  const hasFetched = useRef(false); // ✅ Prevents infinite re-fetch loop
+
+  // 🔹 Filter notes by title/content
   const filteredNotes = useMemo(() => {
     if (!searchTerm) return notes;
+    const lower = searchTerm.toLowerCase();
     return notes.filter(
       (note) =>
-        note.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        note.content?.toLowerCase().includes(searchTerm.toLowerCase())
+        note.title?.toLowerCase().includes(lower) ||
+        note.content?.toLowerCase().includes(lower)
     );
   }, [notes, searchTerm]);
 
-  // 🔹 Fetch user notes from API
+  // 🔹 Fetch user notes (only once)
   useEffect(() => {
-    if (!user?.id) return; // Wait until user is loaded
+    if (!user?.id || hasFetched.current) return;
+    hasFetched.current = true;
 
     const fetchNotes = async () => {
+      setLoading(true);
       try {
-        const res = await getAllNotes(user.id);
-        if (res.success && Array.isArray(res.data)) {
-          setNotes(res.data);
+        const fetchedNotes = await getAllNotes(user.id);
+        if (Array.isArray(fetchedNotes)) {
+          setNotes(fetchedNotes);
         } else {
-          console.warn("Unexpected response:", res);
+          console.warn("⚠️ Unexpected notes format:", fetchedNotes);
           setNotes([]);
         }
       } catch (error) {
-        console.error("Failed to fetch notes:", error);
+        console.error("❌ Failed to fetch notes:", error);
+        setNotes([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchNotes();
-  }, [user?.id, setNotes]);
+  }, [user?.id]); // ✅ Only depends on user.id
 
-  // 🔹 Handle delete
+  // 🔹 Delete note
   const handleDeleteNote = async (noteId) => {
-    if (!user || !noteId) return;
+    if (!user?.id || !noteId) return;
     try {
       setLoading(true);
       await deleteNote(user.id, noteId);
-
-      // Remove from local notes state
       setNotes((prev) => prev.filter((n) => n.id !== noteId));
     } catch (error) {
-      console.error("Delete failed:", error);
+      console.error("❌ Delete failed:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 Download note as .txt
+  // 🔹 Download note
   const handleDownloadNote = (note) => {
-    const element = document.createElement("a");
-    const file = new Blob([`# ${note.title}\n\n${note.content}`], {
+    const blob = new Blob([`# ${note.title}\n\n${note.content}`], {
       type: "text/plain",
     });
-    element.href = URL.createObjectURL(file);
-    element.download = `${note.title.replace(/\s+/g, "_")}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${note.title.replace(/\s+/g, "_")}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
-  // 🔹 Duplicate note locally
+  // 🔹 Duplicate locally
   const handleDuplicateNote = (note) => {
     const duplicatedNote = {
       ...note,
-      id: Date.now(),
+      id: Date.now().toString(),
       title: `${note.title} (Copy)`,
       date: new Date().toISOString(),
     };
-    setNotes([duplicatedNote, ...notes]);
+    setNotes((prev) => [duplicatedNote, ...prev]);
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-4">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6">
       <div className="flex flex-col lg:flex-row gap-8">
         <main className="flex-1">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
               Your Notes
             </h2>
+
             <Link
               to="/notes/create"
               className="flex items-center text-sm px-4 py-2 bg-primary text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
@@ -101,8 +108,9 @@ const Home = () => {
 
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
 
-          {filteredNotes.length === 0 ? (
-            <div className="text-center py-16  bg-white dark:bg-zinc-950 rounded-2xl shadow-sm border border-gray-100 dark:border-black transition-all duration-300">
+          {/* Empty State */}
+          {filteredNotes.length === 0 && !loading ? (
+            <div className="text-center py-16 bg-white dark:bg-zinc-950 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 transition-all duration-300">
               <div className="text-gray-400 dark:text-gray-500 mb-4">
                 <svg
                   className="w-20 h-20 mx-auto"
@@ -127,7 +135,7 @@ const Home = () => {
               {notes.length === 0 && (
                 <Link
                   to="/notes/create"
-                  className="px-5 py-2.5 text-sm w-60 mx-auto flex items-center justify-center gap-2 bg-primary font-bold text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="px-5 py-2.5 text-sm w-60 mx-auto flex items-center justify-center gap-2 bg-primary font-bold text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
                 >
                   <Plus />
                   Create Your First Note
@@ -146,12 +154,18 @@ const Home = () => {
                 <NoteCard
                   key={note.id}
                   note={note}
-                  onDelete={(noteId) => handleDeleteNote(noteId)}
+                  onDelete={handleDeleteNote}
                   onDownload={handleDownloadNote}
                   onDuplicate={handleDuplicateNote}
                   viewMode={viewMode}
                 />
               ))}
+            </div>
+          )}
+
+          {loading && (
+            <div className="text-center text-sm text-gray-500 mt-4">
+              Loading notes...
             </div>
           )}
         </main>
