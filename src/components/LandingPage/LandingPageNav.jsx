@@ -21,7 +21,7 @@ const LandingPageNav = () => {
     <header
       className={`fixed w-full z-50 transition-all duration-300 ${
         isScrolled
-          ? "py-4 bg-white/95 dark:bg-zinc-900/95 "
+          ? "py-4 bg-white dark:bg-black "
           : "py-4 bg-transparent"
       }`}
     >
