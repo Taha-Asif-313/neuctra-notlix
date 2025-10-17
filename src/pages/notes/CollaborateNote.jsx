@@ -15,6 +15,7 @@ const CollaborateNote = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [expired, setExpired] = useState(false);
 
   useEffect(() => {
     const decryptAndFetch = async () => {
@@ -25,7 +26,17 @@ const CollaborateNote = () => {
         return;
       }
 
-      const { userId, noteId } = decrypted;
+      const { userId, noteId, expiry } = decrypted;
+
+      // ⏰ Expiry check (24 hours)
+      if (!expiry || Date.now() > expiry) {
+        toast.error(
+          "This collaboration link has expired. Please request a new one."
+        );
+        setLoading(false);
+        setNote(null);
+        return;
+      }
 
       try {
         const response = await getSingleNote(userId, noteId);
@@ -111,10 +122,19 @@ const CollaborateNote = () => {
       </div>
     );
 
-  return (
+  return expired ? (
+    <div className="flex flex-col items-center justify-center min-h-screen text-center p-6">
+      <Clock className="w-12 h-12 text-primary mb-4" />
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">
+        Collaboration Link Expired
+      </h2>
+      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+        This link is no longer valid. Please ask the owner to generate a new
+        one.
+      </p>
+    </div>
+  ) : (
     <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900 transition-colors duration-300 pb-10">
-    
-      
       {/* Header */}
       <div className="sticky top-0 z-20 bg-white/70 dark:bg-zinc-950/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-zinc-800/50 transition-all duration-300">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:py-4">
@@ -165,7 +185,6 @@ const CollaborateNote = () => {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto mt-2 max-sm:px-3">
         <div className="shadow-2xl shadow-black/5 overflow-hidden transition-all duration-300 hover:shadow-3xl rounded-2xl">
-
           {/* Rich Text Editor - Content editing only */}
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
