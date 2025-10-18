@@ -49,11 +49,11 @@ const FaqSection = () => {
           className="mb-14"
         >
           <div className="flex items-center justify-center mb-4">
-            <HelpCircle className="w-9 h-9 text-emerald-500 dark:text-primary animate-pulse" />
+            <HelpCircle className="w-9 h-9 text-primary" />
           </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-3">
             Frequently Asked{" "}
-            <span className="text-emerald-500 dark:text-primary">
+            <span className="text-primary">
               Questions
             </span>
           </h2>

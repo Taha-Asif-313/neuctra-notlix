@@ -19,18 +19,8 @@ const Navbar = () => {
   const location = useLocation();
   const { darkMode, toggleTheme } = useAppContext();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
   const isActive = (path) => location.pathname === path;
   const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
@@ -40,9 +30,7 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 ${
-        scrolled ? "bg-white/95 dark:bg-black" : ""
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black shadow shadow-gray-200 dark:shadow-zinc-900`}
     >
       {/* Main Navigation Bar */}
       <div
@@ -85,7 +73,7 @@ const Navbar = () => {
                 >
                   <Link
                     to={item.path}
-                    className={`relative px-4 py-2.5 rounded-t-xl  text-xs font-medium flex items-center gap-2 transition-all duration-200 group ${
+                    className={`relative px-4 py-2.5 rounded-t-xl text-xs font-medium flex items-center gap-2 transition-all duration-200 group ${
                       isActive(item.path)
                         ? "text-white bg-primary shadow-sm"
                         : "text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary"
@@ -93,17 +81,22 @@ const Navbar = () => {
                   >
                     <Icon
                       size={15}
-                      className={isActive(item.path) ? "text-" : ""}
+                      className={`transition-colors duration-200 ${
+                        isActive(item.path)
+                          ? "text-white"
+                          : "text-gray-500 dark:text-gray-400 group-hover:text-primary"
+                      }`}
                     />
                     {item.label}
+
                     {isActive(item.path) && (
                       <motion.div
-                        className="absolute bottom-0 left-1/2 h-0.5 w-full bg-primary rounded-full -translate-x-1/2"
+                        className="absolute bottom-0 left-0 h-[2px] w-full bg-white/70 dark:bg-primary rounded-full"
                         layoutId="activeIndicator"
                         transition={{
                           type: "spring",
                           stiffness: 300,
-                          damping: 30,
+                          damping: 25,
                         }}
                       />
                     )}
@@ -143,6 +136,10 @@ const Navbar = () => {
                 <ReactUserButton
                   darkMode={darkMode}
                   profileUrl="/notes/profile"
+                  onLogout={() => {
+                    localStorage.clear();
+                    window.location.reload();
+                  }}
                 />
               </ReactSignedIn>
             </motion.div>
@@ -166,7 +163,16 @@ const Navbar = () => {
 
             {/* User Button Mobile */}
             <ReactSignedIn>
-              <ReactUserButton darkMode={darkMode} profileUrl="/profile" />
+              <ReactUserButton
+                darkMode={darkMode}
+                profileUrl="/profile"
+                onLogout={() => {
+                  localStorage.removeItem("neuctra-dark-mode");
+                  localStorage.removeItem("neuctra-notes");
+                  localStorage.removeItem("theme");
+                  localStorage.removeItem("userInfo");
+                }}
+              />
             </ReactSignedIn>
 
             {/* Menu Toggle */}

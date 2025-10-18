@@ -10,7 +10,7 @@ const SearchBar = ({ value, onChange }) => {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full text-sm pl-10 pr-4 py-3 border border-gray-300 dark:border-black rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition bg-white dark:bg-zinc-950 text-gray-900 dark:text-white"
+        className="w-full text-sm pl-10 pr-4 py-3 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition bg-white dark:bg-zinc-950 text-gray-900 dark:text-white"
         placeholder="Search notes..."
       />
       <div className="absolute inset-y-0 right-0 pr-3 flex items-center">

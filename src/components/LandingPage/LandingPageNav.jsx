@@ -1,28 +1,26 @@
-// src/components/Header.jsx
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Moon, Sun, Menu, X, MoveRight } from "lucide-react";
 import { useAppContext } from "../../context/useAppContext";
 
 const LandingPageNav = () => {
-  const { darkMode, toggleTheme } = useAppContext();
+  const { darkMode, toggleTheme, user } = useAppContext();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuItems = ["Features", "Testimonials", "Pricing", "FAQ"];
+  const ctaLabel = user ? "Go to Dashboard" : "Get Started";
+  const ctaLink = user ? "/notes" : "/login";
 
-  useEffect(() => {
+    useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const menuItems = ["Features", "Testimonials", "Pricing", "FAQ"];
-
   return (
     <header
       className={`fixed w-full z-50 transition-all duration-300 ${
-        isScrolled
-          ? "py-4 bg-white dark:bg-black "
-          : "py-4 bg-transparent"
+        isScrolled ? "py-4 bg-white dark:bg-black" : "py-4 bg-transparent"
       }`}
     >
       <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-6">
@@ -30,13 +28,11 @@ const LandingPageNav = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div className="relative">
-              <div className="relative">
-                <img
-                  src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
-                  alt="Neuctra Notes"
-                  className="h-10 w-10 object-cover"
-                />
-              </div>
+              <img
+                src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
+                alt="Neuctra Notes"
+                className="h-10 w-10 object-cover"
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-[10px] text-primary leading-3">
@@ -73,7 +69,7 @@ const LandingPageNav = () => {
               )}
             </button>
 
-            {/* Mobile Menu */}
+            {/* Mobile Menu Button */}
             <button
               className="md:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -82,12 +78,12 @@ const LandingPageNav = () => {
               {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
 
-            {/* CTA */}
+            {/* CTA Button */}
             <Link
-              to="/notes"
+              to={ctaLink}
               className="hidden sm:flex text-sm items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-primary to-green-600 text-white rounded-lg font-medium shadow hover:shadow-md transition-all"
             >
-              <span>Get Started</span>
+              <span>{ctaLabel}</span>
               <MoveRight size={16} />
             </Link>
           </div>
@@ -110,11 +106,11 @@ const LandingPageNav = () => {
                 </a>
               ))}
               <Link
-                to="/notes"
+                to={ctaLink}
                 className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary to-green-600 text-white rounded-lg font-medium mt-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <span>Get Started</span>
+                <span>{ctaLabel}</span>
                 <MoveRight size={16} />
               </Link>
             </div>

@@ -1,15 +1,22 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { Outlet } from "react-router-dom";
 
 const NotesLayout = ({ darkMode, toggleDarkMode, notes, setNotes }) => {
   return (
-    <div className="min-h-screen w-full pt-20 bg-gradient-to-br from-indigo-50 to-purple-100 dark:from-black dark:via-black dark:to-green-950/50 transition-colors duration-300 flex flex-col">
+    <div
+      className={`
+    min-h-screen w-full pt-20 flex flex-col transition-colors duration-500
+    bg-white dark:bg-black
+  `}
+    >
       <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+
       <div className="flex-1">
         <Outlet context={{ notes, setNotes }} />
       </div>
+
       <Footer darkMode={darkMode} />
     </div>
   );

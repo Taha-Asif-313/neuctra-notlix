@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@lexical/react": "^0.37.0",
-    "@neuctra/authix": "^1.0.15",
+    "@neuctra/authix": "^1.0.16",
     "@tailwindcss/vite": "^4.1.12",
     "axios": "^1.11.0",
     "crypto-js": "^4.2.0",

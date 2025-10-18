@@ -111,17 +111,7 @@ const FeaturesSection = () => {
                 <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
                   {feature.description}
                 </p>
-                <ul className="space-y-1 text-gray-700 dark:text-gray-300 text-sm">
-                  {feature.highlights.map((item, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-center justify-center gap-2 hover:text-primary transition-colors"
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+             
               </div>
             </motion.div>
           ))}

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react"; // ⚡ Add spinner icon
 import NoteCard from "../../components/NoteCard";
 import SearchBar from "../../components/SearchBar";
 import { useAppContext } from "../../context/useAppContext";
@@ -11,9 +11,9 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [loading, setLoading] = useState(false);
-  const hasFetched = useRef(false); // ✅ Prevents infinite re-fetch loop
+  const hasFetched = useRef(false);
 
-  // 🔹 Filter notes by title/content
+  // 🔹 Filter notes
   const filteredNotes = useMemo(() => {
     if (!searchTerm) return notes;
     const lower = searchTerm.toLowerCase();
@@ -24,7 +24,7 @@ const Home = () => {
     );
   }, [notes, searchTerm]);
 
-  // 🔹 Fetch user notes (only once)
+  // 🔹 Fetch notes once
   useEffect(() => {
     if (!user?.id || hasFetched.current) return;
     hasFetched.current = true;
@@ -33,12 +33,7 @@ const Home = () => {
       setLoading(true);
       try {
         const fetchedNotes = await getAllNotes(user.id);
-        if (Array.isArray(fetchedNotes)) {
-          setNotes(fetchedNotes);
-        } else {
-          console.warn("⚠️ Unexpected notes format:", fetchedNotes);
-          setNotes([]);
-        }
+        setNotes(Array.isArray(fetchedNotes) ? fetchedNotes : []);
       } catch (error) {
         console.error("❌ Failed to fetch notes:", error);
         setNotes([]);
@@ -48,7 +43,7 @@ const Home = () => {
     };
 
     fetchNotes();
-  }, [user?.id]); // ✅ Only depends on user.id
+  }, [user?.id]);
 
   // 🔹 Delete note
   const handleDeleteNote = async (noteId) => {
@@ -77,7 +72,7 @@ const Home = () => {
     URL.revokeObjectURL(url);
   };
 
-  // 🔹 Duplicate locally
+  // 🔹 Duplicate note
   const handleDuplicateNote = (note) => {
     const duplicatedNote = {
       ...note,
@@ -92,6 +87,7 @@ const Home = () => {
     <div className="max-w-7xl mx-auto p-4 sm:p-6">
       <div className="flex flex-col lg:flex-row gap-8">
         <main className="flex-1">
+          {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
               Your Notes
@@ -108,9 +104,17 @@ const Home = () => {
 
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
 
-          {/* Empty State */}
-          {filteredNotes.length === 0 && !loading ? (
-            <div className="text-center py-16 bg-white dark:bg-zinc-950 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-800 transition-all duration-300">
+          {/* 🔹 Loading State */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="animate-spin text-primary w-10 h-10 mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                Loading your notes...
+              </p>
+            </div>
+          ) : filteredNotes.length === 0 ? (
+            // 🔹 Empty State
+            <div className="text-center py-16 bg-white dark:bg-zinc-950 rounded-2xl shadow-sm transition-all duration-300">
               <div className="text-gray-400 dark:text-gray-500 mb-4">
                 <svg
                   className="w-20 h-20 mx-auto"
@@ -143,6 +147,7 @@ const Home = () => {
               )}
             </div>
           ) : (
+            // 🔹 Notes Grid
             <div
               className={`grid gap-5 ${
                 viewMode === "grid"
@@ -160,12 +165,6 @@ const Home = () => {
                   viewMode={viewMode}
                 />
               ))}
-            </div>
-          )}
-
-          {loading && (
-            <div className="text-center text-sm text-gray-500 mt-4">
-              Loading notes...
             </div>
           )}
         </main>

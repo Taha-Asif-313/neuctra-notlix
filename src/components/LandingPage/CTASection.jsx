@@ -20,7 +20,7 @@ const CTASection = () => {
           viewport={{ once: true }}
           className="mb-10 flex flex-col items-center"
         >
-          <Sparkles className="w-10 h-10 mb-4 text-yellow-400 animate-pulse drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+          <Sparkles className="w-10 h-10 mb-4 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
           <h2 className="text-4xl sm:text-5xl font-extrabold leading-tight tracking-tight">
             Start Writing Smarter with{" "}
             <span className="text-primary drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]">
@@ -38,13 +38,13 @@ const CTASection = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
-          className="flex flex-col sm:flex-row justify-center items-center gap-4 mt-10"
+          className="flex group flex-col sm:flex-row justify-center items-center gap-4 mt-10"
         >
           <button
             onClick={() => navigate("/signup")}
-            className="px-8 py-3 rounded-full font-semibold text-lg bg-primary shadow-lg hover:bg-emerald-300 hover:shadow-primary/30 transition-all flex items-center gap-2"
+            className="px-8 py-3 rounded-full font-semibold text-lg bg-primary shadow-lg cursor-pointer hover:shadow-primary/30 transition-all flex items-center gap-2"
           >
-            Get Started <ArrowRight className="w-5 h-5" />
+            Get Started <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
           </button>
 
           <button
