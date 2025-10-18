@@ -8,7 +8,7 @@ const LandingPageNav = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const menuItems = ["Features", "Testimonials", "Pricing", "FAQ"];
-  const ctaLabel = user ? "Go to Dashboard" : "Get Started";
+  const ctaLabel = user ? "Go to Notes" : "Get Started";
   const ctaLink = user ? "/notes" : "/login";
 
     useEffect(() => {

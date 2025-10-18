@@ -23,7 +23,6 @@ const Navbar = () => {
   const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
 
   const navItems = [
-    { path: "/", label: "Home", icon: Home },
     { path: "/notes", label: "Notes", icon: BookOpen },
     { path: "/notes/create", label: "New Note", icon: Plus },
   ];

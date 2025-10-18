@@ -302,7 +302,7 @@ const RichTextEditor = forwardRef(
       }, 20);
     };
 
-    /** Modern exec replacement */
+    /** ✅ Modern exec replacement — fixed alignment + improved safety */
     const exec = (cmd, value = null) => {
       const sel = window.getSelection();
       if (!sel || !sel.rangeCount) return;
@@ -313,6 +313,18 @@ const RichTextEditor = forwardRef(
         Object.assign(span.style, style);
         span.appendChild(range.extractContents());
         range.insertNode(span);
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.addRange(newRange);
+      };
+
+      const wrapList = (range, listType) => {
+        const list = document.createElement(listType);
+        const li = document.createElement("li");
+        li.appendChild(range.extractContents());
+        list.appendChild(li);
+        range.insertNode(list);
         sel.removeAllRanges();
         sel.addRange(range);
       };
@@ -333,20 +345,38 @@ const RichTextEditor = forwardRef(
         case "fontSize":
           if (value) wrapText({ fontSize: value });
           break;
+
+        /** ✅ Fixed: Alignments now always apply correctly */
         case "justifyLeft":
         case "justifyCenter":
-        case "justifyRight":
+        case "justifyRight": {
           const align =
             cmd === "justifyLeft"
               ? "left"
               : cmd === "justifyCenter"
               ? "center"
               : "right";
-          const block =
-            range.startContainer.closest("p") || document.createElement("p");
-          block.style.textAlign = align;
-          if (!block.parentElement) range.insertNode(block);
+
+          // Find the nearest block element or wrap in a <p>
+          let blockEl = range.startContainer;
+          while (
+            blockEl &&
+            !/^(P|DIV|BLOCKQUOTE|LI|TD|TH)$/i.test(blockEl.nodeName)
+          ) {
+            blockEl = blockEl.parentElement;
+          }
+
+          // If no block found, wrap selection in a <p>
+          if (!blockEl) {
+            blockEl = document.createElement("p");
+            blockEl.appendChild(range.extractContents());
+            range.insertNode(blockEl);
+          }
+
+          blockEl.style.textAlign = align;
           break;
+        }
+
         case "insertUnorderedList":
           wrapList(range, "ul");
           break;
