@@ -35,6 +35,7 @@ import {
   Type,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Dropdown from "./TextEditor/DropDown";
 
 /**
  * Fully custom RichTextEditor.jsx
@@ -117,13 +118,11 @@ const ToolbarButton = ({
   );
 };
 
-
-
 const RichTextEditor = forwardRef(
   ({ content = "<p><br/></p>", setContent, mobileOptimized = false }, ref) => {
     const editorRef = useRef(null);
     const rootRef = useRef(null);
-const dropdownRef = useRef(null);
+    const dropdownRef = useRef(null);
     const [html, setHtml] = useState(content || "<p><br/></p>");
     const [wordCount, setWordCount] = useState(0);
     const [lastSaved, setLastSaved] = useState(new Date());
@@ -176,20 +175,21 @@ const dropdownRef = useRef(null);
       getEditorContent: () => editorRef.current?.innerHTML || "",
     }));
 
-useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (
-      rootRef.current &&
-      !rootRef.current.contains(e.target) &&
-      dropdownRef.current &&
-      !dropdownRef.current.contains(e.target)
-    ) {
-      setOpenDropdown(null);
-    }
-  };
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => document.removeEventListener("mousedown", handleClickOutside);
-}, []);
+    useEffect(() => {
+      const handleClickOutside = (e) => {
+        if (
+          rootRef.current &&
+          !rootRef.current.contains(e.target) &&
+          dropdownRef.current &&
+          !dropdownRef.current.contains(e.target)
+        ) {
+          setOpenDropdown(null);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     useEffect(() => {
       if (editorRef.current) {
@@ -302,10 +302,72 @@ useEffect(() => {
       }, 20);
     };
 
+    /** Modern exec replacement */
     const exec = (cmd, value = null) => {
-      document.execCommand(cmd, false, value);
+      const sel = window.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+
+      const wrapText = (style = {}) => {
+        const span = document.createElement("span");
+        Object.assign(span.style, style);
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      };
+
+      switch (cmd) {
+        case "bold":
+          wrapText({ fontWeight: "bold" });
+          break;
+        case "italic":
+          wrapText({ fontStyle: "italic" });
+          break;
+        case "underline":
+          wrapText({ textDecoration: "underline" });
+          break;
+        case "color":
+          if (value) wrapText({ color: value });
+          break;
+        case "fontSize":
+          if (value) wrapText({ fontSize: value });
+          break;
+        case "justifyLeft":
+        case "justifyCenter":
+        case "justifyRight":
+          const align =
+            cmd === "justifyLeft"
+              ? "left"
+              : cmd === "justifyCenter"
+              ? "center"
+              : "right";
+          const block =
+            range.startContainer.closest("p") || document.createElement("p");
+          block.style.textAlign = align;
+          if (!block.parentElement) range.insertNode(block);
+          break;
+        case "insertUnorderedList":
+          wrapList(range, "ul");
+          break;
+        case "insertOrderedList":
+          wrapList(range, "ol");
+          break;
+        default:
+          break;
+      }
+
       triggerChange();
       editorRef.current?.focus();
+    };
+
+    /** Helper for lists */
+    const wrapList = (range, type) => {
+      const list = document.createElement(type);
+      const li = document.createElement("li");
+      li.appendChild(range.extractContents());
+      list.appendChild(li);
+      range.insertNode(list);
     };
 
     const triggerChange = () => {
@@ -337,7 +399,7 @@ useEffect(() => {
     /* Actions from original */
     const applyColor = (type, color) => {
       const range = getRange();
-      if (!range && type !== "cell") return;
+
       if (type === "cell") {
         if (selectedCell) {
           selectedCell.style.backgroundColor = color;
@@ -346,14 +408,36 @@ useEffect(() => {
         }
         return;
       }
-      const span = document.createElement("span");
-      if (type === "text") span.style.color = color;
-      if (type === "background") span.style.backgroundColor = color;
-      const contents = range.extractContents();
-      span.appendChild(contents);
-      range.insertNode(span);
-      setActiveColor(color);
-      triggerChange();
+
+      if (type === "background") {
+        if (selectedCell) {
+          selectedCell.style.backgroundColor = color; // apply directly to selected cell
+          setActiveColor(color);
+          triggerChange();
+          return;
+        }
+        // fallback for general text background
+        if (!range) return;
+        const span = document.createElement("span");
+        span.style.backgroundColor = color;
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+        setActiveColor(color);
+        triggerChange();
+        return;
+      }
+
+      if (type === "text") {
+        if (!range) return;
+        const span = document.createElement("span");
+        span.style.color = color;
+        const contents = range.extractContents();
+        span.appendChild(contents);
+        range.insertNode(span);
+        setActiveColor(color);
+        triggerChange();
+      }
     };
 
     const insertLink = (url, text) => {
@@ -747,68 +831,65 @@ useEffect(() => {
               <Palette size={16} />
             </ToolbarButton>
 
-            <AnimatePresence>
-              {openDropdown === "color" && colorType === "text" && (
-                <motion.div
-                ref={dropdownRef}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.12 }}
-                  className="absolute left-0 mt-2 w-56 z-40 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
-                >
-                  <div className="grid grid-cols-6 gap-2 mb-3">
-                    {COLOR_PRESETS.map((c) => {
-                      const isActive =
-                        activeColor && c.toLowerCase() === activeColor.toLowerCase();
-                      return (
-                        <button
-                          key={c}
-                          onClick={() => {
-                            applyColor("text", c);
-                            setActiveColor(c);
-                          }}
-                          title={c}
-                          style={{ backgroundColor: c }}
-                          className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
-                            isActive
-                              ? "ring-2 ring-green-400 border-green-400"
-                              : "border-gray-200 dark:border-zinc-700"
-                          }`}
-                          aria-pressed={isActive}
-                        >
-                          {c === "#ffffff" && (
-                            <div className="absolute inset-0 rounded-md border border-gray-200/60" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                    Custom color
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      defaultValue={activeColor || PRIMARY}
-                      className="w-full h-9 rounded-md border border-gray-200 dark:border-zinc-700 cursor-pointer"
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        applyColor("text", val);
-                        setActiveColor(val);
+            <Dropdown
+              open={openDropdown === "color" && colorType === "text"}
+              anchorRef={{ current: dropdownAnchor }}
+              onClose={() => setOpenDropdown(null)}
+              className="w-56 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
+              autoCloseOnSelect={true} // ✅ auto-close on color select
+            >
+              <div className="grid grid-cols-6 gap-2 mb-3">
+                {COLOR_PRESETS.map((c) => {
+                  const isActive =
+                    activeColor &&
+                    c.toLowerCase() === activeColor.toLowerCase();
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => {
+                        applyColor("text", c);
+                        setActiveColor(c);
                       }}
-                    />
-                    <div
-                      className="px-3 py-1.5 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
-                      style={{ color: activeColor || PRIMARY }}
+                      title={c}
+                      style={{ backgroundColor: c }}
+                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
+                        isActive
+                          ? "ring-2 ring-green-400 border-green-400"
+                          : "border-gray-200 dark:border-zinc-700"
+                      }`}
+                      aria-pressed={isActive}
                     >
-                      {(activeColor || PRIMARY).toUpperCase()}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                      {c === "#ffffff" && (
+                        <div className="absolute inset-0 rounded-md border border-gray-200/60" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Custom color
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  defaultValue={activeColor || PRIMARY}
+                  className="w-full h-9 rounded-md border border-gray-200 dark:border-zinc-700 cursor-pointer"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    applyColor("text", val);
+                    setActiveColor(val);
+                    setOpenDropdown(null); // close on custom color select
+                  }}
+                />
+                <div
+                  className="px-3 py-1.5 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
+                  style={{ color: activeColor || PRIMARY }}
+                >
+                  {(activeColor || PRIMARY).toUpperCase()}
+                </div>
+              </div>
+            </Dropdown>
           </div>
 
           {/* Highlight / Cell color dropdown */}
@@ -816,7 +897,7 @@ useEffect(() => {
             <ToolbarButton
               title="Cell / Background color"
               onClick={(e) => {
-                setColorType("background"); // we'll treat 'background' as inline background color
+                setColorType("background"); // inline background color
                 setOpenDropdown(openDropdown === "color" ? null : "color");
                 setDropdownAnchor(e.currentTarget);
               }}
@@ -825,68 +906,65 @@ useEffect(() => {
               <Highlighter size={16} />
             </ToolbarButton>
 
-            <AnimatePresence>
-              {openDropdown === "color" && colorType === "background" && (
-                <motion.div
-                ref={dropdownRef}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.12 }}
-                  className="absolute left-0 mt-2 w-56 z-40 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
-                >
-                  <div className="grid grid-cols-6 gap-2 mb-3">
-                    {COLOR_PRESETS.map((c) => {
-                      const isActive =
-                        activeColor && c.toLowerCase() === activeColor.toLowerCase();
-                      return (
-                        <button
-                          key={c}
-                          onClick={() => {
-                            applyColor("background", c);
-                            setActiveColor(c);
-                          }}
-                          title={c}
-                          style={{ backgroundColor: c }}
-                          className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
-                            isActive
-                              ? "ring-2 ring-green-400 border-green-400"
-                              : "border-gray-200 dark:border-zinc-700"
-                          }`}
-                          aria-pressed={isActive}
-                        >
-                          {c === "#ffffff" && (
-                            <div className="absolute inset-0 rounded-md border border-gray-200/60" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                    Custom color
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      defaultValue={activeColor || PRIMARY}
-                      className="w-full h-9 rounded-md border border-gray-200 dark:border-zinc-700 cursor-pointer"
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        applyColor("background", val);
-                        setActiveColor(val);
+            <Dropdown
+              open={openDropdown === "color" && colorType === "background"}
+              anchorRef={{ current: dropdownAnchor }}
+              onClose={() => setOpenDropdown(null)}
+              className="w-56 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
+              autoCloseOnSelect={true} // ✅ auto-close on color select
+            >
+              <div className="grid grid-cols-6 gap-2 mb-3">
+                {COLOR_PRESETS.map((c) => {
+                  const isActive =
+                    activeColor &&
+                    c.toLowerCase() === activeColor.toLowerCase();
+                  return (
+                    <button
+                      key={c}
+                      onClick={() => {
+                        applyColor("background", c);
+                        setActiveColor(c);
                       }}
-                    />
-                    <div
-                      className="px-3 py-1.5 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
-                      style={{ color: activeColor || PRIMARY }}
+                      title={c}
+                      style={{ backgroundColor: c }}
+                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
+                        isActive
+                          ? "ring-2 ring-green-400 border-green-400"
+                          : "border-gray-200 dark:border-zinc-700"
+                      }`}
+                      aria-pressed={isActive}
                     >
-                      {(activeColor || PRIMARY).toUpperCase()}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                      {c === "#ffffff" && (
+                        <div className="absolute inset-0 rounded-md border border-gray-200/60" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Custom color
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  defaultValue={activeColor || PRIMARY}
+                  className="w-full h-9 rounded-md border border-gray-200 dark:border-zinc-700 cursor-pointer"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    applyColor("background", val);
+                    setActiveColor(val);
+                    setOpenDropdown(null); // close on custom color select
+                  }}
+                />
+                <div
+                  className="px-3 py-1.5 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
+                  style={{ color: activeColor || PRIMARY }}
+                >
+                  {(activeColor || PRIMARY).toUpperCase()}
+                </div>
+              </div>
+            </Dropdown>
           </div>
 
           <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
@@ -907,55 +985,49 @@ useEffect(() => {
               <LinkIcon size={16} />
             </ToolbarButton>
 
-            <AnimatePresence>
-              {openDropdown === "link" && (
-                <motion.div
-                ref={dropdownRef}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.12 }}
-                  className="absolute left-0 mt-2 w-72 z-40 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
+            <Dropdown
+              open={openDropdown === "link"}
+              anchorRef={{ current: dropdownAnchor }}
+              onClose={() => setOpenDropdown(null)}
+              className="w-72 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
+            >
+              <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
+                Insert link
+              </div>
+              <input
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://example.com"
+                className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 mb-2"
+              />
+              <input
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+                placeholder="Display text (optional)"
+                className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 mb-3"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setOpenDropdown(null);
+                    setLinkUrl("");
+                    setLinkText("");
+                  }}
+                  className="flex-1 p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200"
                 >
-                  <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
-                    Insert link
-                  </div>
-                  <input
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    placeholder="https://example.com"
-                    className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 mb-2"
-                  />
-                  <input
-                    value={linkText}
-                    onChange={(e) => setLinkText(e.target.value)}
-                    placeholder="Display text (optional)"
-                    className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 mb-3"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setOpenDropdown(null);
-                        setLinkUrl("");
-                        setLinkText("");
-                      }}
-                      className="flex-1 p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (!linkUrl) return;
-                        insertLink(linkUrl.trim(), linkText.trim());
-                      }}
-                      className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      Insert
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (!linkUrl) return;
+                    insertLink(linkUrl.trim(), linkText.trim());
+                  }}
+                  className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Insert
+                </button>
+              </div>
+            </Dropdown>
           </div>
 
           {/* Table dropdown */}
@@ -971,59 +1043,61 @@ useEffect(() => {
               <Table size={16} />
             </ToolbarButton>
 
-            <AnimatePresence>
-              {openDropdown === "table" && (
-                <motion.div
-                ref={dropdownRef}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.12 }}
-                  className="absolute left-0 mt-2 w-56 z-40 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
-                >
-                  <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
-                    Insert table
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">Rows</label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={tableRows}
-                        onChange={(e) => setTableRows(Math.max(1, parseInt(e.target.value || "1")))}
-                        className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs text-gray-500 dark:text-gray-400">Columns</label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={tableCols}
-                        onChange={(e) => setTableCols(Math.max(1, parseInt(e.target.value || "1")))}
-                        className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                      />
-                    </div>
-                  </div>
+            <Dropdown
+              open={openDropdown === "table"}
+              anchorRef={{ current: dropdownAnchor }}
+              onClose={() => setOpenDropdown(null)}
+              className="w-56 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
+            >
+              <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
+                Insert table
+              </div>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    Rows
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={tableRows}
+                    onChange={(e) =>
+                      setTableRows(Math.max(1, parseInt(e.target.value || "1")))
+                    }
+                    className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 dark:text-gray-400">
+                    Columns
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={tableCols}
+                    onChange={(e) =>
+                      setTableCols(Math.max(1, parseInt(e.target.value || "1")))
+                    }
+                    className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+              </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setOpenDropdown(null)}
-                      className="flex-1 p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => insertTable(tableRows, tableCols)}
-                      className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      Insert
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setOpenDropdown(null)}
+                  className="flex-1 p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => insertTable(tableRows, tableCols)}
+                  className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Insert
+                </button>
+              </div>
+            </Dropdown>
           </div>
 
           <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
@@ -1053,31 +1127,25 @@ useEffect(() => {
               <Type size={16} />
             </ToolbarButton>
 
-            <AnimatePresence>
-              {openDropdown === "size" && (
-                <motion.div
-                ref={dropdownRef}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.12 }}
-                  className="absolute left-0 mt-2 w-40 z-40 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2"
+            <Dropdown
+              open={openDropdown === "size"}
+              anchorRef={{ current: dropdownAnchor }}
+              onClose={() => setOpenDropdown(null)}
+              className="w-40 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2"
+            >
+              {SIZE_PRESETS.map((s) => (
+                <button
+                  key={s.value}
+                  onClick={() => {
+                    exec("fontSize", s.value);
+                    setOpenDropdown(null);
+                  }}
+                  className="w-full text-left p-2 text-sm rounded hover:bg-gray-50 dark:hover:bg-zinc-800"
                 >
-                  {SIZE_PRESETS.map((s) => (
-                    <button
-                      key={s.value}
-                      onClick={() => {
-                        exec("fontSize", s.value);
-                        setOpenDropdown(null);
-                      }}
-                      className="w-full text-left p-2 text-sm rounded hover:bg-gray-50 dark:hover:bg-zinc-800"
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {s.label}
+                </button>
+              ))}
+            </Dropdown>
           </div>
 
           <div className="flex-1" />
@@ -1086,7 +1154,9 @@ useEffect(() => {
           <div className="relative">
             <ToolbarButton
               title="Optimize"
-              onClick={() => setOpenDropdown(openDropdown === "opt" ? null : "opt")}
+              onClick={() =>
+                setOpenDropdown(openDropdown === "opt" ? null : "opt")
+              }
               compact
             >
               <Settings size={16} />
@@ -1095,7 +1165,7 @@ useEffect(() => {
             <AnimatePresence>
               {openDropdown === "opt" && (
                 <motion.div
-                ref={dropdownRef}
+                  ref={dropdownRef}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 8 }}
