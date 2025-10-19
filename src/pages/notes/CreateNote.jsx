@@ -21,6 +21,7 @@ import { CreateNoteAiAgent } from "../../agent/NoteMaker";
 import { createNote } from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 
+
 const CreateNote = () => {
   const navigate = useNavigate();
   const editorRef = useRef();

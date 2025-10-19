@@ -127,7 +127,7 @@ const RichTextEditor = forwardRef(
     const [wordCount, setWordCount] = useState(0);
     const [lastSaved, setLastSaved] = useState(new Date());
     const [isTyping, setIsTyping] = useState(false);
-
+const [selectedRows, setSelectedRows] = useState([]);
     // dropdown states (replace modals)
     const [openDropdown, setOpenDropdown] = useState(null); // 'color','highlight','link','table','size','opt'
     const [dropdownAnchor, setDropdownAnchor] = useState(null); // ref for positioning if needed
@@ -236,7 +236,39 @@ const RichTextEditor = forwardRef(
       return () => document.removeEventListener("mousedown", handler);
     }, []);
 
+    const handleRowSelect = (rowIndex, ctrlKey = false) => {
+  setSelectedRows(prev => {
+    if (ctrlKey) {
+      // Multi-select with Ctrl/Cmd
+      return prev.includes(rowIndex) 
+        ? prev.filter(i => i !== rowIndex)
+        : [...prev, rowIndex];
+    } else {
+      // Single select
+      return [rowIndex];
+    }
+  });
+};
+
     const attachTableListeners = () => {
+
+      // In attachTableListeners or table creation, add row selection:
+table.addEventListener("click", (ev) => {
+  ev.stopPropagation();
+  setSelectedTable(t);
+  
+  const cell = ev.target.closest("td,th");
+  if (cell) {
+    setSelectedCell(cell);
+    
+    // Get row index
+    const row = cell.closest("tr");
+    const rowIndex = Array.from(t.rows).indexOf(row);
+    
+    // Select row on click
+    handleRowSelect(rowIndex, ev.ctrlKey || ev.metaKey);
+  }
+});
       const el = editorRef.current;
       if (!el) return;
       el.querySelectorAll("table").forEach((t) => {
@@ -505,6 +537,52 @@ const RichTextEditor = forwardRef(
         triggerChange();
       }
     };
+
+    const applyRowStyle = (styleType, value) => {
+  if (!selectedTable || selectedRows.length === 0) return;
+  
+  selectedRows.forEach(rowIndex => {
+    const row = selectedTable.rows[rowIndex];
+    if (!row) return;
+    
+    switch (styleType) {
+      case 'backgroundColor':
+        Array.from(row.cells).forEach(cell => {
+          cell.style.backgroundColor = value;
+        });
+        break;
+        
+      case 'textColor':
+        Array.from(row.cells).forEach(cell => {
+          cell.style.color = value;
+        });
+        break;
+        
+      case 'fontWeight':
+        Array.from(row.cells).forEach(cell => {
+          cell.style.fontWeight = value;
+        });
+        break;
+        
+      case 'textAlign':
+        Array.from(row.cells).forEach(cell => {
+          cell.style.textAlign = value;
+        });
+        break;
+        
+      case 'border':
+        Array.from(row.cells).forEach(cell => {
+          cell.style.border = value;
+        });
+        break;
+        
+      default:
+        break;
+    }
+  });
+  
+  triggerChange();
+};
 
     const insertLink = (url, text) => {
       const range = getRange();
@@ -1373,6 +1451,58 @@ const RichTextEditor = forwardRef(
                   Equalize Widths
                 </button>
               </div>
+              
+{selectedRows.length > 0 && (
+  <div className="border-t border-gray-200 dark:border-zinc-700 pt-2 mt-2">
+    <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+      Style Selected Rows ({selectedRows.length})
+    </div>
+    
+    {/* Background Color */}
+    <div className="flex gap-1 mb-1">
+      <button
+        onClick={() => applyRowStyle('backgroundColor', '#fef3c7')}
+        className="flex-1 p-1 text-xs rounded bg-yellow-100 hover:bg-yellow-200"
+      >
+        Yellow
+      </button>
+      <button
+        onClick={() => applyRowStyle('backgroundColor', '#dbeafe')}
+        className="flex-1 p-1 text-xs rounded bg-blue-100 hover:bg-blue-200"
+      >
+        Blue
+      </button>
+      <button
+        onClick={() => applyRowStyle('backgroundColor', '#f3f4f6')}
+        className="flex-1 p-1 text-xs rounded bg-gray-100 hover:bg-gray-200"
+      >
+        Gray
+      </button>
+    </div>
+    
+    {/* Text Styles */}
+    <div className="flex gap-1">
+      <button
+        onClick={() => applyRowStyle('fontWeight', 'bold')}
+        className="flex-1 p-1 text-xs rounded border hover:bg-gray-100"
+      >
+        Bold
+      </button>
+      <button
+        onClick={() => applyRowStyle('textAlign', 'center')}
+        className="flex-1 p-1 text-xs rounded border hover:bg-gray-100"
+      >
+        Center
+      </button>
+      <button
+        onClick={() => setSelectedRows([])}
+        className="flex-1 p-1 text-xs rounded border hover:bg-gray-100 text-red-600"
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+)}
 
               {/* ✅ Alignment Options */}
               <div className="border-t border-gray-200 dark:border-zinc-700 pt-2 mt-1">
@@ -1431,6 +1561,26 @@ const RichTextEditor = forwardRef(
     word-wrap: break-word;
     overflow-x: auto;
   }
+    // Add to your style tag:
+.rich-text-editor table tr.selected-row {
+  background: rgba(0, 214, 22, 0.1) !important;
+}
+
+.rich-text-editor table tr.selected-row td,
+.rich-text-editor table tr.selected-row th {
+  border-left: 2px solid var(--primary) !important;
+  border-right: 2px solid var(--primary) !important;
+}
+
+.rich-text-editor table tr.selected-row:first-child td,
+.rich-text-editor table tr.selected-row:first-child th {
+  border-top: 2px solid var(--primary) !important;
+}
+
+.rich-text-editor table tr.selected-row:last-child td,
+.rich-text-editor table tr.selected-row:last-child th {
+  border-bottom: 2px solid var(--primary) !important;
+}
 
   .rich-text-editor:focus {
     outline: none;
