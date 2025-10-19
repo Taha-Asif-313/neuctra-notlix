@@ -302,7 +302,7 @@ const RichTextEditor = forwardRef(
       }, 20);
     };
 
-    /** ✅ Modern exec replacement — fixed alignment + improved safety */
+    /** 🌿 Modern exec replacement — fixed alignment + link feature (final optimized) */
     const exec = (cmd, value = null) => {
       const sel = window.getSelection();
       if (!sel || !sel.rangeCount) return;
@@ -314,9 +314,7 @@ const RichTextEditor = forwardRef(
         span.appendChild(range.extractContents());
         range.insertNode(span);
         sel.removeAllRanges();
-        const newRange = document.createRange();
-        newRange.selectNodeContents(span);
-        sel.addRange(newRange);
+        sel.addRange(range);
       };
 
       const wrapList = (range, listType) => {
@@ -325,11 +323,10 @@ const RichTextEditor = forwardRef(
         li.appendChild(range.extractContents());
         list.appendChild(li);
         range.insertNode(list);
-        sel.removeAllRanges();
-        sel.addRange(range);
       };
 
       switch (cmd) {
+        /** ✳️ Text Styles */
         case "bold":
           wrapText({ fontWeight: "bold" });
           break;
@@ -346,7 +343,7 @@ const RichTextEditor = forwardRef(
           if (value) wrapText({ fontSize: value });
           break;
 
-        /** ✅ Fixed: Alignments now always apply correctly */
+        /** 🧭 Alignment */
         case "justifyLeft":
         case "justifyCenter":
         case "justifyRight": {
@@ -357,7 +354,6 @@ const RichTextEditor = forwardRef(
               ? "center"
               : "right";
 
-          // Find the nearest block element or wrap in a <p>
           let blockEl = range.startContainer;
           while (
             blockEl &&
@@ -366,7 +362,6 @@ const RichTextEditor = forwardRef(
             blockEl = blockEl.parentElement;
           }
 
-          // If no block found, wrap selection in a <p>
           if (!blockEl) {
             blockEl = document.createElement("p");
             blockEl.appendChild(range.extractContents());
@@ -377,27 +372,69 @@ const RichTextEditor = forwardRef(
           break;
         }
 
+        /** 📋 Lists */
         case "insertUnorderedList":
           wrapList(range, "ul");
           break;
         case "insertOrderedList":
           wrapList(range, "ol");
           break;
+
+        /** 🔗 Create Link (modern version, with cleanup & selection handling) */
+        case "createLink": {
+          const url = value || prompt("Enter URL:");
+          if (!url) return;
+
+          // remove existing links inside selection
+          const fragment = range.cloneContents();
+          const links = fragment.querySelectorAll("a");
+          links.forEach((link) => {
+            const parent = link.parentNode;
+            while (link.firstChild) parent.insertBefore(link.firstChild, link);
+            parent.removeChild(link);
+          });
+
+          // create link
+          const a = document.createElement("a");
+          a.href = url.startsWith("http") ? url : `https://${url}`;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.style.color = "#2563eb";
+          a.style.textDecoration = "underline";
+
+          const selectedContent = range.extractContents();
+          a.appendChild(
+            selectedContent.textContent.trim()
+              ? selectedContent
+              : document.createTextNode(url)
+          );
+          range.insertNode(a);
+
+          // reselect link
+          sel.removeAllRanges();
+          const newRange = document.createRange();
+          newRange.selectNodeContents(a);
+          sel.addRange(newRange);
+          break;
+        }
+
+        /** 🔗 Remove Link (optional future feature) */
+        case "unlink": {
+          const node = range.startContainer.parentElement;
+          if (node && node.tagName === "A") {
+            const parent = node.parentNode;
+            while (node.firstChild) parent.insertBefore(node.firstChild, node);
+            parent.removeChild(node);
+          }
+          break;
+        }
+
         default:
           break;
       }
 
       triggerChange();
       editorRef.current?.focus();
-    };
-
-    /** Helper for lists */
-    const wrapList = (range, type) => {
-      const list = document.createElement(type);
-      const li = document.createElement("li");
-      li.appendChild(range.extractContents());
-      list.appendChild(li);
-      range.insertNode(list);
     };
 
     const triggerChange = () => {
@@ -426,7 +463,6 @@ const RichTextEditor = forwardRef(
       setWordCount(clean.split(/\s+/).filter(Boolean).length);
     };
 
-    /* Actions from original */
     const applyColor = (type, color) => {
       const range = getRange();
 
@@ -525,73 +561,78 @@ const RichTextEditor = forwardRef(
 
     const performTableAction = (action) => {
       if (!selectedTable) return;
-      const rows = selectedTable.rows.length;
-      const cols = selectedTable.rows[0]?.cells.length || 0;
+
       switch (action) {
+        /** ➕ Add or Remove Rows/Columns */
         case "addRow": {
-          const tr = selectedTable.insertRow();
-          for (let i = 0; i < cols; i++) {
-            const td = tr.insertCell();
-            td.innerHTML = "<br/>";
-            td.style.border = "1px solid rgba(0,0,0,0.08)";
-            td.style.padding = "10px";
+          const row = selectedTable.insertRow();
+          const cellCount = selectedTable.rows[0]?.cells.length || 1;
+          for (let i = 0; i < cellCount; i++)
+            row.insertCell().textContent = " ";
+          break;
+        }
+
+        case "addColumn": {
+          for (const row of selectedTable.rows)
+            row.insertCell().textContent = " ";
+          break;
+        }
+
+        case "deleteRow": {
+          selectedTable.deleteRow(selectedTable.rows.length - 1);
+          break;
+        }
+
+        case "deleteColumn": {
+          const colCount = selectedTable.rows[0]?.cells.length || 0;
+          if (colCount > 0) {
+            for (const row of selectedTable.rows) row.deleteCell(colCount - 1);
           }
           break;
         }
-        case "addColumn": {
-          Array.from(selectedTable.rows).forEach((r) => {
-            const td = r.insertCell();
-            td.innerHTML = "<br/>";
-            td.style.border = "1px solid rgba(0,0,0,0.08)";
-            td.style.padding = "10px";
-          });
-          break;
-        }
-        case "deleteRow": {
-          if (rows > 1) selectedTable.deleteRow(rows - 1);
-          break;
-        }
-        case "deleteColumn": {
-          if (cols > 1) {
-            Array.from(selectedTable.rows).forEach((r) => {
-              r.deleteCell(cols - 1);
+
+        /** 🧾 Equalize widths */
+        case "equalize": {
+          const colCount = selectedTable.rows[0]?.cells.length || 0;
+          if (colCount > 0) {
+            const width = `${100 / colCount}%`;
+            selectedTable.querySelectorAll("td, th").forEach((cell) => {
+              cell.style.width = width;
             });
           }
           break;
         }
+
+        /** 🧹 Delete table */
         case "deleteTable": {
           selectedTable.remove();
           setSelectedTable(null);
-          setSelectedCell(null);
           break;
         }
-        case "equalize": {
-          const percent = Math.floor(100 / cols);
-          Array.from(selectedTable.rows).forEach((r) =>
-            Array.from(r.cells).forEach((cell) => {
-              cell.style.width = `${percent}%`;
-            })
-          );
+
+        /** 🧭 Cell Alignment */
+        case "alignLeft":
+        case "justifyCenter":
+        case "justifyRight": {
+          const align =
+            action === "alignLeft"
+              ? "left"
+              : action === "justifyCenter"
+              ? "center"
+              : "right";
+
+          selectedTable.querySelectorAll("td, th").forEach((cell) => {
+            cell.style.textAlign = align;
+          });
           break;
         }
-        case "autofit": {
-          Array.from(selectedTable.rows).forEach((r) =>
-            Array.from(r.cells).forEach((cell) => {
-              cell.style.width = "";
-            })
-          );
+
+        default:
           break;
-        }
-        case "resetColors": {
-          Array.from(selectedTable.querySelectorAll("td,th")).forEach(
-            (cell) => {
-              cell.style.backgroundColor = "";
-            }
-          );
-          break;
-        }
       }
-      triggerChange();
+
+      triggerChange?.();
+      editorRef.current?.focus();
     };
 
     const optimizeAction = (act) => {
@@ -999,16 +1040,15 @@ const RichTextEditor = forwardRef(
 
           <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-          {/* Link dropdown */}
+          {/* 🔗 Link Dropdown */}
           <div className="relative">
             <ToolbarButton
               title="Insert link"
               onClick={(e) => {
-                setOpenDropdown(openDropdown === "link" ? null : "link");
-                setDropdownAnchor(e.currentTarget);
-                // prefill with selected text if any
                 const sel = window.getSelection();
                 setLinkText(sel?.toString() || "");
+                setOpenDropdown(openDropdown === "link" ? null : "link");
+                setDropdownAnchor(e.currentTarget);
               }}
               compact
             >
@@ -1019,23 +1059,29 @@ const RichTextEditor = forwardRef(
               open={openDropdown === "link"}
               anchorRef={{ current: dropdownAnchor }}
               onClose={() => setOpenDropdown(null)}
-              className="w-72 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
+              className="w-72 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-xl shadow-lg p-4"
             >
-              <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
-                Insert link
+              <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2">
+                Insert Link
               </div>
+
+              {/* URL input */}
               <input
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
                 placeholder="https://example.com"
-                className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 mb-2"
+                type="url"
+                className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 mb-2 focus:ring-2 focus:ring-green-500 focus:outline-none"
               />
+
+              {/* Text input */}
               <input
                 value={linkText}
                 onChange={(e) => setLinkText(e.target.value)}
                 placeholder="Display text (optional)"
-                className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 mb-3"
+                className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100 mb-3 focus:ring-2 focus:ring-green-500 focus:outline-none"
               />
+
               <div className="flex gap-2">
                 <button
                   onClick={() => {
@@ -1043,16 +1089,23 @@ const RichTextEditor = forwardRef(
                     setLinkUrl("");
                     setLinkText("");
                   }}
-                  className="flex-1 p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200"
+                  className="flex-1 p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700 transition"
                 >
                   Cancel
                 </button>
+
                 <button
                   onClick={() => {
-                    if (!linkUrl) return;
-                    insertLink(linkUrl.trim(), linkText.trim());
+                    if (!linkUrl.trim()) return;
+
+                    // ✅ Call your exec() method directly
+                    exec("createLink", linkUrl.trim());
+
+                    setOpenDropdown(null);
+                    setLinkUrl("");
+                    setLinkText("");
                   }}
-                  className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white"
+                  className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white transition"
                 >
                   Insert
                 </button>
@@ -1273,7 +1326,7 @@ const RichTextEditor = forwardRef(
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="fixed right-6 top-6 z-40 w-56 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl p-4 transition-all"
+              className="fixed right-6 top-6 z-50 w-56 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl p-4 transition-all"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs font-semibold text-gray-700 dark:text-gray-200">
@@ -1288,7 +1341,7 @@ const RichTextEditor = forwardRef(
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-2 gap-1.5 mb-2">
                 <button
                   onClick={() => performTableAction("addRow")}
                   className="flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
@@ -1319,37 +1372,181 @@ const RichTextEditor = forwardRef(
                 >
                   Equalize Widths
                 </button>
-                <button
-                  onClick={() => performTableAction("deleteTable")}
-                  className="col-span-2 flex items-center justify-center gap-2 text-xs font-medium p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-950/40 transition"
-                >
-                  <Trash2 size={14} /> Delete Table
-                </button>
               </div>
+
+              {/* ✅ Alignment Options */}
+              <div className="border-t border-gray-200 dark:border-zinc-700 pt-2 mt-1">
+                <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                  Align Cells
+                </div>
+                <div className="flex justify-around">
+                  <button
+                    onClick={() => performTableAction("alignLeft")}
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                    title="Align Left"
+                  >
+                    <AlignLeft size={16} />
+                  </button>
+                  <button
+                    onClick={() => performTableAction("justifyCenter")}
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                    title="Align Center"
+                  >
+                    <AlignCenter size={16} />
+                  </button>
+                  <button
+                    onClick={() => performTableAction("justifyRight")}
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                    title="Align Right"
+                  >
+                    <AlignRight size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Delete table */}
+              <button
+                onClick={() => performTableAction("deleteTable")}
+                className="w-full flex items-center justify-center gap-2 text-xs font-medium mt-3 p-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-950/40 transition"
+              >
+                <Trash2 size={14} /> Delete Table
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Styles: quotes, tables, responsiveness */}
+        {/* 🌿 Styles: quotes, tables, links, and responsive behavior */}
         <style>{`
-        :root { --primary: ${PRIMARY}; }
-        .rich-text-editor:focus { outline: none; }
+  :root {
+    --primary: ${PRIMARY};
+    --text-dark: #0f172a;
+    --text-light: #f8fafc;
+  }
 
-        /* modern quote styles */
-        .rich-text-editor blockquote { margin: 12px 0; padding: 14px 18px; border-left: 5px solid var(--primary); border-radius: 8px; background: rgba(0,214,22,0.06); color: #064e2a; }
-        .rich-text-editor .quote-style-1 { border-left-color: var(--primary); background: linear-gradient(90deg, rgba(0,214,22,0.05), rgba(255,255,255,0)); color: #063e2a; }
-        .rich-text-editor .quote-style-2 { border-left-color: #2563eb; background: linear-gradient(90deg, rgba(37,99,235,0.04), rgba(255,255,255,0)); color: #07336b; }
-        .rich-text-editor .quote-style-3 { border-left-color: #7c3aed; background: linear-gradient(90deg, rgba(124,58,237,0.04), rgba(255,255,255,0)); color: #3e0f66; font-style: italic; }
+  .rich-text-editor {
+    min-height: 220px;
+    line-height: 1.65;
+    font-family: "Inter", system-ui, sans-serif;
+    color: var(--text-dark);
+    word-wrap: break-word;
+    overflow-x: auto;
+  }
 
-        /* table */
-        .rich-text-editor table.modern-table th { background: #f8fafc; font-weight: 600; }
-        .rich-text-editor table.modern-table td, .rich-text-editor table.modern-table th { border: 1px solid rgba(0,0,0,0.06); padding: 10px; vertical-align: top; }
-        .rich-text-editor a { color: var(--primary); text-decoration: underline; }
+  .rich-text-editor:focus {
+    outline: none;
+  }
 
-        @media (max-width: 640px) {
-          .rich-text-editor { font-size: 14px; }
-        }
-      `}</style>
+  /* --- Quotes --- */
+  .rich-text-editor blockquote {
+    margin: 14px 0;
+    padding: 14px 18px;
+    border-left: 5px solid var(--primary);
+    border-radius: 8px;
+    background: rgba(0, 214, 22, 0.06);
+    color: #064e2a;
+    font-style: italic;
+  }
+
+  .rich-text-editor .quote-style-1 {
+    border-left-color: var(--primary);
+    background: linear-gradient(90deg, rgba(0, 214, 22, 0.05), rgba(255, 255, 255, 0));
+    color: #063e2a;
+  }
+
+  .rich-text-editor .quote-style-2 {
+    border-left-color: #2563eb;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.05), rgba(255, 255, 255, 0));
+    color: #07336b;
+  }
+
+  .rich-text-editor .quote-style-3 {
+    border-left-color: #7c3aed;
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.05), rgba(255, 255, 255, 0));
+    color: #3e0f66;
+    font-style: italic;
+  }
+
+  /* --- Tables --- */
+  .rich-text-editor table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .rich-text-editor table.modern-table th {
+    background: #f8fafc;
+    font-weight: 600;
+  }
+
+  .rich-text-editor table.modern-table td,
+  .rich-text-editor table.modern-table th {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 10px 12px;
+    vertical-align: top;
+  }
+
+  .rich-text-editor table.modern-table tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .rich-text-editor table.modern-table tr:hover {
+    background: rgba(0, 214, 22, 0.04);
+  }
+
+  /* --- Links --- */
+  .rich-text-editor a {
+    color: var(--primary);
+    text-decoration: underline;
+    transition: color 0.2s ease, background 0.2s ease;
+  }
+
+  .rich-text-editor a:hover {
+    color: #059669;
+    background: rgba(0, 214, 22, 0.05);
+  }
+
+  /* --- Lists --- */
+  .rich-text-editor ul, .rich-text-editor ol {
+    margin: 10px 0 10px 25px;
+  }
+  .rich-text-editor li {
+    margin-bottom: 4px;
+  }
+
+  /* --- Headings --- */
+  .rich-text-editor h1 { font-size: 1.8rem; font-weight: 700; margin: 1rem 0; }
+  .rich-text-editor h2 { font-size: 1.5rem; font-weight: 600; margin: 0.9rem 0; }
+  .rich-text-editor h3 { font-size: 1.3rem; font-weight: 500; margin: 0.8rem 0; }
+
+  /* --- Responsive typography --- */
+  @media (max-width: 640px) {
+    .rich-text-editor { 
+      font-size: 14px; 
+      line-height: 1.6; 
+      padding: 8px;
+    }
+    .rich-text-editor h1 { font-size: 1.4rem; }
+    .rich-text-editor h2 { font-size: 1.2rem; }
+  }
+
+  /* --- Dark Mode --- */
+  .dark .rich-text-editor {
+    color: var(--text-light);
+  }
+  .dark .rich-text-editor table.modern-table th {
+    background: #1e293b;
+  }
+  .dark .rich-text-editor table.modern-table td,
+  .dark .rich-text-editor table.modern-table th {
+    border-color: rgba(255,255,255,0.08);
+  }
+  .dark .rich-text-editor blockquote {
+    background: rgba(0,214,22,0.08);
+    color: #bbf7d0;
+  }
+`}</style>
       </div>
     );
   }
