@@ -38,6 +38,7 @@ import {
   Table2,
   LayoutGrid,
   FileDown,
+  RemoveFormatting,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import html2pdf from "html2pdf.js"; // Optional backup
@@ -380,12 +381,13 @@ const RichTextEditor = forwardRef(
       }, 20);
     };
 
-    /** 🌿 Modern exec replacement — fixed alignment + link feature (final optimized) */
+    /** 🌿 Modern exec replacement — toggle bold/italic/underline properly */
     const exec = (cmd, value = null) => {
       const sel = window.getSelection();
       if (!sel || !sel.rangeCount) return;
       const range = sel.getRangeAt(0);
 
+      /** 🧩 Helper: Wrap selection with inline styles */
       const wrapText = (style = {}) => {
         const span = document.createElement("span");
         Object.assign(span.style, style);
@@ -395,6 +397,83 @@ const RichTextEditor = forwardRef(
         sel.addRange(range);
       };
 
+      /** 🧩 Toggle inline style for multi-node selection */
+      const toggleInlineStyle = (styleProp, styleValue) => {
+        if (range.collapsed) return; // do nothing for cursor only
+
+        const frag = range.extractContents();
+        const walker = document.createTreeWalker(
+          frag,
+          NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+          null
+        );
+        let hasStyle = false;
+
+        // First pass: check if any node already has this style
+        const tempFrag = frag.cloneNode(true);
+        const tempWalker = document.createTreeWalker(
+          tempFrag,
+          NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+          null
+        );
+
+        while (tempWalker.nextNode()) {
+          const node = tempWalker.currentNode;
+          if (node.nodeType === 1 && node.style[styleProp] === styleValue) {
+            hasStyle = true;
+            break;
+          }
+        }
+
+        // Second pass: apply or remove style
+        while (walker.nextNode()) {
+          const node = walker.currentNode;
+
+          if (node.nodeType === 3) {
+            // Text node
+            const parent = node.parentNode;
+
+            if (hasStyle) {
+              // Remove style
+              if (
+                parent.nodeType === 1 &&
+                parent.style[styleProp] === styleValue
+              ) {
+                parent.style[styleProp] = "";
+                // Remove empty span
+                if (
+                  !parent.getAttribute("style") &&
+                  parent.tagName === "SPAN"
+                ) {
+                  const parentParent = parent.parentNode;
+                  while (parent.firstChild) {
+                    parentParent.insertBefore(parent.firstChild, parent);
+                  }
+                  parentParent.removeChild(parent);
+                }
+              }
+            } else {
+              // Apply style
+              const span = document.createElement("span");
+              span.style[styleProp] = styleValue;
+              const clonedNode = node.cloneNode(true);
+              span.appendChild(clonedNode);
+              parent.replaceChild(span, node);
+            }
+          } else if (node.nodeType === 1) {
+            // Element node
+            if (hasStyle && node.style[styleProp] === styleValue) {
+              node.style[styleProp] = "";
+            } else if (!hasStyle) {
+              node.style[styleProp] = styleValue;
+            }
+          }
+        }
+
+        range.insertNode(frag);
+      };
+
+      /** 🧩 Wrap selection as list (ul/ol) */
       const wrapList = (range, listType) => {
         const list = document.createElement(listType);
         const li = document.createElement("li");
@@ -404,27 +483,25 @@ const RichTextEditor = forwardRef(
       };
 
       switch (cmd) {
-        /** ✳️ Text Styles */
+        /** ✳️ Toggle Text Styles */
         case "bold":
-          wrapText({ fontWeight: "bold" });
+          toggleInlineStyle("fontWeight", "bold");
           break;
         case "italic":
-          wrapText({ fontStyle: "italic" });
+          toggleInlineStyle("fontStyle", "italic");
           break;
         case "underline":
-          wrapText({ textDecoration: "underline" });
+          toggleInlineStyle("textDecoration", "underline");
           break;
+
+        /** 🎨 Colors & Fonts */
         case "color":
           if (value) wrapText({ color: value });
           break;
         case "fontSize":
           if (value) {
             let fontSizeValue = value;
-
-            // 💡 Handle plain numbers (5, 6, 7, etc.)
             if (!isNaN(value)) {
-              // Convert to pixel size based on HTML font size scale
-              // You can tweak this mapping for better control
               const sizeMap = {
                 1: "10px",
                 2: "12px",
@@ -439,12 +516,9 @@ const RichTextEditor = forwardRef(
               };
               fontSizeValue = sizeMap[value] || `${value}px`;
             }
-
             wrapText({ fontSize: fontSizeValue });
           }
           break;
-
-        /** 🆕 Font Family */
         case "fontFamily":
           if (value) wrapText({ fontFamily: value });
           break;
@@ -457,73 +531,57 @@ const RichTextEditor = forwardRef(
             cmd === "justifyLeft"
               ? "left"
               : cmd === "justifyCenter"
-                ? "center"
-                : "right";
-
+              ? "center"
+              : "right";
           let blockEl = range.startContainer;
           while (
             blockEl &&
             !/^(P|DIV|BLOCKQUOTE|LI|TD|TH)$/i.test(blockEl.nodeName)
-          ) {
+          )
             blockEl = blockEl.parentElement;
-          }
-
           if (!blockEl) {
             blockEl = document.createElement("p");
             blockEl.appendChild(range.extractContents());
             range.insertNode(blockEl);
           }
-
           blockEl.style.textAlign = align;
           break;
         }
 
         /** 🧹 Clear Formatting */
-case "clearFormatting": {
-  // Expand selection to cover the full line or paragraph
-  let blockEl = range.startContainer;
-  while (blockEl && !/^(P|DIV|LI|TD|TH|BLOCKQUOTE)$/i.test(blockEl.nodeName)) {
-    blockEl = blockEl.parentElement;
-  }
+        case "clearFormatting": {
+          let blockEl = range.startContainer;
+          while (
+            blockEl &&
+            !/^(P|DIV|LI|TD|TH|BLOCKQUOTE)$/i.test(blockEl.nodeName)
+          )
+            blockEl = blockEl.parentElement;
+          if (!blockEl) {
+            const p = document.createElement("p");
+            p.appendChild(range.extractContents());
+            range.insertNode(p);
+            blockEl = p;
+          }
 
-  // If no block element, wrap selection in <p>
-  if (!blockEl) {
-    const p = document.createElement("p");
-    p.appendChild(range.extractContents());
-    range.insertNode(p);
-    blockEl = p;
-  }
-
-  // Create a clean clone with only text (no inline styles)
-  const cleaned = blockEl.cloneNode(true);
-
-  // Recursively remove all inline styles & formatting tags
-  const removeFormatting = (node) => {
-    if (node.nodeType === 1) {
-      // Remove style attributes
-      node.removeAttribute("style");
-
-      // Remove inline formatting tags (like <b>, <i>, <span>, <font>)
-      const removableTags = ["B", "I", "U", "FONT", "SPAN"];
-      if (removableTags.includes(node.nodeName)) {
-        const parent = node.parentNode;
-        while (node.firstChild) parent.insertBefore(node.firstChild, node);
-        parent.removeChild(node);
-        return;
-      }
-
-      // Recurse through children
-      Array.from(node.childNodes).forEach(removeFormatting);
-    }
-  };
-  removeFormatting(cleaned);
-
-  // Replace original element with cleaned one
-  blockEl.replaceWith(cleaned);
-
-  break;
-}
-
+          const cleaned = blockEl.cloneNode(true);
+          const removeFormatting = (node) => {
+            if (node.nodeType === 1) {
+              node.removeAttribute("style");
+              const removableTags = ["B", "I", "U", "FONT", "SPAN"];
+              if (removableTags.includes(node.nodeName)) {
+                const parent = node.parentNode;
+                while (node.firstChild)
+                  parent.insertBefore(node.firstChild, node);
+                parent.removeChild(node);
+                return;
+              }
+              Array.from(node.childNodes).forEach(removeFormatting);
+            }
+          };
+          removeFormatting(cleaned);
+          blockEl.replaceWith(cleaned);
+          break;
+        }
 
         /** 📋 Lists */
         case "insertUnorderedList":
@@ -533,38 +591,26 @@ case "clearFormatting": {
           wrapList(range, "ol");
           break;
 
-        /** 🔗 Create Link (simpler reliable version) */
+        /** 🔗 Create / Remove Link */
         case "createLink": {
           const url = value || prompt("Enter URL:");
           if (!url) return;
-
           const formattedUrl = url.startsWith("http") ? url : `https://${url}`;
-
-          // Use a simpler approach - insert HTML directly
-          const linkHTML = `<a href="${formattedUrl}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">${range.toString() || formattedUrl
-            }</a>`;
-
-          // Delete current selection and insert link
+          const linkHTML = `<a href="${formattedUrl}" target="_blank" rel="noopener noreferrer" style="color:#2563eb;text-decoration:underline;">${
+            range.toString() || formattedUrl
+          }</a>`;
           range.deleteContents();
-
-          // Create temporary div to parse HTML
           const tempDiv = document.createElement("div");
           tempDiv.innerHTML = linkHTML;
           const linkElement = tempDiv.firstChild;
-
           range.insertNode(linkElement);
-
-          // Move selection after the link
           const newRange = document.createRange();
           newRange.setStartAfter(linkElement);
           newRange.setEndAfter(linkElement);
           sel.removeAllRanges();
           sel.addRange(newRange);
-
           break;
         }
-
-        /** 🔗 Remove Link (optional future feature) */
         case "unlink": {
           const node = range.startContainer.parentElement;
           if (node && node.tagName === "A") {
@@ -854,8 +900,8 @@ case "clearFormatting": {
             action === "alignLeft"
               ? "left"
               : action === "justifyCenter"
-                ? "center"
-                : "right";
+              ? "center"
+              : "right";
 
           selectedTable.querySelectorAll("td, th").forEach((cell) => {
             cell.style.textAlign = align;
@@ -946,8 +992,9 @@ case "clearFormatting": {
     };
 
     const exportHTML = (title = "note") => {
-      const noteHTML = `<!doctype html><html><head><meta charset="utf-8" /><title>${title}</title><meta name="viewport" content="width=device-width,initial-scale=1" /><style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111827;} .note-title{font-size:1.6rem;font-weight:700;margin-bottom:8px;color:${PRIMARY};} .note-content{line-height:1.6;} table{border-collapse:collapse;width:100%;} table td,table th{border:1px solid #e5e7eb;padding:8px;} blockquote{border-left:4px solid ${PRIMARY};padding:8px 16px;background:#f7fff2;}</style></head><body><div class="note-title">${title}</div><div class="note-meta">Exported: ${new Date().toLocaleString()}</div><div class="note-content">${editorRef.current?.innerHTML || ""
-        }</div></body></html>`;
+      const noteHTML = `<!doctype html><html><head><meta charset="utf-8" /><title>${title}</title><meta name="viewport" content="width=device-width,initial-scale=1" /><style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111827;} .note-title{font-size:1.6rem;font-weight:700;margin-bottom:8px;color:${PRIMARY};} .note-content{line-height:1.6;} table{border-collapse:collapse;width:100%;} table td,table th{border:1px solid #e5e7eb;padding:8px;} blockquote{border-left:4px solid ${PRIMARY};padding:8px 16px;background:#f7fff2;}</style></head><body><div class="note-title">${title}</div><div class="note-meta">Exported: ${new Date().toLocaleString()}</div><div class="note-content">${
+        editorRef.current?.innerHTML || ""
+      }</div></body></html>`;
       const blob = new Blob([noteHTML], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1149,7 +1196,7 @@ case "clearFormatting": {
               anchorRef={{ current: dropdownAnchor }}
               onClose={() => setOpenDropdown(null)}
               className="w-56 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
-              autoCloseOnSelect={true} // ✅ auto-close on color select
+              autoCloseOnSelect={true}
             >
               <div className="grid grid-cols-6 gap-2 mb-3">
                 {COLOR_PRESETS.map((c) => {
@@ -1165,10 +1212,11 @@ case "clearFormatting": {
                       }}
                       title={c}
                       style={{ backgroundColor: c }}
-                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${isActive
+                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
+                        isActive
                           ? "ring-2 ring-green-400 border-green-400"
                           : "border-gray-200 dark:border-zinc-700"
-                        }`}
+                      }`}
                       aria-pressed={isActive}
                     >
                       {c === "#ffffff" && (
@@ -1180,36 +1228,40 @@ case "clearFormatting": {
               </div>
 
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Custom color
+                Custom hex code
               </div>
               <div className="flex items-center gap-3">
                 <input
-                  type="color"
-                  defaultValue={activeColor || PRIMARY}
-                  className="w-full h-9 rounded-md border border-gray-200 dark:border-zinc-700 cursor-pointer"
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    applyColor("text", val);
-                    setActiveColor(val);
-                    setOpenDropdown(null); // close on custom color select
+                  type="text"
+                  placeholder="#ff0000"
+                  className="w-full h-9 text-xs rounded-md border border-gray-200 dark:border-zinc-700 px-2"
+                  value={activeColor || ""}
+                  onChange={(e) => setActiveColor(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      // Apply only if valid hex
+                      if (/^#[0-9A-Fa-f]{6}$/.test(activeColor)) {
+                        applyColor("text", activeColor);
+                      }
+                    }
                   }}
                 />
                 <div
-                  className="px-3 py-1.5 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
-                  style={{ color: activeColor || PRIMARY }}
+                  className="p-4 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
+                  style={{ background: activeColor || PRIMARY }}
                 >
-                  {(activeColor || PRIMARY).toUpperCase()}
+                
                 </div>
               </div>
             </Dropdown>
           </div>
 
-          {/* Highlight / Cell color dropdown */}
+          {/* Highlight / Background Color dropdown */}
           <div className="relative">
             <ToolbarButton
               title="Cell / Background color"
               onClick={(e) => {
-                setColorType("background"); // inline background color
+                setColorType("background");
                 setOpenDropdown(openDropdown === "color" ? null : "color");
                 setDropdownAnchor(e.currentTarget);
               }}
@@ -1223,7 +1275,7 @@ case "clearFormatting": {
               anchorRef={{ current: dropdownAnchor }}
               onClose={() => setOpenDropdown(null)}
               className="w-56 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
-              autoCloseOnSelect={true} // ✅ auto-close on color select
+              autoCloseOnSelect={true}
             >
               <div className="grid grid-cols-6 gap-2 mb-3">
                 {COLOR_PRESETS.map((c) => {
@@ -1239,10 +1291,11 @@ case "clearFormatting": {
                       }}
                       title={c}
                       style={{ backgroundColor: c }}
-                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${isActive
+                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
+                        isActive
                           ? "ring-2 ring-green-400 border-green-400"
                           : "border-gray-200 dark:border-zinc-700"
-                        }`}
+                      }`}
                       aria-pressed={isActive}
                     >
                       {c === "#ffffff" && (
@@ -1254,25 +1307,28 @@ case "clearFormatting": {
               </div>
 
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Custom color
+                Custom hex code
               </div>
               <div className="flex items-center gap-3">
                 <input
-                  type="color"
-                  defaultValue={activeColor || PRIMARY}
-                  className="w-full h-9 rounded-md border border-gray-200 dark:border-zinc-700 cursor-pointer"
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    applyColor("background", val);
-                    setActiveColor(val);
-                    setOpenDropdown(null); // close on custom color select
+                  type="text"
+                  placeholder="#ff0000"
+                  className="w-full h-9 text-xs rounded-md border border-gray-200 dark:border-zinc-700 px-2"
+                  value={activeColor || ""}
+                  onChange={(e) => setActiveColor(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      if (/^#[0-9A-Fa-f]{6}$/.test(activeColor)) {
+                        applyColor("background", activeColor);
+                      }
+                    }
                   }}
                 />
                 <div
                   className="px-3 py-1.5 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
                   style={{ color: activeColor || PRIMARY }}
                 >
-                  {(activeColor || PRIMARY).toUpperCase()}
+                  {(activeColor || "").toUpperCase()}
                 </div>
               </div>
             </Dropdown>
@@ -1424,19 +1480,6 @@ case "clearFormatting": {
           </div>
 
           <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
-
-          <ToolbarButton
-            title="Quote styles"
-            onClick={() => {
-              const next = (quoteStyle % 3) + 1;
-              setQuoteStyle(next);
-              applyQuoteStyle(next);
-            }}
-            compact
-          >
-            <Quote size={16} />
-          </ToolbarButton>
-
           {/* 🧩 Text Size Dropdown */}
           <div className="relative">
             <ToolbarButton
@@ -1450,50 +1493,52 @@ case "clearFormatting": {
               <Type size={16} />
             </ToolbarButton>
 
-            <Dropdown
-              open={openDropdown === "size"}
-              anchorRef={{ current: dropdownAnchor }}
-              onClose={() => setOpenDropdown(null)}
-              className="w-44 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2"
-            >
-              {[
-                { label: "5", value: 5 },
-                { label: "6", value: 6 },
-                { label: "7", value: 7 },
-                { label: "8", value: 8 },
-                { label: "9", value: 9 },
-                { label: "10", value: 10 },
-              ].map((s) => {
-                // same mapping as in exec() for preview
-                const sizeMap = {
-                  1: "10px",
-                  2: "12px",
-                  3: "14px",
-                  4: "16px",
-                  5: "18px",
-                  6: "20px",
-                  7: "24px",
-                  8: "28px",
-                  9: "32px",
-                  10: "36px",
-                };
-                const fontSize = sizeMap[s.value] || `${s.value}px`;
+            {openDropdown === "size" && dropdownAnchor && (
+              <div
+                className="absolute mt-2 w-44 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg p-2 z-50 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-zinc-700 scrollbar-track-transparent"
+                style={{
+                  top: "100%", // always open downward
+                  left: 0,
+                }}
+              >
+                {[
+                  { label: "5", value: 5 },
+                  { label: "6", value: 6 },
+                  { label: "7", value: 7 },
+                  { label: "8", value: 8 },
+                  { label: "9", value: 9 },
+                  { label: "10", value: 10 },
+                ].map((s) => {
+                  const sizeMap = {
+                    1: "10px",
+                    2: "12px",
+                    3: "14px",
+                    4: "16px",
+                    5: "18px",
+                    6: "20px",
+                    7: "24px",
+                    8: "28px",
+                    9: "32px",
+                    10: "36px",
+                  };
+                  const fontSize = sizeMap[s.value] || `${s.value}px`;
 
-                return (
-                  <button
-                    key={s.value}
-                    onClick={() => {
-                      exec("fontSize", s.value);
-                      setOpenDropdown(null);
-                    }}
-                    className="w-full text-left px-3 py-2 rounded hover:bg-gray-50 dark:hover:bg-zinc-800 transition font-medium"
-                    style={{ fontSize }}
-                  >
-                    {`Size ${s.label}`}
-                  </button>
-                );
-              })}
-            </Dropdown>
+                  return (
+                    <button
+                      key={s.value}
+                      onClick={() => {
+                        exec("fontSize", s.value);
+                        setOpenDropdown(null);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition font-medium"
+                      style={{ fontSize }}
+                    >
+                      {`Size ${s.label}`}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* 🅵 Font Family Dropdown */}
@@ -1509,103 +1554,48 @@ case "clearFormatting": {
               <span className="text-sm font-semibold">Aa</span>
             </ToolbarButton>
 
-            <Dropdown
-              open={openDropdown === "font"}
-              anchorRef={{ current: dropdownAnchor }}
-              onClose={() => setOpenDropdown(null)}
-              className="w-48 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-xl shadow-xl p-2"
-            >
-              {[
-                { label: "Poppins", value: "Poppins" },
-                { label: "Inter", value: "Inter" },
-                { label: "Roboto", value: "Roboto" },
-                { label: "Arial", value: "Arial" },
-                { label: "Jameel Noori (Urdu)", value: "JameelNoori" },
-                { label: "Quran Font", value: "QuranFont" },
-                { label: "Quran Surah", value: "QuranSurah" },
-              ].map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => {
-                    exec("fontFamily", f.value);
-                    setOpenDropdown(null);
-                  }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-150 flex items-center gap-2"
-                  style={{
-                    fontFamily: f.value,
-                  }}
-                >
-                  <span className="truncate">{f.label}</span>
-                </button>
-              ))}
-            </Dropdown>
+            {openDropdown === "font" && dropdownAnchor && (
+              <div
+                className="absolute mt-2 w-48 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-lg p-2 z-50 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-zinc-700 scrollbar-track-transparent"
+                style={{
+                  top: "100%", // always open downward
+                  left: 0,
+                }}
+              >
+                {[
+                  { label: "Poppins", value: "Poppins" },
+                  { label: "Inter", value: "Inter" },
+                  { label: "Roboto", value: "Roboto" },
+                  { label: "Arial", value: "Arial" },
+                  { label: "Jameel Noori (Urdu)", value: "JameelNoori" },
+                  { label: "Quran Font", value: "QuranFont" },
+                  { label: "Quran Surah", value: "QuranSurah" },
+                ].map((f) => (
+                  <button
+                    key={f.value}
+                    onClick={() => {
+                      exec("fontFamily", f.value);
+                      setOpenDropdown(null);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-150 flex items-center gap-2"
+                    style={{
+                      fontFamily: f.value,
+                    }}
+                  >
+                    <span className="truncate">{f.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-<ToolbarButton
-  title="Clear formatting"
-  onClick={() => exec("clearFormatting")}
->
-  <Eraser size={16} />
-</ToolbarButton>
 
           <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-          {/* optimize (dropdown) */}
-          <div className="relative">
-            <ToolbarButton
-              title="Optimize"
-              onClick={() =>
-                setOpenDropdown(openDropdown === "opt" ? null : "opt")
-              }
-              compact
-            >
-              <Settings size={16} />
-            </ToolbarButton>
-
-            <AnimatePresence>
-              {openDropdown === "opt" && (
-                <motion.div
-                  ref={dropdownRef}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.12 }}
-                  className="absolute right-0 mt-2 bg-white dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2 w-48 z-40"
-                >
-                  <button
-                    className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
-                    onClick={() => optimizeAction("cleanFormatting")}
-                  >
-                    Clean Formatting
-                  </button>
-                  <button
-                    className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
-                    onClick={() => optimizeAction("autofitTable")}
-                  >
-                    Auto-fit Table
-                  </button>
-                  <button
-                    className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded"
-                    onClick={() => optimizeAction("equalizeCells")}
-                  >
-                    Equalize Cell Widths
-                  </button>
-                  <button
-                    className="w-full text-left p-2 text-xs hover:bg-gray-50 dark:hover:bg-zinc-700 rounded text-red-600"
-                    onClick={() => optimizeAction("resetColors")}
-                  >
-                    Reset Table Colors
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           <ToolbarButton
-            title="Clear formatting"
-            onClick={() => optimizeAction("cleanFormatting")}
-            compact
+            title="Remove format"
+            onClick={() => exec("clearFormatting")}
           >
-            <Eraser size={16} />
+            <RemoveFormatting size={16} />
           </ToolbarButton>
 
           <ToolbarButton
@@ -1644,7 +1634,7 @@ case "clearFormatting": {
         />
 
         {/* 🌿 Styles: quotes, tables, links, and responsive behavior */}
-  <style>{`
+        <style>{`
   :root {
     --primary: ${PRIMARY};
     --text-dark: #0f172a;
@@ -1841,7 +1831,6 @@ case "clearFormatting": {
     color: #bbf7d0;
   }
 `}</style>
-
       </div>
     );
   }

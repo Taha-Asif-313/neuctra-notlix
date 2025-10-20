@@ -1,29 +1,18 @@
 import React, { useRef, useEffect, useState, cloneElement } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-/**
- * Dropdown component
- * Props:
- * - open: boolean, whether dropdown is visible
- * - anchorRef: ref to the element that triggers the dropdown
- * - side: "bottom" | "top" (default "bottom")
- * - className: additional class names
- * - onClose: function to call when dropdown should close
- * - autoCloseOnSelect: boolean, whether to close dropdown when a child is clicked
- */
 const Dropdown = ({
   open,
   anchorRef,
   children,
-  side = "bottom",
   className = "",
   onClose,
-  autoCloseOnSelect = false,
+  autoCloseOnSelect = false, // closes only for clickable items, not inputs
 }) => {
   const dropdownRef = useRef(null);
   const [style, setStyle] = useState({});
 
-  // Auto-position dropdown relative to anchor
+  // ✅ Position dropdown relative to anchor, clamp to viewport
   useEffect(() => {
     if (!open || !anchorRef?.current || !dropdownRef.current) return;
 
@@ -31,32 +20,30 @@ const Dropdown = ({
     const dd = dropdownRef.current;
     const margin = 8;
 
-    let top = side === "bottom" ? rect.bottom + margin : rect.top - dd.offsetHeight - margin;
+    let top = rect.bottom + margin;
     let left = rect.left;
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // Adjust if dropdown overflows bottom
-    if (top + dd.offsetHeight > viewportHeight) {
-      top = rect.top - dd.offsetHeight - margin;
-    }
+    const availableHeight = viewportHeight - top - margin;
+    const maxHeight = Math.max(150, Math.min(availableHeight, 320));
 
-    // Adjust if dropdown overflows right
-    if (left + dd.offsetWidth > viewportWidth) {
+    if (left + dd.offsetWidth > viewportWidth - margin) {
       left = viewportWidth - dd.offsetWidth - margin;
     }
-
-    // Adjust if dropdown overflows left
     if (left < margin) left = margin;
 
-    setStyle({ top: `${top}px`, left: `${left}px` });
-  }, [open, anchorRef, children, side]);
+    setStyle({
+      top: `${top}px`,
+      left: `${left}px`,
+      maxHeight: `${maxHeight}px`,
+    });
+  }, [open, anchorRef, children]);
 
-  // Close on outside click
+  // 🧩 Close dropdown when clicking outside
   useEffect(() => {
     if (!open) return;
-
     const handleClickOutside = (e) => {
       if (
         dropdownRef.current &&
@@ -67,19 +54,18 @@ const Dropdown = ({
         onClose?.();
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open, anchorRef, onClose]);
 
-  // Wrap children to auto-close on click if autoCloseOnSelect is true
+  // ✅ Auto-close children if clicked (skip inputs)
   const wrappedChildren = React.Children.map(children, (child) => {
     if (!React.isValidElement(child)) return child;
-
+    const isInput = child.type === "input" || child.props.type === "text" || child.props.type === "color";
     return cloneElement(child, {
       onClick: (e) => {
-        child.props.onClick?.(e); // call original click
-        if (autoCloseOnSelect) onClose?.();
+        child.props.onClick?.(e);
+        if (autoCloseOnSelect && !isInput) onClose?.();
       },
     });
   });
@@ -89,12 +75,17 @@ const Dropdown = ({
       {open && (
         <motion.div
           ref={dropdownRef}
-          initial={{ opacity: 0, y: 8 }}
+          initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: 0.12 }}
-          style={{ position: "fixed", ...style, zIndex: 9999 }}
-          className={className}
+          exit={{ opacity: 0, y: 6 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+          style={{
+            position: "fixed",
+            ...style,
+            zIndex: 9999,
+            overflowY: "auto",
+          }}
+          className={`rounded-xl shadow-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent ${className}`}
         >
           {wrappedChildren}
         </motion.div>
