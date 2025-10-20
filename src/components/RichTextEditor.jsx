@@ -457,8 +457,8 @@ const RichTextEditor = forwardRef(
             cmd === "justifyLeft"
               ? "left"
               : cmd === "justifyCenter"
-              ? "center"
-              : "right";
+                ? "center"
+                : "right";
 
           let blockEl = range.startContainer;
           while (
@@ -478,6 +478,53 @@ const RichTextEditor = forwardRef(
           break;
         }
 
+        /** 🧹 Clear Formatting */
+case "clearFormatting": {
+  // Expand selection to cover the full line or paragraph
+  let blockEl = range.startContainer;
+  while (blockEl && !/^(P|DIV|LI|TD|TH|BLOCKQUOTE)$/i.test(blockEl.nodeName)) {
+    blockEl = blockEl.parentElement;
+  }
+
+  // If no block element, wrap selection in <p>
+  if (!blockEl) {
+    const p = document.createElement("p");
+    p.appendChild(range.extractContents());
+    range.insertNode(p);
+    blockEl = p;
+  }
+
+  // Create a clean clone with only text (no inline styles)
+  const cleaned = blockEl.cloneNode(true);
+
+  // Recursively remove all inline styles & formatting tags
+  const removeFormatting = (node) => {
+    if (node.nodeType === 1) {
+      // Remove style attributes
+      node.removeAttribute("style");
+
+      // Remove inline formatting tags (like <b>, <i>, <span>, <font>)
+      const removableTags = ["B", "I", "U", "FONT", "SPAN"];
+      if (removableTags.includes(node.nodeName)) {
+        const parent = node.parentNode;
+        while (node.firstChild) parent.insertBefore(node.firstChild, node);
+        parent.removeChild(node);
+        return;
+      }
+
+      // Recurse through children
+      Array.from(node.childNodes).forEach(removeFormatting);
+    }
+  };
+  removeFormatting(cleaned);
+
+  // Replace original element with cleaned one
+  blockEl.replaceWith(cleaned);
+
+  break;
+}
+
+
         /** 📋 Lists */
         case "insertUnorderedList":
           wrapList(range, "ul");
@@ -494,9 +541,8 @@ const RichTextEditor = forwardRef(
           const formattedUrl = url.startsWith("http") ? url : `https://${url}`;
 
           // Use a simpler approach - insert HTML directly
-          const linkHTML = `<a href="${formattedUrl}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">${
-            range.toString() || formattedUrl
-          }</a>`;
+          const linkHTML = `<a href="${formattedUrl}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">${range.toString() || formattedUrl
+            }</a>`;
 
           // Delete current selection and insert link
           range.deleteContents();
@@ -808,8 +854,8 @@ const RichTextEditor = forwardRef(
             action === "alignLeft"
               ? "left"
               : action === "justifyCenter"
-              ? "center"
-              : "right";
+                ? "center"
+                : "right";
 
           selectedTable.querySelectorAll("td, th").forEach((cell) => {
             cell.style.textAlign = align;
@@ -900,9 +946,8 @@ const RichTextEditor = forwardRef(
     };
 
     const exportHTML = (title = "note") => {
-      const noteHTML = `<!doctype html><html><head><meta charset="utf-8" /><title>${title}</title><meta name="viewport" content="width=device-width,initial-scale=1" /><style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111827;} .note-title{font-size:1.6rem;font-weight:700;margin-bottom:8px;color:${PRIMARY};} .note-content{line-height:1.6;} table{border-collapse:collapse;width:100%;} table td,table th{border:1px solid #e5e7eb;padding:8px;} blockquote{border-left:4px solid ${PRIMARY};padding:8px 16px;background:#f7fff2;}</style></head><body><div class="note-title">${title}</div><div class="note-meta">Exported: ${new Date().toLocaleString()}</div><div class="note-content">${
-        editorRef.current?.innerHTML || ""
-      }</div></body></html>`;
+      const noteHTML = `<!doctype html><html><head><meta charset="utf-8" /><title>${title}</title><meta name="viewport" content="width=device-width,initial-scale=1" /><style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111827;} .note-title{font-size:1.6rem;font-weight:700;margin-bottom:8px;color:${PRIMARY};} .note-content{line-height:1.6;} table{border-collapse:collapse;width:100%;} table td,table th{border:1px solid #e5e7eb;padding:8px;} blockquote{border-left:4px solid ${PRIMARY};padding:8px 16px;background:#f7fff2;}</style></head><body><div class="note-title">${title}</div><div class="note-meta">Exported: ${new Date().toLocaleString()}</div><div class="note-content">${editorRef.current?.innerHTML || ""
+        }</div></body></html>`;
       const blob = new Blob([noteHTML], { type: "text/html" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1011,8 +1056,6 @@ const RichTextEditor = forwardRef(
               >
                 <FileText size={16} />
               </ToolbarButton>
-
-         
             </div>
           </div>
         </div>
@@ -1122,11 +1165,10 @@ const RichTextEditor = forwardRef(
                       }}
                       title={c}
                       style={{ backgroundColor: c }}
-                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
-                        isActive
+                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${isActive
                           ? "ring-2 ring-green-400 border-green-400"
                           : "border-gray-200 dark:border-zinc-700"
-                      }`}
+                        }`}
                       aria-pressed={isActive}
                     >
                       {c === "#ffffff" && (
@@ -1197,11 +1239,10 @@ const RichTextEditor = forwardRef(
                       }}
                       title={c}
                       style={{ backgroundColor: c }}
-                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
-                        isActive
+                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${isActive
                           ? "ring-2 ring-green-400 border-green-400"
                           : "border-gray-200 dark:border-zinc-700"
-                      }`}
+                        }`}
                       aria-pressed={isActive}
                     >
                       {c === "#ffffff" && (
@@ -1499,8 +1540,14 @@ const RichTextEditor = forwardRef(
               ))}
             </Dropdown>
           </div>
+<ToolbarButton
+  title="Clear formatting"
+  onClick={() => exec("clearFormatting")}
+>
+  <Eraser size={16} />
+</ToolbarButton>
 
-          <div className="flex-1" />
+          <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
           {/* optimize (dropdown) */}
           <div className="relative">
@@ -1597,7 +1644,7 @@ const RichTextEditor = forwardRef(
         />
 
         {/* 🌿 Styles: quotes, tables, links, and responsive behavior */}
-        <style>{`
+  <style>{`
   :root {
     --primary: ${PRIMARY};
     --text-dark: #0f172a;
@@ -1612,29 +1659,30 @@ const RichTextEditor = forwardRef(
     word-wrap: break-word;
     overflow-x: auto;
   }
-    // Add to your style tag:
-.rich-text-editor table tr.selected-row {
-  background: rgba(0, 214, 22, 0.1) !important;
-}
-
-.rich-text-editor table tr.selected-row td,
-.rich-text-editor table tr.selected-row th {
-  border-left: 2px solid var(--primary) !important;
-  border-right: 2px solid var(--primary) !important;
-}
-
-.rich-text-editor table tr.selected-row:first-child td,
-.rich-text-editor table tr.selected-row:first-child th {
-  border-top: 2px solid var(--primary) !important;
-}
-
-.rich-text-editor table tr.selected-row:last-child td,
-.rich-text-editor table tr.selected-row:last-child th {
-  border-bottom: 2px solid var(--primary) !important;
-}
 
   .rich-text-editor:focus {
     outline: none;
+  }
+
+  /* --- Table Row Selection --- */
+  .rich-text-editor table tr.selected-row {
+    background: rgba(0, 214, 22, 0.1) !important;
+  }
+
+  .rich-text-editor table tr.selected-row td,
+  .rich-text-editor table tr.selected-row th {
+    border-left: 2px solid var(--primary) !important;
+    border-right: 2px solid var(--primary) !important;
+  }
+
+  .rich-text-editor table tr.selected-row:first-child td,
+  .rich-text-editor table tr.selected-row:first-child th {
+    border-top: 2px solid var(--primary) !important;
+  }
+
+  .rich-text-editor table tr.selected-row:last-child td,
+  .rich-text-editor table tr.selected-row:last-child th {
+    border-bottom: 2px solid var(--primary) !important;
   }
 
   /* --- Quotes --- */
@@ -1708,26 +1756,68 @@ const RichTextEditor = forwardRef(
     background: rgba(0, 214, 22, 0.05);
   }
 
-  /* --- Lists --- */
-  .rich-text-editor ul, .rich-text-editor ol {
-    margin: 10px 0 10px 25px;
-  }
-  .rich-text-editor li {
-    margin-bottom: 4px;
-  }
+/* --- Lists --- */
+.rich-text-editor ul,
+.rich-text-editor ol {
+  margin: 10px 0 10px 25px;
+  padding-left: 1.2em; /* ensure space for bullets/numbers */
+}
+
+.rich-text-editor ul {
+  list-style-type: disc; /* shows ● bullets */
+  list-style-position: outside;
+}
+
+.rich-text-editor ol {
+  list-style-type: decimal; /* shows 1. 2. 3. */
+  list-style-position: outside;
+}
+
+.rich-text-editor li {
+  margin-bottom: 4px;
+}
+
+/* Optional — custom checkmark bullets for modern style */
+.rich-text-editor ul.checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.rich-text-editor ul.checklist li::before {
+  content: "✔";
+  color: var(--primary);
+  margin-right: 8px;
+  font-weight: 600;
+}
+
 
   /* --- Headings --- */
-  .rich-text-editor h1 { font-size: 1.8rem; font-weight: 700; margin: 1rem 0; }
-  .rich-text-editor h2 { font-size: 1.5rem; font-weight: 600; margin: 0.9rem 0; }
-  .rich-text-editor h3 { font-size: 1.3rem; font-weight: 500; margin: 0.8rem 0; }
+  .rich-text-editor h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 1rem 0;
+  }
 
-  /* --- Responsive typography --- */
+  .rich-text-editor h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0.9rem 0;
+  }
+
+  .rich-text-editor h3 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    margin: 0.8rem 0;
+  }
+
+  /* --- Responsive Typography --- */
   @media (max-width: 640px) {
-    .rich-text-editor { 
-      font-size: 14px; 
-      line-height: 1.6; 
+    .rich-text-editor {
+      font-size: 14px;
+      line-height: 1.6;
       padding: 8px;
     }
+
     .rich-text-editor h1 { font-size: 1.4rem; }
     .rich-text-editor h2 { font-size: 1.2rem; }
   }
@@ -1736,18 +1826,22 @@ const RichTextEditor = forwardRef(
   .dark .rich-text-editor {
     color: var(--text-light);
   }
+
   .dark .rich-text-editor table.modern-table th {
     background: #1e293b;
   }
+
   .dark .rich-text-editor table.modern-table td,
   .dark .rich-text-editor table.modern-table th {
-    border-color: rgba(255,255,255,0.08);
+    border-color: rgba(255, 255, 255, 0.08);
   }
+
   .dark .rich-text-editor blockquote {
-    background: rgba(0,214,22,0.08);
+    background: rgba(0, 214, 22, 0.08);
     color: #bbf7d0;
   }
 `}</style>
+
       </div>
     );
   }
