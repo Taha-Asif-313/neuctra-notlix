@@ -45,14 +45,31 @@ const TableActionsPanel = ({
     /* 🧩 Modern Table Actions Panel */
     <AnimatePresence>
       {selectedTable && (
-        <motion.div
-          ref={panelRef}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 6 }}
-          transition={{ duration: 0.25, ease: "easeOut" }}
-          className="fixed right-6 top-6 z-50 w-64 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl p-4 transition-all"
-        >
+    <motion.div
+  ref={panelRef}
+  initial={{ opacity: 0, scale: 0.95, y: 6 }}
+  animate={{ opacity: 1, scale: 1, y: 0 }}
+  exit={{ opacity: 0, scale: 0.95, y: 6 }}
+  transition={{ duration: 0.25, ease: "easeOut" }}
+  drag
+  dragMomentum={false}
+  dragElastic={0.2}
+  // ✅ Allow full free dragging anywhere on screen
+  dragConstraints={{
+    top: -window.innerHeight,
+    left: -window.innerWidth,
+    right: window.innerWidth,
+    bottom: window.innerHeight,
+  }}
+  style={{
+    position: "fixed",
+    top: 60,
+    right: 24,
+  }}
+  className="z-50 w-64 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl p-4 transition-all cursor-grab active:cursor-grabbing"
+>
+
+
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">

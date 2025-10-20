@@ -37,10 +37,17 @@ import {
   Columns3,
   Table2,
   LayoutGrid,
+  FileDown,
 } from "lucide-react";
+import jsPDF from "jspdf";
+import html2pdf from "html2pdf.js"; // Optional backup
+
+import html2canvas from "html2canvas";
+import Swal from "sweetalert2"; // for asking user input
 import { motion, AnimatePresence } from "framer-motion";
 import Dropdown from "./TextEditor/DropDown";
 import TableActionsPanel from "./TextEditor/TableActionsPannel";
+import exportDocument from "./TextEditor/ExportDocument";
 
 /**
  * Fully custom RichTextEditor.jsx
@@ -982,22 +989,29 @@ const RichTextEditor = forwardRef(
           </div>
 
           <div className="flex items-center gap-2">
+            {/* 🧮 Word Count */}
             <div className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-md">
               <WholeWord size={20} />
               <span className="text-xs">{wordCount}</span>
             </div>
 
+            {/* 📤 Import & Export Controls */}
             <div className="flex items-center gap-2">
+              {/* 📥 Import */}
               <ToolbarButton title="Import" onClick={importFile} compact>
                 <Upload size={16} />
               </ToolbarButton>
+
+              {/* 🌐 Export HTML */}
               <ToolbarButton
                 title="Export HTML"
-                onClick={() => exportHTML("exported")}
+                onClick={() => exportDocument("html", "exported", editorRef)}
                 compact
               >
                 <Download size={16} />
               </ToolbarButton>
+
+              {/* 📄 Export TXT */}
               <ToolbarButton
                 title="Export TXT"
                 onClick={() => exportTXT("exported")}
@@ -1005,6 +1019,8 @@ const RichTextEditor = forwardRef(
               >
                 <FileText size={16} />
               </ToolbarButton>
+
+         
             </div>
           </div>
         </div>
