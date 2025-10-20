@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Dropdown from "./TextEditor/DropDown";
+import TableActionsPanel from "./TextEditor/TableActionsPannel";
 
 /**
  * Fully custom RichTextEditor.jsx
@@ -248,6 +249,29 @@ const RichTextEditor = forwardRef(
       return () => document.removeEventListener("mousedown", handler);
     }, []);
 
+    // 🧠 Keyboard Shortcuts for Undo / Redo
+    useEffect(() => {
+      const handleKeyDown = (e) => {
+        // Detect Ctrl+Z or Cmd+Z (for Mac)
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
+          e.preventDefault();
+          handleUndo();
+        }
+
+        // Detect Ctrl+Y or Cmd+Shift+Z (Mac convention)
+        if (
+          (e.ctrlKey && e.key.toLowerCase() === "y") ||
+          (e.metaKey && e.shiftKey && e.key.toLowerCase() === "z")
+        ) {
+          e.preventDefault();
+          handleRedo();
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }, []); // ✅ runs once
+
     // Add this useEffect after your other useEffects
     useEffect(() => {
       if (selectedTable && selectedRows.length > 0) {
@@ -395,7 +419,35 @@ const RichTextEditor = forwardRef(
           if (value) wrapText({ color: value });
           break;
         case "fontSize":
-          if (value) wrapText({ fontSize: value });
+          if (value) {
+            let fontSizeValue = value;
+
+            // 💡 Handle plain numbers (5, 6, 7, etc.)
+            if (!isNaN(value)) {
+              // Convert to pixel size based on HTML font size scale
+              // You can tweak this mapping for better control
+              const sizeMap = {
+                1: "10px",
+                2: "12px",
+                3: "14px",
+                4: "16px",
+                5: "18px",
+                6: "20px",
+                7: "24px",
+                8: "28px",
+                9: "32px",
+                10: "36px",
+              };
+              fontSizeValue = sizeMap[value] || `${value}px`;
+            }
+
+            wrapText({ fontSize: fontSizeValue });
+          }
+          break;
+
+        /** 🆕 Font Family */
+        case "fontFamily":
+          if (value) wrapText({ fontFamily: value });
           break;
 
         /** 🧭 Alignment */
@@ -435,7 +487,6 @@ const RichTextEditor = forwardRef(
           wrapList(range, "ol");
           break;
 
-        /** 🔗 Create Link (modern version, with cleanup & selection handling) */
         /** 🔗 Create Link (simpler reliable version) */
         case "createLink": {
           const url = value || prompt("Enter URL:");
@@ -1337,10 +1388,10 @@ const RichTextEditor = forwardRef(
             <Quote size={16} />
           </ToolbarButton>
 
-          {/* Text Size dropdown */}
+          {/* 🧩 Text Size Dropdown */}
           <div className="relative">
             <ToolbarButton
-              title="Text size"
+              title="Text Size"
               onClick={(e) => {
                 setOpenDropdown(openDropdown === "size" ? null : "size");
                 setDropdownAnchor(e.currentTarget);
@@ -1354,18 +1405,88 @@ const RichTextEditor = forwardRef(
               open={openDropdown === "size"}
               anchorRef={{ current: dropdownAnchor }}
               onClose={() => setOpenDropdown(null)}
-              className="w-40 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2"
+              className="w-44 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-2"
             >
-              {SIZE_PRESETS.map((s) => (
+              {[
+                { label: "5", value: 5 },
+                { label: "6", value: 6 },
+                { label: "7", value: 7 },
+                { label: "8", value: 8 },
+                { label: "9", value: 9 },
+                { label: "10", value: 10 },
+              ].map((s) => {
+                // same mapping as in exec() for preview
+                const sizeMap = {
+                  1: "10px",
+                  2: "12px",
+                  3: "14px",
+                  4: "16px",
+                  5: "18px",
+                  6: "20px",
+                  7: "24px",
+                  8: "28px",
+                  9: "32px",
+                  10: "36px",
+                };
+                const fontSize = sizeMap[s.value] || `${s.value}px`;
+
+                return (
+                  <button
+                    key={s.value}
+                    onClick={() => {
+                      exec("fontSize", s.value);
+                      setOpenDropdown(null);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded hover:bg-gray-50 dark:hover:bg-zinc-800 transition font-medium"
+                    style={{ fontSize }}
+                  >
+                    {`Size ${s.label}`}
+                  </button>
+                );
+              })}
+            </Dropdown>
+          </div>
+
+          {/* 🅵 Font Family Dropdown */}
+          <div className="relative">
+            <ToolbarButton
+              title="Font family"
+              onClick={(e) => {
+                setOpenDropdown(openDropdown === "font" ? null : "font");
+                setDropdownAnchor(e.currentTarget);
+              }}
+              compact
+            >
+              <span className="text-sm font-semibold">Aa</span>
+            </ToolbarButton>
+
+            <Dropdown
+              open={openDropdown === "font"}
+              anchorRef={{ current: dropdownAnchor }}
+              onClose={() => setOpenDropdown(null)}
+              className="w-48 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-xl shadow-xl p-2"
+            >
+              {[
+                { label: "Poppins", value: "Poppins" },
+                { label: "Inter", value: "Inter" },
+                { label: "Roboto", value: "Roboto" },
+                { label: "Arial", value: "Arial" },
+                { label: "Jameel Noori (Urdu)", value: "JameelNoori" },
+                { label: "Quran Font", value: "QuranFont" },
+                { label: "Quran Surah", value: "QuranSurah" },
+              ].map((f) => (
                 <button
-                  key={s.value}
+                  key={f.value}
                   onClick={() => {
-                    exec("fontSize", s.value);
+                    exec("fontFamily", f.value);
                     setOpenDropdown(null);
                   }}
-                  className="w-full text-left p-2 text-sm rounded hover:bg-gray-50 dark:hover:bg-zinc-800"
+                  className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-150 flex items-center gap-2"
+                  style={{
+                    fontFamily: f.value,
+                  }}
                 >
-                  {s.label}
+                  <span className="truncate">{f.label}</span>
                 </button>
               ))}
             </Dropdown>
@@ -1458,163 +1579,14 @@ const RichTextEditor = forwardRef(
           />
         </div>
 
-      {/* 🧩 Modern Table Actions Panel */}
-<AnimatePresence>
-  {selectedTable && (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 6 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
-      className="fixed right-6 top-6 z-50 w-64 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-gray-200/60 dark:border-zinc-700/60 shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-2xl p-4 transition-all"
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Table2 size={16} className="text-green-600" />
-          <span className="text-xs font-semibold text-gray-800 dark:text-gray-100">
-            Table ({selectedTable.rows.length}×
-            {selectedTable.rows[0]?.cells.length || 0})
-          </span>
-        </div>
-        <button
-          onClick={() => setSelectedTable(null)}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-          title="Close"
-        >
-          <X size={15} className="text-gray-500 dark:text-gray-400" />
-        </button>
-      </div>
-
-      {/* Row / Column Controls */}
-      <div className="grid grid-cols-2 gap-1.5 mb-3">
-        <button
-          onClick={() => performTableAction("addRow")}
-          className="flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-lg text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800 hover:bg-green-50 dark:hover:bg-green-950/30 transition"
-        >
-          <Plus size={14} className="text-green-600" /> Add Row
-        </button>
-        <button
-          onClick={() => performTableAction("addColumn")}
-          className="flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-lg text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800 hover:bg-green-50 dark:hover:bg-green-950/30 transition"
-        >
-          <Columns3 size={14} className="text-green-600" /> Add Col
-        </button>
-
-        <button
-          onClick={() => performTableAction("deleteRow")}
-          className="flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-lg text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/30 transition"
-        >
-          <Minus size={14} className="text-red-500" /> Del Row
-        </button>
-        <button
-          onClick={() => performTableAction("deleteColumn")}
-          className="flex items-center justify-center gap-1.5 text-xs font-medium py-2 rounded-lg text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800 hover:bg-red-50 dark:hover:bg-red-950/30 transition"
-        >
-          <Minus size={14} className="text-red-500" /> Del Col
-        </button>
-
-        <button
-          onClick={() => performTableAction("equalize")}
-          className="col-span-2 text-xs font-medium py-2 rounded-lg text-gray-700 dark:text-gray-200 bg-gray-50 dark:bg-zinc-800 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition"
-        >
-          <ArrowLeftRight size={14} className="inline mr-1 text-blue-600" />
-          Equalize Widths
-        </button>
-      </div>
-
-      {/* Style Selected Rows */}
-      {selectedRows.length > 0 && (
-        <div className="border-t border-gray-200 dark:border-zinc-700 pt-2 mt-2">
-          <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 flex items-center gap-2">
-            <Palette size={13} className="text-yellow-500" />
-            Style Rows ({selectedRows.length})
-          </div>
-
-          {/* Background Colors */}
-          <div className="flex gap-1 mb-2">
-            {[
-              { color: "#fef3c7", label: "Yellow" },
-              { color: "#dbeafe", label: "Blue" },
-              { color: "#f3f4f6", label: "Gray" },
-            ].map((opt) => (
-              <button
-                key={opt.color}
-                onClick={() => applyRowStyle("backgroundColor", opt.color)}
-                className="flex-1 py-1 text-xs rounded-md border border-gray-200 hover:scale-[1.03] transition-all"
-                style={{ backgroundColor: opt.color }}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Text Style Buttons */}
-          <div className="flex gap-1">
-            <button
-              onClick={() => applyRowStyle("fontWeight", "bold")}
-              className="flex-1 flex items-center justify-center gap-1 py-1 text-xs rounded-md border hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-            >
-              <Bold size={12} /> Bold
-            </button>
-            <button
-              onClick={() => applyRowStyle("textAlign", "center")}
-              className="flex-1 flex items-center justify-center gap-1 py-1 text-xs rounded-md border hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-            >
-              <AlignCenter size={12} /> Center
-            </button>
-            <button
-              onClick={() => setSelectedRows([])}
-              className="flex-1 flex items-center justify-center gap-1 py-1 text-xs rounded-md border text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition"
-            >
-              <Eraser size={12} /> Clear
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Align Cells */}
-      <div className="border-t border-gray-200 dark:border-zinc-700 pt-2 mt-2">
-        <div className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 flex items-center gap-2">
-          <LayoutGrid size={13} className="text-blue-500" />
-          Align Cells
-        </div>
-        <div className="flex justify-around">
-          <button
-            onClick={() => performTableAction("alignLeft")}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-            title="Align Left"
-          >
-            <AlignLeft size={16} />
-          </button>
-          <button
-            onClick={() => performTableAction("justifyCenter")}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-            title="Align Center"
-          >
-            <AlignCenter size={16} />
-          </button>
-          <button
-            onClick={() => performTableAction("justifyRight")}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-            title="Align Right"
-          >
-            <AlignRight size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Delete Table */}
-      <button
-        onClick={() => performTableAction("deleteTable")}
-        className="w-full flex items-center justify-center gap-2 text-xs font-semibold mt-4 py-2 rounded-lg text-red-600 hover:bg-red-100 dark:hover:bg-red-950/40 transition"
-      >
-        <Trash2 size={14} /> Delete Table
-      </button>
-    </motion.div>
-  )}
-</AnimatePresence>
-
+        {/* 🧩 Table Actions Panel Component */}
+        <TableActionsPanel
+          selectedTable={selectedTable}
+          setSelectedTable={setSelectedTable}
+          selectedRows={selectedRows}
+          applyRowStyle={applyRowStyle}
+          performTableAction={performTableAction}
+        />
 
         {/* 🌿 Styles: quotes, tables, links, and responsive behavior */}
         <style>{`
