@@ -65,8 +65,8 @@ const EditNote = () => {
         const response = await getSingleNote(user.id, id);
         console.log("Fetched note:", response);
 
-        if (response.success && response.data) {
-          const existing = response.data;
+        if (response.id) {
+          const existing = response;
           setTitle(existing.title || "");
           setContent(existing.content || "");
 

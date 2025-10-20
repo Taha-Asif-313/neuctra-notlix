@@ -167,14 +167,6 @@ const RichTextEditor = forwardRef(
     // color dropdown type context (text/background/cell)
     const [colorType, setColorType] = useState("text");
 
-    // size mapping (we'll use exec fontSize (1-7) fallback)
-    const SIZE_PRESETS = [
-      { label: "Small", value: "2" }, // ~10-12px
-      { label: "Normal", value: "3" }, // default
-      { label: "Large", value: "4" }, // ~18px
-      { label: "Huge", value: "5" }, // ~24px
-    ];
-
     useImperativeHandle(ref, () => ({
       setEditorContent: (html) => {
         if (editorRef.current) {
