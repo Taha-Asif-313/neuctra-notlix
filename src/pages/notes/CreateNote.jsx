@@ -21,12 +21,10 @@ import { CreateNoteAiAgent } from "../../agent/NoteMaker";
 import { createNote } from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 
-
 const CreateNote = () => {
   const navigate = useNavigate();
   const editorRef = useRef();
-  // --- SAVE NOTE ---
-  const { user, notes, setNotes } = useAppContext();
+  const { user } = useAppContext();
 
   const quickPrompts = [
     "Meeting notes template",

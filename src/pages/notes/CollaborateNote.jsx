@@ -126,7 +126,7 @@ const CollaborateNote = () => {
 
   return (
     <>
-          <Metadata
+      <Metadata
         title="Collaborate on Note | Notexa"
         description="Real-time collaboration on notes with your team."
         keywords="collaboration, notes, realtime, editor"

@@ -4,30 +4,31 @@ import { Quote, Star } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Ayesha Khan",
-    role: "Content Creator",
+    name: "Ali Raza",
+    role: "Entrepreneur",
     feedback:
-      "Neuctra completely changed how I write! The AI suggestions feel natural and help me create polished posts in minutes. I love how clean and fast the interface is.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
+      "Neuctra has completely streamlined how I manage my business notes and documents. The AI feels natural and saves me hours every week.",
+    avatar: "https://randomuser.me/api/portraits/men/41.jpg",
     rating: 5,
   },
   {
-    name: "Omar Malik",
+    name: "Usman Tariq",
     role: "Software Engineer",
     feedback:
-      "The collaboration and real-time editing features are amazing. It feels like Google Docs but more private and intuitive. Absolutely love it!",
+      "The collaboration tools are top-notch — feels like Google Docs but smoother and more secure. Perfect for remote teamwork.",
     avatar: "https://randomuser.me/api/portraits/men/32.jpg",
     rating: 5,
   },
   {
-    name: "Sara Ahmed",
-    role: "Research Analyst",
+    name: "Hamza Iqbal",
+    role: "Product Designer",
     feedback:
-      "It’s rare to find an app that’s both powerful and beautifully minimal. Encryption, speed, and UX — all on point. My daily go-to tool for notes.",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
+      "The design and speed are incredible. Neuctra helps me organize project ideas quickly without any clutter. Definitely my favorite productivity app.",
+    avatar: "https://randomuser.me/api/portraits/men/55.jpg",
     rating: 5,
   },
 ];
+
 
 const TestimonialsSection = () => {
   return (
