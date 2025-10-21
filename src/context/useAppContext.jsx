@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { getAllNotes } from "../authix/authixinit";
 
+/* ----------------------------------------
+   🧠 Custom Hook: Local Storage Sync
+---------------------------------------- */
 function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
     try {
@@ -18,19 +21,20 @@ function useLocalStorage(key, initialValue) {
       setStoredValue(valueToStore);
       localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
-      console.error(error);
+      console.error("LocalStorage Error:", error);
     }
   };
 
   return [storedValue, setValue];
 }
 
+/* ----------------------------------------
+   🌍 Global Context
+---------------------------------------- */
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  // -------------------------------
-  // 🔹 Global States
-  // -------------------------------
+  // 🧩 Global States
   const [darkMode, setDarkMode] = useLocalStorage("neuctra-dark-mode", false);
   const [notes, setNotes] = useLocalStorage("neuctra-notes", []);
   const [userInfo, setUserInfo] = useLocalStorage("userInfo", null);
@@ -38,9 +42,9 @@ export const AppProvider = ({ children }) => {
   const user = userInfo && typeof userInfo === "object" ? userInfo : null;
   const isUserSignedIn = Boolean(user);
 
-  // -------------------------------
-  // 🔹 Dark Mode Sync + System Preference
-  // -------------------------------
+  /* ----------------------------------------
+     🌓 Dark Mode Handling
+  ---------------------------------------- */
   useEffect(() => {
     const root = document.documentElement;
 
@@ -48,21 +52,18 @@ export const AppProvider = ({ children }) => {
       const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       root.classList.toggle("dark", systemPrefersDark);
     } else {
-      root.classList.toggle("dark", darkMode);
+      root.classList.toggle("dark", !!darkMode);
     }
   }, [darkMode]);
 
-  // Optional: auto-detect theme on first load
+  // Detect theme on first load if not stored
   useEffect(() => {
     if (localStorage.getItem("neuctra-dark-mode") === null) {
       const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       setDarkMode(systemPrefersDark);
     }
-  }, []);
+  }, [setDarkMode]);
 
-  // -------------------------------
-  // 🔹 Toggle Theme Function
-  // -------------------------------
   const toggleTheme = () => {
     if (darkMode === "system") {
       const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -72,9 +73,9 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // -------------------------------
-  // 🔹 Auto-load notes when signed in
-  // -------------------------------
+  /* ----------------------------------------
+     📝 Auto-load Notes when Logged In
+  ---------------------------------------- */
   useEffect(() => {
     const loadNotes = async () => {
       if (!isUserSignedIn || !user?.id) return;
@@ -84,16 +85,16 @@ export const AppProvider = ({ children }) => {
           setNotes(res.data);
         }
       } catch (error) {
-        console.error("Failed to load notes:", error);
+        console.error("⚠️ Failed to load notes:", error);
       }
     };
 
     loadNotes();
-  }, [isUserSignedIn, user?.id]);
+  }, [isUserSignedIn, user?.id, setNotes]);
 
-  // -------------------------------
-  // 🔹 Context Value
-  // -------------------------------
+  /* ----------------------------------------
+     🎯 Context Value
+  ---------------------------------------- */
   const value = {
     darkMode,
     setDarkMode,
@@ -108,6 +109,9 @@ export const AppProvider = ({ children }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
+/* ----------------------------------------
+   🧩 Custom Hook for Easy Access
+---------------------------------------- */
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {

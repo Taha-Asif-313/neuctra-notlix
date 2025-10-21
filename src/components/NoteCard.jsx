@@ -19,7 +19,7 @@ import { useAppContext } from "../context/useAppContext";
 import { createNote } from "../authix/authixinit";
 
 const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
-  const { user } = useAppContext();
+  const { user, setNotes } = useAppContext();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modal, setModal] = useState({ show: false, type: "", link: "" });
@@ -41,15 +41,31 @@ const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
     minute: "2-digit",
   });
 
-  // ✅ Safe Copy
-  const copyToClipboard = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("✅ Link copied!");
-    } catch {
-      toast.error("❌ Failed to copy!");
-    }
-  };
+ // ✅ Safe copy using hidden textarea (no navigator API)
+const copyToClipboard = async (text) => {
+  try {
+    // Create a temporary textarea
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+
+    // Select and copy
+    textarea.select();
+    document.execCommand("copy");
+
+    // Cleanup
+    document.body.removeChild(textarea);
+
+    toast.success("Link copied!");
+  } catch (error) {
+    console.error("Copy failed:", error);
+    toast.error("Failed to copy!");
+  }
+};
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -65,19 +81,27 @@ const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
   const duplicateNote = async (note) => {
     try {
       toast.loading("Duplicating note...");
+
       const duplicatedData = {
         title: `${note.title || "Untitled"} (Copy)`,
         content: note.content || "",
         date: new Date().toISOString(),
         wordCount: note.wordCount || 0,
       };
-      await createNote(user.id, duplicatedData);
+
+      const newNote = await createNote(user.id, duplicatedData);
+
+      if (newNote) {
+        setNotes((prev) => [newNote, ...prev]); // 👈 adds instantly
+        toast.dismiss();
+        toast.success("Note duplicated!");
+      } else {
+        throw new Error("No response");
+      }
+    } catch (err) {
+      console.error("Duplication failed:", err);
       toast.dismiss();
-      toast.success("✅ Note duplicated!");
-      navigate("/notes");
-    } catch {
-      toast.dismiss();
-      toast.error("❌ Duplication failed!");
+      toast.error("Duplication failed!");
     }
   };
 
@@ -91,9 +115,9 @@ const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
           setConfirmModal((m) => ({ ...m, loading: true }));
           await onDelete(note.id);
           setConfirmModal({ show: false, message: "", onConfirm: null });
-          toast.success("🗑️ Deleted!");
+          toast.success("Deleted!");
         } catch {
-          toast.error("❌ Failed to delete!");
+          toast.error("Failed to delete!");
         }
       },
     });
@@ -120,123 +144,144 @@ const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
     setModal({ show: true, type, link });
   };
 
-// --- MODERN LINK MODAL ---
-const LinkModal = () =>
-  modal.show && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-[92%] max-w-lg border border-gray-100 dark:border-zinc-700 p-6 sm:p-8 animate-scaleIn">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div
-            className={`p-3 rounded-2xl ${
-              modal.type === "collab"
-                ? "bg-purple-500/10 text-purple-500"
-                : "bg-teal-500/10 text-teal-500"
-            }`}
-          >
-            {modal.type === "collab" ? (
-              <Users className="w-6 h-6" />
-            ) : (
-              <Eye className="w-6 h-6" />
-            )}
-          </div>
+  // --- MODERN LINK MODAL ---
+  const LinkModal = () =>
+    modal.show && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-[92%] max-w-lg border border-gray-100 dark:border-zinc-700 p-6 sm:p-8 animate-scaleIn">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className={`p-3 rounded-2xl ${
+                modal.type === "collab"
+                  ? "bg-purple-500/10 text-purple-500"
+                  : "bg-teal-500/10 text-teal-500"
+              }`}
+            >
+              {modal.type === "collab" ? (
+                <Users className="w-6 h-6" />
+              ) : (
+                <Eye className="w-6 h-6" />
+              )}
+            </div>
 
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
-              {modal.type === "collab"
-                ? "Collaboration Link"
-                : "Preview Link"}
-            </h3>
-            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
-              <Clock className="w-4 h-4 mr-1" />
-              Expires in 24 hours
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
+                {modal.type === "collab"
+                  ? "Collaboration Link"
+                  : "Preview Link"}
+              </h3>
+              <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <Clock className="w-4 h-4 mr-1" />
+                Expires in 24 hours
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Description */}
-        <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">
-          Share this link to{" "}
-          {modal.type === "collab"
-            ? "collaborate in real-time with others."
-            : "provide read-only access to your note."}
-        </p>
+          {/* Description */}
+          <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">
+            Share this link to{" "}
+            {modal.type === "collab"
+              ? "collaborate in real-time with others."
+              : "provide read-only access to your note."}
+          </p>
 
-        {/* Link Display */}
-        <div className="bg-gray-50 dark:bg-zinc-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-zinc-600">
-          <div className="flex items-center gap-3">
-            <p className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-              {modal.link}
-            </p>
+          {/* Link Display */}
+          <div className="bg-gray-50 dark:bg-zinc-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-zinc-600">
+            <div className="flex items-center gap-3">
+              <p className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                {modal.link}
+              </p>
+              <button
+                onClick={() => copyToClipboard(modal.link)}
+                className={`flex-shrink-0 ${
+                  modal.type === "collab"
+                    ? "text-purple-500 hover:text-purple-400"
+                    : "text-teal-500 hover:text-teal-400"
+                } transition-all duration-200 hover:scale-105 active:scale-95`}
+                title="Copy link"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => setModal({ show: false, type: "", link: "" })}
+              className="flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded-xl font-medium border border-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
+            >
+              Close
+            </button>
+
             <button
               onClick={() => copyToClipboard(modal.link)}
-              className={`flex-shrink-0 ${
+              className={`flex-1 px-4 py-3 ${
                 modal.type === "collab"
-                  ? "text-purple-500 hover:text-purple-400"
-                  : "text-teal-500 hover:text-teal-400"
-              } transition-all duration-200 hover:scale-105 active:scale-95`}
-              title="Copy link"
+                  ? "bg-purple-500 hover:bg-purple-600"
+                  : "bg-teal-500 hover:bg-teal-600"
+              } text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg active:scale-[0.98]`}
             >
               <Copy className="w-4 h-4" />
+              Copy Link
             </button>
           </div>
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={() => setModal({ show: false, type: "", link: "" })}
-            className="flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded-xl font-medium border border-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
-          >
-            Close
-          </button>
-
-          <button
-            onClick={() => copyToClipboard(modal.link)}
-            className={`flex-1 px-4 py-3 ${
-              modal.type === "collab"
-                ? "bg-purple-500 hover:bg-purple-600"
-                : "bg-teal-500 hover:bg-teal-600"
-            } text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg active:scale-[0.98]`}
-          >
-            <Copy className="w-4 h-4" />
-            Copy Link
-          </button>
-        </div>
       </div>
-    </div>
-  );
+    );
 
-
-
-
-  // --- CONFIRM DELETE MODAL ---
+  // --- MODERN CONFIRM DELETE MODAL ---
   const ConfirmModal = () =>
     confirmModal.show && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-6 w-[90%] max-w-sm text-center border border-gray-200 dark:border-zinc-800 animate-fadeInUp">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
-            Confirm Deletion
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {confirmModal.message}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-[90%] max-w-md border border-gray-100 dark:border-zinc-700 p-6 sm:p-8 animate-scaleIn">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-2xl bg-red-500/10 text-red-500">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
+                Confirm Deletion
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                This action cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          {/* Message */}
+          <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">
+            {confirmModal.message ||
+              "Are you sure you want to delete this item?"}
           </p>
 
+          {/* Loader or Buttons */}
           {confirmModal.loading ? (
-            <Loader2 className="w-6 h-6 text-red-600 animate-spin mx-auto" />
+            <div className="flex justify-center py-3">
+              <Loader2 className="w-6 h-6 text-red-600 animate-spin" />
+            </div>
           ) : (
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={confirmModal.onConfirm}
-                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
+                className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg active:scale-[0.98]"
               >
                 Delete
               </button>
+
               <button
                 onClick={() =>
-                  setConfirmModal({ show: false, message: "", onConfirm: null })
+                  setConfirmModal({
+                    show: false,
+                    message: "",
+                    onConfirm: null,
+                    loading: false,
+                  })
                 }
-                className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                className="flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
               >
                 Cancel
               </button>

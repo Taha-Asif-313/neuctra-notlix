@@ -36,36 +36,35 @@ const SharedNotePreview = () => {
   };
 
   // 📋 Copy link to clipboard
-// 📋 Copy link to clipboard (fixed version)
-const copyLink = async () => {
-  try {
-    const link = window.location.href;
+  // 📋 Copy link to clipboard (fixed version)
+  const copyLink = async () => {
+    try {
+      const link = window.location.href;
 
-    if (navigator.clipboard && window.isSecureContext) {
-      // ✅ Modern secure way
-      await navigator.clipboard.writeText(link);
-    } else {
-      // ⚙️ Fallback for non-HTTPS or older browsers
-      const textarea = document.createElement("textarea");
-      textarea.value = link;
-      textarea.style.position = "fixed";
-      textarea.style.left = "-9999px";
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
+      if (navigator.clipboard && window.isSecureContext) {
+        // ✅ Modern secure way
+        await navigator.clipboard.writeText(link);
+      } else {
+        // ⚙️ Fallback for non-HTTPS or older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = link;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
+      setCopied(true);
+      toast.success("🔗 Link copied!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to copy link 😢");
     }
-
-    setCopied(true);
-    toast.success("🔗 Link copied!");
-    setTimeout(() => setCopied(false), 2000);
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to copy link 😢");
-  }
-};
-
+  };
 
   useEffect(() => {
     // Set initial theme
