@@ -125,14 +125,13 @@ const LinkModal = () =>
   modal.show && (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
       <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-[92%] max-w-lg border border-gray-100 dark:border-zinc-700 p-6 sm:p-8 animate-scaleIn">
-        
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div
             className={`p-3 rounded-2xl ${
               modal.type === "collab"
-                ? "bg-blue-500/10 text-blue-500"
-                : "bg-primary/10 text-primary"
+                ? "bg-purple-500/10 text-purple-500"
+                : "bg-teal-500/10 text-teal-500"
             }`}
           >
             {modal.type === "collab" ? (
@@ -141,9 +140,12 @@ const LinkModal = () =>
               <Eye className="w-6 h-6" />
             )}
           </div>
+
           <div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
-              {modal.type === "collab" ? "Collaboration Link" : "Preview Link"}
+              {modal.type === "collab"
+                ? "Collaboration Link"
+                : "Preview Link"}
             </h3>
             <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
               <Clock className="w-4 h-4 mr-1" />
@@ -168,7 +170,11 @@ const LinkModal = () =>
             </p>
             <button
               onClick={() => copyToClipboard(modal.link)}
-              className="flex-shrink-0 text-primary hover:text-primary/80 transition-all duration-200 hover:scale-105 active:scale-95"
+              className={`flex-shrink-0 ${
+                modal.type === "collab"
+                  ? "text-purple-500 hover:text-purple-400"
+                  : "text-teal-500 hover:text-teal-400"
+              } transition-all duration-200 hover:scale-105 active:scale-95`}
               title="Copy link"
             >
               <Copy className="w-4 h-4" />
@@ -184,9 +190,14 @@ const LinkModal = () =>
           >
             Close
           </button>
+
           <button
             onClick={() => copyToClipboard(modal.link)}
-            className="flex-1 px-4 py-3 bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg active:scale-[0.98]"
+            className={`flex-1 px-4 py-3 ${
+              modal.type === "collab"
+                ? "bg-purple-500 hover:bg-purple-600"
+                : "bg-teal-500 hover:bg-teal-600"
+            } text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg active:scale-[0.98]`}
           >
             <Copy className="w-4 h-4" />
             Copy Link
@@ -195,6 +206,8 @@ const LinkModal = () =>
       </div>
     </div>
   );
+
+
 
 
   // --- CONFIRM DELETE MODAL ---
@@ -248,7 +261,7 @@ const LinkModal = () =>
       >
         {/* Header */}
         <div className="flex justify-center items-center text-center">
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white truncate hover:text-primary transition-colors duration-200">
+          <h3 className="text-lg sm:text-xl font-semibold text-black dark:text-white truncate hover:text-primary transition-colors duration-200">
             {note.title || "Untitled Note"}
           </h3>
         </div>
@@ -258,7 +271,7 @@ const LinkModal = () =>
           dangerouslySetInnerHTML={{
             __html: note.content || "<p>Nothing to preview</p>",
           }}
-          className="text-gray-600 dark:text-gray-400 text-center line-clamp-3 text-sm sm:text-base leading-relaxed px-2"
+          className="text-black dark:text-white text-center line-clamp-3 text-sm sm:text-base leading-relaxed px-2"
         />
 
         {/* Footer */}

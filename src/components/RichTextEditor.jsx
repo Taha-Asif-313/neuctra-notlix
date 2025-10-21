@@ -63,22 +63,88 @@ import exportDocument from "./TextEditor/ExportDocument";
 const PRIMARY = "#00d616";
 
 const COLOR_PRESETS = [
+  // ⚫ Neutral & Grayscale
   "#000000",
   "#1e293b",
+  "#334155",
   "#475569",
   "#94a3b8",
+  "#cbd5e1",
+  "#e2e8f0",
+  "#f8fafc",
   "#ffffff",
+
+  // ❤️ Reds
+  "#7f1d1d",
+  "#b91c1c",
   "#ef4444",
+  "#f87171",
+  "#fca5a5",
+  "#fee2e2",
+
+  // 🧡 Oranges
+  "#78350f",
+  "#b45309",
   "#f97316",
+  "#fb923c",
+  "#fdba74",
+  "#ffedd5",
+
+  // 💛 Yellows
+  "#854d0e",
+  "#ca8a04",
   "#facc15",
+  "#fde047",
+  "#fef08a",
+  "#fef9c3",
+
+  // 💚 Greens
+  "#14532d",
+  "#15803d",
   "#22c55e",
-  "#16a34a",
-  "#3b82f6",
+  "#4ade80",
+  "#86efac",
+  "#dcfce7",
+
+  // 🩵 Teals / Cyans
+  "#134e4a",
+  "#0d9488",
+  "#14b8a6",
+  "#2dd4bf",
+  "#5eead4",
+  "#ccfbf1",
+
+  // 💙 Blues
+  "#1e3a8a",
   "#2563eb",
+  "#3b82f6",
+  "#60a5fa",
+  "#93c5fd",
+  "#dbeafe",
+
+  // 💜 Purples / Violets
+  "#4c1d95",
   "#7c3aed",
+  "#8b5cf6",
   "#a78bfa",
+  "#c4b5fd",
+  "#ede9fe",
+
+  // 💖 Pinks / Magentas
+  "#831843",
+  "#be185d",
   "#ec4899",
-  "#00d616",
+  "#f472b6",
+  "#f9a8d4",
+  "#fce7f3",
+
+  // 💚 Accent Brights / Specials
+  "#00d616", // your signature bright green
+  "#10b981", // emerald
+  "#06b6d4", // cyan
+  "#14b8ff", // bright aqua
+  "#ff80ed", // pink neon
+  "#ffe45e", // bright yellow
 ];
 
 const ToolbarButton = ({
@@ -1177,7 +1243,7 @@ const RichTextEditor = forwardRef(
 
           <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
 
-          {/* Text Color dropdown */}
+          {/* 🎨 Text Color Picker */}
           <div className="relative">
             <ToolbarButton
               title="Text color"
@@ -1191,75 +1257,37 @@ const RichTextEditor = forwardRef(
               <Palette size={16} />
             </ToolbarButton>
 
-            <Dropdown
-              open={openDropdown === "color" && colorType === "text"}
-              anchorRef={{ current: dropdownAnchor }}
-              onClose={() => setOpenDropdown(null)}
-              className="w-56 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
-              autoCloseOnSelect={true}
-            >
-              <div className="grid grid-cols-6 gap-2 mb-3">
+            {openDropdown === "color" && colorType === "text" && (
+              <div className="absolute top-10 left-0 z-50 bg-gray-200 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-xl p-4 grid grid-cols-8 gap-2 w-56">
                 {COLOR_PRESETS.map((c) => {
                   const isActive =
-                    activeColor &&
-                    c.toLowerCase() === activeColor.toLowerCase();
+                    activeColor?.toLowerCase() === c.toLowerCase();
                   return (
                     <button
                       key={c}
                       onClick={() => {
                         applyColor("text", c);
                         setActiveColor(c);
+                        setOpenDropdown(null);
                       }}
                       title={c}
                       style={{ backgroundColor: c }}
-                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
+                      className={`w-5 h-5 rounded transition-all duration-150 hover:scale-110 ${
                         isActive
-                          ? "ring-2 ring-green-400 border-green-400"
-                          : "border-gray-200 dark:border-zinc-700"
+                          ? "ring-2 ring-green-400 ring-offset-1 ring-offset-white dark:ring-offset-zinc-900"
+                          : ""
                       }`}
-                      aria-pressed={isActive}
-                    >
-                      {c === "#ffffff" && (
-                        <div className="absolute inset-0 rounded-md border border-gray-200/60" />
-                      )}
-                    </button>
+                    />
                   );
                 })}
               </div>
-
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Custom hex code
-              </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  placeholder="#ff0000"
-                  className="w-full h-9 text-xs rounded-md border border-gray-200 dark:border-zinc-700 px-2"
-                  value={activeColor || ""}
-                  onChange={(e) => setActiveColor(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      // Apply only if valid hex
-                      if (/^#[0-9A-Fa-f]{6}$/.test(activeColor)) {
-                        applyColor("text", activeColor);
-                      }
-                    }
-                  }}
-                />
-                <div
-                  className="p-4 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
-                  style={{ background: activeColor || PRIMARY }}
-                >
-                
-                </div>
-              </div>
-            </Dropdown>
+            )}
           </div>
 
-          {/* Highlight / Background Color dropdown */}
+          {/* 🖍 Background Color Picker */}
           <div className="relative">
             <ToolbarButton
-              title="Cell / Background color"
+              title="Background color"
               onClick={(e) => {
                 setColorType("background");
                 setOpenDropdown(openDropdown === "color" ? null : "color");
@@ -1270,68 +1298,31 @@ const RichTextEditor = forwardRef(
               <Highlighter size={16} />
             </ToolbarButton>
 
-            <Dropdown
-              open={openDropdown === "color" && colorType === "background"}
-              anchorRef={{ current: dropdownAnchor }}
-              onClose={() => setOpenDropdown(null)}
-              className="w-56 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
-              autoCloseOnSelect={true}
-            >
-              <div className="grid grid-cols-6 gap-2 mb-3">
+            {openDropdown === "color" && colorType === "background" && (
+              <div className="absolute top-10 left-0 z-50 bg-gray-200 dark:bg-zinc-950 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-xl p-4 grid grid-cols-8 gap-2 w-56">
                 {COLOR_PRESETS.map((c) => {
                   const isActive =
-                    activeColor &&
-                    c.toLowerCase() === activeColor.toLowerCase();
+                    activeColor?.toLowerCase() === c.toLowerCase();
                   return (
                     <button
                       key={c}
                       onClick={() => {
                         applyColor("background", c);
                         setActiveColor(c);
+                        setOpenDropdown(null);
                       }}
                       title={c}
                       style={{ backgroundColor: c }}
-                      className={`relative w-8 h-8 rounded-md border transition-all duration-150 ${
+                      className={`w-5 h-5 rounded transition-all duration-150 hover:scale-110 ${
                         isActive
-                          ? "ring-2 ring-green-400 border-green-400"
-                          : "border-gray-200 dark:border-zinc-700"
+                          ? "ring-2 ring-green-400 ring-offset-1 ring-offset-white dark:ring-offset-zinc-900"
+                          : ""
                       }`}
-                      aria-pressed={isActive}
-                    >
-                      {c === "#ffffff" && (
-                        <div className="absolute inset-0 rounded-md border border-gray-200/60" />
-                      )}
-                    </button>
+                    />
                   );
                 })}
               </div>
-
-              <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Custom hex code
-              </div>
-              <div className="flex items-center gap-3">
-                <input
-                  type="text"
-                  placeholder="#ff0000"
-                  className="w-full h-9 text-xs rounded-md border border-gray-200 dark:border-zinc-700 px-2"
-                  value={activeColor || ""}
-                  onChange={(e) => setActiveColor(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      if (/^#[0-9A-Fa-f]{6}$/.test(activeColor)) {
-                        applyColor("background", activeColor);
-                      }
-                    }
-                  }}
-                />
-                <div
-                  className="px-3 py-1.5 text-xs rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 select-none"
-                  style={{ color: activeColor || PRIMARY }}
-                >
-                  {(activeColor || "").toUpperCase()}
-                </div>
-              </div>
-            </Dropdown>
+            )}
           </div>
 
           <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
