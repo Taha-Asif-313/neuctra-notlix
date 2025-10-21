@@ -9,6 +9,8 @@ import {
   Loader2,
   UserRoundPlus,
   Eye,
+  Clock,
+  Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { encryptData } from "../utils/cryptoUtils";
@@ -118,47 +120,80 @@ const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
     setModal({ show: true, type, link });
   };
 
-  // --- LINK MODAL ---
-  const LinkModal = () =>
-    modal.show && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-xl p-6 w-[90%] max-w-md text-center border border-gray-200 dark:border-zinc-800 animate-fadeInUp">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3">
-            {modal.type === "collab"
-              ? "Collaboration Link (24h)"
-              : "Preview Link (24h)"}
-          </h3>
+ // --- MODERN LINK MODAL ---
+const LinkModal = () =>
+  modal.show && (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-lg">
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl p-8 w-[95%] max-w-lg border border-gray-100 dark:border-zinc-700 animate-scaleIn">
+        {/* Header */}
+        <div className="flex items-center justify-start mb-4">
+          <div className={`p-3 rounded-2xl ${
+            modal.type === "collab" 
+              ? "bg-blue-500/10 text-primary" 
+              : "bg-primary/10 text-primary"
+          }`}>
+            {modal.type === "collab" ? (
+              <Users className="w-6 h-6" />
+            ) : (
+              <Eye className="w-6 h-6" />
+            )}
+          </div>
+        </div>
 
-          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">
-            Share this link with others to{" "}
-            {modal.type === "collab"
-              ? "collaborate in real-time."
-              : "view your note in read-only mode."}
-          </p>
+        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50 mb-2">
+          {modal.type === "collab"
+            ? "Collaboration Link"
+            : "Preview Link"}
+        </h3>
 
-          <div className="bg-gray-100 dark:bg-zinc-800 rounded-lg p-3 flex items-center justify-between">
-            <span className="text-xs sm:text-sm break-all text-gray-700 dark:text-gray-200 text-left">
-              {modal.link}
-            </span>
+        <div className="flex items-center justify-start text-sm text-gray-500 dark:text-gray-400 mb-2">
+          <Clock className="w-4 h-4 mr-1" />
+          Expires in 24 hours
+        </div>
+
+        <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">
+          Share this link to{" "}
+          {modal.type === "collab"
+            ? "collaborate in real-time with others."
+            : "provide read-only access to your note."}
+        </p>
+
+        {/* Link Container */}
+        <div className="bg-gray-50 dark:bg-zinc-800 rounded-xl p-4 mb-6 border border-gray-200 dark:border-zinc-600">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+                {modal.link}
+              </p>
+            </div>
             <button
               onClick={() => copyToClipboard(modal.link)}
-              className="ml-3 p-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="flex-shrink-0 text-primary rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
             >
-              <Copy size={16} />
-            </button>
-          </div>
-
-          <div className="mt-6">
-            <button
-              onClick={() => setModal({ show: false, type: "", link: "" })}
-              className="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-            >
-              Close
+              <Copy className="w-4 h-4" />
             </button>
           </div>
         </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => setModal({ show: false, type: "", link: "" })}
+            className="flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors duration-200 border border-transparent hover:border-gray-300 dark:hover:border-zinc-600"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => copyToClipboard(modal.link)}
+            className="flex-1 px-4 py-3 bg-primary text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2"
+          >
+            <Copy className="w-4 h-4" />
+            Copy Link
+          </button>
+        </div>
       </div>
-    );
+    </div>
+  );
 
   // --- CONFIRM DELETE MODAL ---
   const ConfirmModal = () =>
