@@ -120,37 +120,39 @@ const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
     setModal({ show: true, type, link });
   };
 
- // --- MODERN LINK MODAL ---
+// --- MODERN LINK MODAL ---
 const LinkModal = () =>
   modal.show && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-lg">
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl p-8 w-[95%] max-w-lg border border-gray-100 dark:border-zinc-700 animate-scaleIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-[92%] max-w-lg border border-gray-100 dark:border-zinc-700 p-6 sm:p-8 animate-scaleIn">
+        
         {/* Header */}
-        <div className="flex items-center justify-start mb-4">
-          <div className={`p-3 rounded-2xl ${
-            modal.type === "collab" 
-              ? "bg-blue-500/10 text-primary" 
-              : "bg-primary/10 text-primary"
-          }`}>
+        <div className="flex items-center gap-3 mb-6">
+          <div
+            className={`p-3 rounded-2xl ${
+              modal.type === "collab"
+                ? "bg-blue-500/10 text-blue-500"
+                : "bg-primary/10 text-primary"
+            }`}
+          >
             {modal.type === "collab" ? (
               <Users className="w-6 h-6" />
             ) : (
               <Eye className="w-6 h-6" />
             )}
           </div>
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
+              {modal.type === "collab" ? "Collaboration Link" : "Preview Link"}
+            </h3>
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <Clock className="w-4 h-4 mr-1" />
+              Expires in 24 hours
+            </div>
+          </div>
         </div>
 
-        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-50 mb-2">
-          {modal.type === "collab"
-            ? "Collaboration Link"
-            : "Preview Link"}
-        </h3>
-
-        <div className="flex items-center justify-start text-sm text-gray-500 dark:text-gray-400 mb-2">
-          <Clock className="w-4 h-4 mr-1" />
-          Expires in 24 hours
-        </div>
-
+        {/* Description */}
         <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">
           Share this link to{" "}
           {modal.type === "collab"
@@ -158,17 +160,16 @@ const LinkModal = () =>
             : "provide read-only access to your note."}
         </p>
 
-        {/* Link Container */}
-        <div className="bg-gray-50 dark:bg-zinc-800 rounded-xl p-4 mb-6 border border-gray-200 dark:border-zinc-600">
+        {/* Link Display */}
+        <div className="bg-gray-50 dark:bg-zinc-800 rounded-2xl p-4 mb-6 border border-gray-200 dark:border-zinc-600">
           <div className="flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                {modal.link}
-              </p>
-            </div>
+            <p className="flex-1 text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
+              {modal.link}
+            </p>
             <button
               onClick={() => copyToClipboard(modal.link)}
-              className="flex-shrink-0 text-primary rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+              className="flex-shrink-0 text-primary hover:text-primary/80 transition-all duration-200 hover:scale-105 active:scale-95"
+              title="Copy link"
             >
               <Copy className="w-4 h-4" />
             </button>
@@ -176,16 +177,16 @@ const LinkModal = () =>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setModal({ show: false, type: "", link: "" })}
-            className="flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors duration-200 border border-transparent hover:border-gray-300 dark:hover:border-zinc-600"
+            className="flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 rounded-xl font-medium border border-transparent hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
           >
             Close
           </button>
           <button
             onClick={() => copyToClipboard(modal.link)}
-            className="flex-1 px-4 py-3 bg-primary text-white rounded-xl font-semibold transition-all duration-200 hover:shadow-lg flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-3 bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg active:scale-[0.98]"
           >
             <Copy className="w-4 h-4" />
             Copy Link
@@ -194,6 +195,7 @@ const LinkModal = () =>
       </div>
     </div>
   );
+
 
   // --- CONFIRM DELETE MODAL ---
   const ConfirmModal = () =>
