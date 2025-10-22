@@ -12,14 +12,33 @@ const authix = new NeuctraAuthix({
 const delay = (ms = 1000) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * 🔹 Get all notes
+ * 📝 Get all notes (filtered by category)
  */
 export async function getAllNotes(userId) {
-  const userData = await authix.getUserData({ userId });
+  try {
+    // 🔹 Fetch all user data
+    const res = await authix.getUserData({ userId });
+    const allData = res?.data || [];
 
-  if (!userData) return [];
-  return userData?.data || [];
+    if (!Array.isArray(allData) || allData.length === 0) {
+      console.log("📭 No user data found for this user.");
+      return [];
+    }
+
+    // 🔍 Filter only items where category = "note"
+    const notes = allData.filter(
+      (item) => item?.category?.toLowerCase() === "note"
+    );
+
+    console.log(`📝 Found ${notes.length} notes for user.`);
+    return notes;
+  } catch (err) {
+    console.error("❌ Error fetching notes:", err);
+    toast.error("Failed to load your notes. Please try again later.");
+    return [];
+  }
 }
+
 
 /**
  * 🔹 Create and store a new note with category support
@@ -124,29 +143,55 @@ export async function deleteNote(userId, noteId) {
 }
 
 /**
- * 📦 Update (or create) a package with category support
+ * 📦 Create a new package with category support
  */
-export async function updatePackage(userId, packageData) {
+export async function createPackage(userId, packageData) {
   try {
-    // 🧱 Add category and timestamp
+    // 🧱 Prepare package with category and timestamp
     const dataToSave = {
       ...packageData,
       category: packageData.category || "package",
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
 
-    // 🪶 Save package data
+    // 🪶 Create new package
     const res = await authix.addUserData({
       userId,
       data: dataToSave,
     });
 
-    console.log("✅ Package updated successfully:", res?.data);
-    toast.success("Package updated successfully!");
-
-    // Return only the response data
+    console.log("✅ Package created:", res?.data);
+    toast.success("Package created successfully!");
     return res?.data || null;
+  } catch (err) {
+    console.error("❌ Package creation failed:", err);
+    toast.error("Failed to create package. Please try again later.");
+    return null;
+  }
+}
 
+/**
+ * ✏️ Update an existing package
+ */
+export async function updatePackage(userId, packageId, updatedData) {
+  try {
+    // 🧱 Prepare updated data with category and timestamp
+    const dataToUpdate = {
+      ...updatedData,
+      category: updatedData.category || "package",
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 🔄 Update the existing package (not create new)
+    const res = await authix.updateUserData({
+      userId,
+      dataId: packageId,
+      data: dataToUpdate,
+    });
+
+    console.log("✅ Package updated:", res?.data);
+    toast.success("Package updated successfully!");
+    return res?.data || null;
   } catch (err) {
     console.error("❌ Package update failed:", err);
     toast.error("Failed to update package. Please try again later.");
@@ -154,11 +199,51 @@ export async function updatePackage(userId, packageData) {
   }
 }
 
+/**
+ * 🧩 Check if user already has a package
+ * Returns true if a package with category "package" exists
+ */
+export async function checkPackage(userId) {
+  try {
+    // 🔹 Fetch all user data
+    const res = await authix.getUserData({ userId });
+    const allData = res?.data || [];
+
+    if (!Array.isArray(allData) || allData.length === 0) {
+      console.log("📭 No user data found for this user.");
+      return false;
+    }
+
+    // 🔍 Check for any item with category "package"
+    const hasPackage = allData.some(
+      (item) => item?.category?.toLowerCase() === "package"
+    );
+
+    console.log("📦 Package found:", hasPackage);
+    return hasPackage;
+  } catch (err) {
+    console.error("❌ Error checking package:", err);
+    toast.error("Failed to check user package.");
+    return false;
+  }
+}
+
 
 /**
- * 🔹 Get package info
+ * 📦 Get package info
  */
-export async function getPackage(userId) {
-  const userData = await ensureUserData(userId);
-  return userData?.package || {};
+export async function getPackage(userId, packageId) {
+  try {
+    const res = await authix.getSingleUserData({
+      userId,
+      dataId: packageId,
+    });
+
+    console.log("📄 Package retrieved:", res?.data);
+    return res?.data || null;
+  } catch (err) {
+    console.error("❌ Failed to fetch package:", err);
+    toast.error("Failed to load package. Please try again later.");
+    return null;
+  }
 }

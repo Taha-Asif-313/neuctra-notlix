@@ -37,21 +37,6 @@ const SignupPage = () => {
           onSuccess={async (user) => {
             const userId = user?.id;
 
-            // ⚙️ Activate default free plan
-            await updatePackage(userId, {
-              name: "Free",
-              tier: "starter",
-              price: 0,
-              aiPromptsPerMonth: 5,
-              collaborativeLinks: true,
-              features: [
-                "Up to 100 notes",
-                "Basic AI prompts (5/month)",
-                "Collaborative note links",
-                "Sync across devices",
-              ],
-              createdAt: new Date().toISOString(),
-            });
 
             toast.success("Registered successfully! Free plan activated.");
             navigate("/notes");
