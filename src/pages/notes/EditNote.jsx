@@ -21,6 +21,7 @@ import { CreateNoteAiAgent } from "../../agent/NoteMaker";
 import { getSingleNote, updateNote } from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
+import CustomLoader from "../../components/CustomLoader";
 
 const EditNote = () => {
   const { id } = useParams();
@@ -223,16 +224,7 @@ const EditNote = () => {
   };
 
   // 🔹 LOADING JSX
-  if (loading) {
-    return (
-      <div className="w-full absolute top-0 left-0 flex flex-col items-center justify-center h-screen text-center">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          Updating your note...
-        </p>
-      </div>
-    );
-  }
+  if (loading)  return <CustomLoader message="Saving Note Please Wait" />
 
   // ✅ UI
   return (
@@ -286,12 +278,7 @@ const EditNote = () => {
 
         {/* Editor */}
         {loadingNote ? (
-          <div className="flex flex-col items-center justify-center h-[70vh] text-center gap-4">
-            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-gray-500 dark:text-gray-400">
-              Loading your note...
-            </p>
-          </div>
+      <CustomLoader message="Loading Note Please Wait" />
         ) : (
           <>
             <main className="max-w-6xl mx-auto px-4 py-6">

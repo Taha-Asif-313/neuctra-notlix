@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Metadata from "../../MetaData";
+import CustomLoader from "../../components/CustomLoader";
 
 const SharedNotePreview = () => {
   const { token } = useParams();
@@ -118,25 +119,7 @@ const SharedNotePreview = () => {
   }, [token]);
 
   // ⏳ Loading screen
-  if (loading)
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-black transition-colors duration-300 p-4">
-        <div className="text-center space-y-4 max-w-md">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary/20 rounded-full animate-spin mx-auto"></div>
-            <div className="w-16 h-16 border-4 border-transparent border-t-primary rounded-full absolute top-0 left-1/2 -translate-x-1/2 animate-spin [animation-delay:-0.3s]"></div>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Loading Shared Note
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">
-              Preparing read-only preview...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+  if (loading) return <CustomLoader message="Loading Note Please Wait" />
 
   // ⌛ Expired screen
   if (expired)

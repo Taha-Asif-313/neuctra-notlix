@@ -31,12 +31,12 @@ const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
   });
   const dropdownRef = useRef(null);
 
-  const formattedDate = new Date(note.date).toLocaleDateString("en-US", {
+  const formattedDate = new Date(note.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
-  const formattedTime = new Date(note.date).toLocaleTimeString("en-US", {
+  const formattedTime = new Date(note.createdAt).toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });

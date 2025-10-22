@@ -22,6 +22,7 @@ import { createNote } from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
 import toast from "react-hot-toast";
+import CustomLoader from "../../components/CustomLoader";
 
 const CreateNote = () => {
   const navigate = useNavigate();
@@ -77,12 +78,11 @@ const CreateNote = () => {
     const noteData = {
       title: title.trim(),
       content,
-      wordCount,
+      wordCount
     };
 
     try {
       setLoading(true); // 🔹 start loading
-
       const response = await createNote(user.id, noteData);
       console.log("Note created:", response);
       setLastSaved(new Date());
@@ -191,16 +191,7 @@ const CreateNote = () => {
   };
 
   // --- LOADING RETURN JSX ---
-  if (loading) {
-    return (
-      <div className="absolute top-0 left-0 w-full flex flex-col items-center justify-center h-screen text-center">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-          Saving your note, please wait...
-        </p>
-      </div>
-    );
-  }
+  if (loading) return <CustomLoader message="Creating Note Please Wait" />
 
   return (
     <>

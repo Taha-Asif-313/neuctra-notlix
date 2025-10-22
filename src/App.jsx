@@ -32,19 +32,48 @@ import PrivacyPolicyPage from "./pages/static/PrivacyPolicyPage";
 // ⚙️ Context
 import { useAppContext } from "./context/useAppContext";
 
+import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react"; // fallback icon (if no logo)
+
 /* ----------------------------------------
-   🌀 Session Loading Screen
+   🌀 Session Loading Screen (Modern)
 ---------------------------------------- */
-const SessionLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-zinc-900">
-    <div className="flex flex-col items-center gap-4 animate-fade-in">
-      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      <p className="text-gray-700 dark:text-gray-300 font-medium">
-        Checking your session...
-      </p>
+const SessionLoader = () => {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-zinc-900 z-[9999]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative flex flex-col items-center gap-6"
+      >
+        {/* Outer Circular Ring */}
+        <div className="relative w-28 h-28 flex items-center justify-center">
+          <div className="absolute inset-0 rounded-full border-4 border-emerald-500/30 border-t-primary animate-spin-slow" />
+          
+          {/* Logo in center */}
+          <img
+            src={"/logo-dark.png"}
+            alt="Logo"
+            className="w-14 h-14 rounded-full object-contain drop-shadow-md"
+          />
+        </div>
+
+        {/* Loading text */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-gray-700 dark:text-gray-300 font-medium tracking-wide"
+        >
+          Checking your session...
+        </motion.p>
+      </motion.div>
     </div>
-  </div>
-);
+  );
+};
+
+
 
 function App() {
   const { darkMode, setDarkMode, notes, setNotes, user, isUserSignedIn } =

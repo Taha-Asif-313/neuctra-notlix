@@ -6,6 +6,7 @@ import SearchBar from "../../components/SearchBar";
 import { useAppContext } from "../../context/useAppContext";
 import { deleteNote, getAllNotes } from "../../authix/authixinit";
 import Metadata from "../../MetaData";
+import CustomLoader from "../../components/CustomLoader";
 
 const AllNotes = () => {
   const { notes, setNotes, user } = useAppContext();
@@ -117,12 +118,7 @@ const AllNotes = () => {
 
             {/* 🔹 Loading State */}
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="animate-spin text-primary w-10 h-10 mb-4" />
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Loading your notes...
-                </p>
-              </div>
+              <CustomLoader message="Loading notes please wait"/>
             ) : filteredNotes.length === 0 ? (
               // 🔹 Empty State
               <div className="text-center py-16 bg-white dark:bg-zinc-950 rounded-2xl shadow-sm transition-all duration-300">

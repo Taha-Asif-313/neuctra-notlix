@@ -102,6 +102,19 @@ body {
   color: #22c55e; /* Tailwind green-500 */
 }
 
+/* ----------------------------------------
+   💫 Add this to your CSS / Tailwind config
+---------------------------------------- */
+/* In your global CSS (e.g., index.css) */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 2.5s linear infinite;
+}
+
 /* ✂️ Optional Line Clamp Utility */
 /*
 .line-clamp-3 {

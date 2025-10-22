@@ -6,6 +6,7 @@ import RichTextEditor from "../../components/RichTextEditor";
 import { Save, Loader2, Share2, Users, Clock } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import Metadata from "../../MetaData";
+import CustomLoader from "../../components/CustomLoader";
 
 const CollaborateNote = () => {
   const { token } = useParams();
@@ -105,24 +106,7 @@ const CollaborateNote = () => {
     });
   };
 
-  if (loading)
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900 transition-colors p-4">
-        <div className="text-center">
-          <div className="relative mb-10">
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
-          </div>
-          <div>
-            <p className="text-gray-600 dark:text-gray-300 font-medium text-sm">
-              Loading shared note
-            </p>
-            <p className="text-gray-500 dark:text-gray-400 text-xs">
-              Preparing your collaboration workspace...
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+  if (loading) return <CustomLoader message="Loading Note Please Wait" />
 
   return (
     <>
