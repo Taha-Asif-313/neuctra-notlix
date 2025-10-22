@@ -77,7 +77,6 @@ const CreateNote = () => {
     const noteData = {
       title: title.trim(),
       content,
-      date: new Date().toISOString(),
       wordCount,
     };
 

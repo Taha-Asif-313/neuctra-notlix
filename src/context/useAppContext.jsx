@@ -74,25 +74,6 @@ export const AppProvider = ({ children }) => {
   };
 
   /* ----------------------------------------
-     📝 Auto-load Notes when Logged In
-  ---------------------------------------- */
-  useEffect(() => {
-    const loadNotes = async () => {
-      if (!isUserSignedIn || !user?.id) return;
-      try {
-        const res = await getAllNotes(user.id);
-        if (res && Array.isArray(res.data)) {
-          setNotes(res.data);
-        }
-      } catch (error) {
-        console.error("⚠️ Failed to load notes:", error);
-      }
-    };
-
-    loadNotes();
-  }, [isUserSignedIn, user?.id, setNotes]);
-
-  /* ----------------------------------------
      🎯 Context Value
   ---------------------------------------- */
   const value = {
