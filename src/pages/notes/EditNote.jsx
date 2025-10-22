@@ -252,23 +252,28 @@ const EditNote = () => {
       <div className="min-h-screen bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">
         {/* Header */}
         <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-black backdrop-blur-md">
-          <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-4">
-            <Link
-              to="/notes"
-              className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition"
-            >
-              <ArrowLeft className="w-6 h-6" />
-              {!mobileView && <span>Back</span>}
-            </Link>
+          <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-3">
+            {/* 🔙 Back Button */}
+            <div className="flex items-center">
+              <Link
+                to="/notes"
+                className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition-all"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {!mobileView && <span className="font-medium">Back</span>}
+              </Link>
+            </div>
 
+            {/* 📝 Title */}
             <div className="text-center">
-              <h1 className="text-xl lg:text-2xl font-bold">
-                {id ? "Edit Note" : "New Note"}
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-white">
+                Edit Note
               </h1>
             </div>
 
-            <div className="flex items-center justify-end gap-2 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
-              <Clock size={14} />
+            {/* ⏰ Last Saved */}
+            <div className="flex items-center justify-end gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+              <Clock size={13} />
               <span className="truncate">
                 {lastSaved.toLocaleTimeString([], {
                   hour: "2-digit",
