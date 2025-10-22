@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
 import { AlertTriangle } from "lucide-react";
+import CustomLoader from "../../components/CustomLoader";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -14,83 +15,81 @@ const ProfilePage = () => {
   const [userPackage, setUserPackage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
-useEffect(() => {
-  const fetchPackage = async () => {
-    try {
-      console.log("🔄 Starting package fetch...");
+  useEffect(() => {
+    const fetchPackage = async () => {
+      try {
+        console.log("🔄 Starting package fetch...");
 
-      const storedUser = JSON.parse(localStorage.getItem("userInfo"));
-      console.log("📋 Stored user:", storedUser);
+        const storedUser = JSON.parse(localStorage.getItem("userInfo"));
+        console.log("📋 Stored user:", storedUser);
 
-      const user = storedUser?.user || storedUser;
-      const userId = user?.id;
+        const user = storedUser?.user || storedUser;
+        const userId = user?.id;
 
-      if (!userId) {
-        toast.error("User not found. Please log in again.");
-        navigate("/login");
-        return;
-      }
+        if (!userId) {
+          toast.error("User not found. Please log in again.");
+          navigate("/login");
+          return;
+        }
 
-      // ✅ Check user verification
-      const verified = user?.verified || user?.isVerified || false;
-      setIsVerified(verified);
+        // ✅ Check user verification
+        const verified = user?.verified || user?.isVerified || false;
+        setIsVerified(verified);
 
-      if (!verified) {
-        console.warn("⚠️ User not verified.");
+        if (!verified) {
+          console.warn("⚠️ User not verified.");
+          setLoading(false);
+          return;
+        }
+
+        console.log("🧩 Checking if user already has a package...");
+        const hasPackage = await checkPackage(userId);
+
+        let pkg = null;
+
+        if (!hasPackage) {
+          console.log("⚙️ No package found — creating default starter plan...");
+          pkg = await createPackage(userId, {
+            name: "Free",
+            tier: "starter",
+            price: 0,
+            aiPromptsPerMonth: 5,
+            collaborativeLinks: true,
+            features: [
+              "Up to 100 notes",
+              "Basic AI prompts (5/month)",
+              "Collaborative note links",
+              "Sync across devices",
+            ],
+            category: "package",
+            createdAt: new Date().toISOString(),
+          });
+
+          if (pkg) toast.success("🎉 Default Free plan activated!");
+        } else {
+          console.log("📦 Package exists — fetching current plan...");
+        }
+
+        // ✅ Format final package data
+        const packageData = {
+          name: pkg?.name || "Free",
+          price: pkg?.price || 0,
+          period: pkg?.period || pkg?.billingPeriod || "Forever",
+        };
+
+        console.log("🎯 Final package data:", packageData);
+        setUserPackage(packageData);
+      } catch (err) {
+        console.error("❌ Package fetch error:", err);
+        toast.error("Failed to load package info.");
+        setUserPackage({ name: "Free", price: "0", period: "Forever" });
+      } finally {
         setLoading(false);
-        return;
       }
+    };
 
-      console.log("🧩 Checking if user already has a package...");
-      const hasPackage = await checkPackage(userId);
-
-      let pkg = null;
-
-      if (!hasPackage) {
-        console.log("⚙️ No package found — creating default starter plan...");
-        pkg = await createPackage(userId, {
-          name: "Free",
-          tier: "starter",
-          price: 0,
-          aiPromptsPerMonth: 5,
-          collaborativeLinks: true,
-          features: [
-            "Up to 100 notes",
-            "Basic AI prompts (5/month)",
-            "Collaborative note links",
-            "Sync across devices",
-          ],
-          category: "package",
-          createdAt: new Date().toISOString(),
-        });
-
-        if (pkg) toast.success("🎉 Default Free plan activated!");
-      } else {
-        console.log("📦 Package exists — fetching current plan...");
-       
-      }
-
-      // ✅ Format final package data
-      const packageData = {
-        name: pkg?.name || "Free",
-        price: pkg?.price || 0,
-        period: pkg?.period || pkg?.billingPeriod || "Forever",
-      };
-
-      console.log("🎯 Final package data:", packageData);
-      setUserPackage(packageData);
-    } catch (err) {
-      console.error("❌ Package fetch error:", err);
-      toast.error("Failed to load package info.");
-      setUserPackage({ name: "Free", price: "0", period: "Forever" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchPackage();
-}, [navigate]);
-
+    fetchPackage();
+  }, [navigate]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -158,7 +157,8 @@ useEffect(() => {
                     : "bg-red-50 border-red-300 text-red-700"
                 }`}
               >
-                <AlertTriangle size={20}/> Please verify your account to access your plan and features.
+                <AlertTriangle size={20} /> Please verify your account to access
+                your plan and features.
               </motion.div>
             )}
           </AnimatePresence>
@@ -167,30 +167,7 @@ useEffect(() => {
           {isVerified && (
             <AnimatePresence mode="wait">
               {loading ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="w-full flex items-center justify-center py-3"
-                >
-                  <div className="flex items-center space-x-3 text-sm">
-                    <div
-                      className={`w-4 h-4 border-2 rounded-full animate-spin ${
-                        darkMode
-                          ? "border-green-700 border-t-white"
-                          : "border-green-300 border-t-green-600"
-                      }`}
-                    />
-                    <p
-                      className={`${
-                        darkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Loading your plan...
-                    </p>
-                  </div>
-                </motion.div>
+                <CustomLoader  message="Profile is loading" />
               ) : (
                 <motion.div
                   key="package-banner"

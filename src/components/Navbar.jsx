@@ -72,10 +72,10 @@ const Navbar = () => {
                 >
                   <Link
                     to={item.path}
-                    className={`relative px-4 py-2.5 rounded-t-xl text-xs font-medium flex items-center gap-2 transition-all duration-200 group ${
+                    className={`relative px-4 py-2.5 rounded-t-xl text-xs md:text-sm font-medium flex items-center gap-2 transition-all duration-200 group ${
                       isActive(item.path)
                         ? "text-white bg-primary shadow-sm"
-                        : "text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary"
+                        : "text-gray-600 dark:text-white hover:text-primary dark:hover:text-primary"
                     }`}
                   >
                     <Icon
@@ -83,7 +83,7 @@ const Navbar = () => {
                       className={`transition-colors duration-200 ${
                         isActive(item.path)
                           ? "text-white"
-                          : "text-gray-500 dark:text-gray-400 group-hover:text-primary"
+                          : "text-gray-500 dark:text-white group-hover:text-primary"
                       }`}
                     />
                     {item.label}
