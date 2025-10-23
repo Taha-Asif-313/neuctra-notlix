@@ -18,10 +18,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "../../components/RichTextEditor";
 import { CreateNoteAiAgent } from "../../agent/NoteMaker";
-import { getSingleNote, updateNote } from "../../authix/authixinit";
+import { getPackage, getSingleNote, updateNote, updatePackageUsage } from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
 import CustomLoader from "../../components/CustomLoader";
+import toast from "react-hot-toast";
 
 const EditNote = () => {
   const { id } = useParams();
@@ -203,25 +204,48 @@ const EditNote = () => {
     }
   };
 
-  // ✅ AI Assist
-  const handleAIGenerate = async () => {
-    if (!aiPrompt.trim()) return;
+ const handleAIGenerate = async () => {
+  if (!aiPrompt.trim()) {
+    toast.error("Please enter a prompt first!");
+    return;
+  }
+
+  try {
     setLoading(true);
-    try {
-      const aiResponse = await CreateNoteAiAgent(aiPrompt);
-      if (aiResponse) {
-        const newContent = content + aiResponse;
-        setContent(newContent);
-        editorRef.current?.setEditorContent(newContent);
-      }
-      setShowModal(false);
-      setAiPrompt("");
-    } catch (err) {
-      console.error("AI generation failed:", err);
-    } finally {
-      setLoading(false);
+
+    // 🔹 Fetch package info
+    const pkg = await getPackage(user.id);
+    if (!pkg) {
+      toast.error("Failed to verify your package.");
+      return;
     }
-  };
+
+    const used = pkg?.usage?.aiPromptsUsed ?? 0;
+    const limit = pkg?.aiPromptsPerMonth ?? 5;
+
+    if (used >= limit) {
+      toast.error(`AI prompt limit reached (${limit}/month). Upgrade to continue.`);
+      return;
+    }
+
+    // 🧠 Generate AI Note
+    const aiResponse = await generateNote(aiPrompt);
+    console.log("✅ AI response received:", aiResponse);
+
+    // 🔼 Update AI usage
+    await updatePackageUsage(user.id, "ai", "increment");
+
+    // 📝 Set AI content into editor
+    setContent(aiResponse || "");
+    editorRef.current?.setEditorContent(aiResponse || "");
+    toast.success("AI note generated successfully!");
+  } catch (err) {
+    console.error("❌ AI generation failed:", err);
+    toast.error("Failed to generate note. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 🔹 LOADING JSX
   if (loading)  return <CustomLoader message="Saving Note Please Wait" />

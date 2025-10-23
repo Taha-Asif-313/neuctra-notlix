@@ -18,7 +18,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "../../components/RichTextEditor";
 import { CreateNoteAiAgent } from "../../agent/NoteMaker";
-import { createNote, updatePackageUsage } from "../../authix/authixinit";
+import { createNote, getPackage, updatePackageUsage } from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
 import toast from "react-hot-toast";
@@ -69,42 +69,52 @@ const CreateNote = () => {
     setWordCount(words);
   }, [title, content]);
 
-  // --- SAVE NOTE ---
+ 
   const handleSubmit = async (e) => {
-    e?.preventDefault();
+  e?.preventDefault();
 
-    if (!title.trim()) {
-      toast.error("Please enter a title before saving!");
+  if (!title.trim()) {
+    toast.error("Please enter a title before saving!");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // 🔹 Get user package
+    const pkg = await getPackage(user.id);
+    if (!pkg) {
+      toast.error("Failed to verify your package.");
       return;
     }
 
-    const noteData = {
-      title: title.trim(),
-      content,
-      wordCount,
-    };
+    const notesUsed = pkg?.usage?.notesUsed ?? 0;
+    const notesLimit = parseInt(pkg?.features?.find(f => f.includes("Up to"))?.match(/\d+/)?.[0] || 100);
 
-    try {
-      setLoading(true);
-
-      // 📝 Create the note
-      const response = await createNote(user.id, noteData);
-      console.log("✅ Note created:", response);
-
-      // 🔼 Increment note usage in package
-      await updatePackageUsage(user.id, "notes", "increment");
-
-      // ⏱️ Mark last saved time
-      setLastSaved(new Date());
-      toast.success("Note saved successfully!");
-      navigate("/notes");
-    } catch (err) {
-      console.error("❌ Error saving note:", err);
-      toast.error("Failed to save note. Please try again.");
-    } finally {
-      setLoading(false);
+    if (notesUsed >= notesLimit) {
+      toast.error(`Note limit reached (${notesLimit} notes). Upgrade your plan to add more.`);
+      return;
     }
-  };
+
+    // 📝 Create the note
+    const noteData = { title: title.trim(), content, wordCount };
+    const response = await createNote(user.id, noteData);
+    console.log("✅ Note created:", response);
+
+    // 🔼 Increment note usage
+    await updatePackageUsage(user.id, "notes", "increment");
+
+    setLastSaved(new Date());
+    toast.success("Note saved successfully!");
+    navigate("/notes");
+  } catch (err) {
+    console.error("❌ Error saving note:", err);
+    toast.error("Failed to save note. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // --- EXPORTS ---
   const exportNote = () => {
@@ -181,28 +191,54 @@ const CreateNote = () => {
     }
   };
 
-  const handleAIGenerate = async () => {
-    console.log("🚀 Button clicked"); // <--- Add this at top
-    console.log("Prompt value:", aiPrompt);
+const handleAIGenerate = async () => {
+  if (!aiPrompt.trim()) {
+    toast.error("Please enter a prompt first!");
+    return;
+  }
 
+  try {
     setLoading(true);
-    try {
-      const aiResponse = await generateNote(aiPrompt);
-      console.log("✅ AI response received:", aiResponse);
-      // ...
-    } catch (err) {
-      console.error("❌ AI generation failed:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleUpdateAiPromt = async () => {
+    // 🔹 Fetch package info
+    const pkg = await getPackage(user.id);
+    if (!pkg) {
+      toast.error("Failed to verify your package.");
+      return;
+    }
+
+    const used = pkg?.usage?.aiPromptsUsed ?? 0;
+    const limit = pkg?.aiPromptsPerMonth ?? 5;
+
+    if (used >= limit) {
+      toast.error(`AI prompt limit reached (${limit}/month). Upgrade to continue.`);
+      return;
+    }
+
+    // 🧠 Generate AI Note
+    const aiResponse = await generateNote(aiPrompt);
+    console.log("✅ AI response received:", aiResponse);
+
+    // 🔼 Update AI usage
     await updatePackageUsage(user.id, "ai", "increment");
-  };
+
+    // 📝 Set AI content into editor
+    setContent(aiResponse || "");
+    editorRef.current?.setEditorContent(aiResponse || "");
+    toast.success("AI note generated successfully!");
+  } catch (err) {
+    console.error("❌ AI generation failed:", err);
+    toast.error("Failed to generate note. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // --- LOADING RETURN JSX ---
-  if (loading) return <CustomLoader message="Creating Note Please Wait" />;
+  if (loading)
+    return <CustomLoader message="Generating Or Creating Please Wait" />;
+
+  if (aiLoading) return <CustomLoader message="Generating PLease Wait" />;
 
   return (
     <>
@@ -413,7 +449,7 @@ const CreateNote = () => {
                     Cancel
                   </button>
                   <button
-                    onClick={()=>{handleUpdateAiPromt();handleAIGenerate();}}
+                    onClick={handleAIGenerate}
                     disabled={loading || !aiPrompt.trim()}
                     className="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-green-500 text-white font-semibold shadow hover:scale-105 transition disabled:opacity-50"
                   >

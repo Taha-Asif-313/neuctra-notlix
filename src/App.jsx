@@ -50,7 +50,7 @@ const SessionLoader = () => {
         {/* Outer Circular Ring */}
         <div className="relative w-28 h-28 flex items-center justify-center">
           <div className="absolute inset-0 rounded-full border-4 border-emerald-500/30 border-t-primary animate-spin-slow" />
-          
+
           {/* Logo in center */}
           <img
             src={"/logo-dark.png"}
@@ -72,8 +72,6 @@ const SessionLoader = () => {
     </div>
   );
 };
-
-
 
 function App() {
   const { darkMode, setDarkMode, notes, setNotes, user, isUserSignedIn } =
@@ -171,14 +169,20 @@ function App() {
 
       {/* 🔔 Toast Notifications */}
       <Toaster
-        position="top-right"
-        containerClassName="text-xs"
+        position="top-center"
+        containerClassName="!text-xs !flex !justify-center"
         toastOptions={{
           className:
-            "!bg-primary !text-white !rounded-xl !shadow-lg !px-4 !py-3 !backdrop-blur-md !bg-opacity-90",
+            "!bg-primary !text-white !rounded-md !shadow-2xl !px-5 !py-2 " +
+            "!flex !items-center !justify-center" + // ✅ Centers content
+            "!w-fit !max-w-[90%] !mx-auto !text-center !backdrop-blur-md !bg-opacity-90",
           style: { fontWeight: 500, letterSpacing: "0.3px" },
-          success: { iconTheme: { primary: "#fff", secondary: "#22c55e" } },
-          error: { iconTheme: { primary: "#fff", secondary: "#ef4444" } },
+          success: {
+            iconTheme: { primary: "#22c55e", secondary: "#fff" },
+          },
+          error: {
+            iconTheme: { primary: "#ef4444", secondary: "#fff" },
+          },
         }}
       />
     </>
