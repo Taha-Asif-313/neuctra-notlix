@@ -2,7 +2,7 @@ import { NeuctraAuthix } from "@neuctra/authix";
 import { generateId } from "../utils/cryptoUtils";
 import toast from "react-hot-toast";
 
-const authix = new NeuctraAuthix({
+export const authix = new NeuctraAuthix({
   baseUrl: "https://server.authix.neuctra.com/api",
   apiKey: "850a8c32c35f008d28295f065526825a656af0a784ea7b0910fc2a1f748adda3",
   appId: "ba73c20458ba4be9f11dab081550a960",
@@ -21,7 +21,7 @@ export async function getAllNotes(userId) {
     const allData = res?.data || [];
 
     if (!Array.isArray(allData) || allData.length === 0) {
-      console.log("📭 No user data found for this user.");
+      console.log("No user data found for this user.");
       return [];
     }
 
@@ -30,10 +30,10 @@ export async function getAllNotes(userId) {
       (item) => item?.category?.toLowerCase() === "note"
     );
 
-    console.log(`📝 Found ${notes.length} notes for user.`);
+    console.log(`Found ${notes.length} notes for user.`);
     return notes;
   } catch (err) {
-    console.error("❌ Error fetching notes:", err);
+    console.error("Error fetching notes:", err);
     toast.error("Failed to load your notes. Please try again later.");
     return [];
   }
@@ -229,21 +229,115 @@ export async function checkPackage(userId) {
 }
 
 
+
 /**
- * 📦 Get package info
+ * 🔄 Increment or decrement package usage (notes or AI prompts)
  */
-export async function getPackage(userId, packageId) {
+export async function updatePackageUsage(userId, type = "notes", action = "increment") {
   try {
-    const res = await authix.getSingleUserData({
+    // 🔹 Fetch all user data
+    const res = await authix.getUserData({ userId });
+    const allData = res?.data || [];
+    console.log("📦 All user data:", allData);
+
+    // 🔍 Find the existing package
+    const packageItem = allData.find(
+      (item) => item?.category?.toLowerCase() === "package"
+    );
+
+    console.log("📦 Found package:", packageItem);
+
+    if (!packageItem) {
+      console.warn("⚠️ No package found for user:", userId);
+      return;
+    }
+
+    // ✅ Ensure usage object exists
+    const usage = {
+      notesUsed: packageItem?.usage?.notesUsed ?? 0,
+      aiPromptsUsed: packageItem?.usage?.aiPromptsUsed ?? 0,
+    };
+
+    // 🔢 Update counters safely
+    if (type === "notes") {
+      usage.notesUsed = Math.max(
+        0,
+        usage.notesUsed + (action === "increment" ? 1 : -1)
+      );
+    }
+
+    if (type === "ai") {
+      usage.aiPromptsUsed = Math.max(
+        0,
+        usage.aiPromptsUsed + (action === "increment" ? 1 : -1)
+      );
+    }
+
+    console.log("🧮 Updated usage:", usage);
+
+    // 🧱 Merge updated usage into full package
+    const updatedPackage = {
+      ...packageItem,
+      usage,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // ✅ Save updated package (not just usage)
+    await authix.updateUserData({
       userId,
-      dataId: packageId,
+      dataId: packageItem.id,
+      data: updatedPackage,
     });
 
-    console.log("📄 Package retrieved:", res?.data);
-    return res?.data || null;
+    console.log(
+      `✅ ${action === "increment" ? "Increased" : "Decreased"} ${type} usage.`,
+      updatedPackage
+    );
+
+    return updatedPackage;
   } catch (err) {
-    console.error("❌ Failed to fetch package:", err);
+    console.error("❌ Failed to update package usage:", err);
+  }
+}
+
+
+
+/**
+ * 📦 Get user package info
+ */
+export async function getPackage(userId) {
+  try {
+    // 🔹 Validate
+    if (!userId) {
+      console.warn("❌ getPackage: Missing userId");
+      return null;
+    }
+
+    // 🔹 Fetch all user data
+    const res = await authix.getUserData({ userId });
+    const allData = res?.data || [];
+
+    if (!Array.isArray(allData) || allData.length === 0) {
+      console.log("No data found for this user.");
+      return null;
+    }
+
+    // 🔍 Find the package entry
+    const pkg = allData.find(
+      (item) => item?.category?.toLowerCase() === "package"
+    );
+
+    if (!pkg) {
+      console.log("⚠️ No package found for this user.");
+      return null;
+    }
+
+    console.log("📦 Package retrieved successfully:", pkg);
+    return pkg;
+  } catch (err) {
+    console.error("❌ Error fetching package:", err);
     toast.error("Failed to load package. Please try again later.");
     return null;
   }
 }
+

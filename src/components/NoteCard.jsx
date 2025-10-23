@@ -16,7 +16,7 @@ import toast from "react-hot-toast";
 import { encryptData } from "../utils/cryptoUtils";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/useAppContext";
-import { createNote } from "../authix/authixinit";
+import { createNote, updatePackageUsage } from "../authix/authixinit";
 
 const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
   const { user, setNotes } = useAppContext();
@@ -105,23 +105,28 @@ const copyToClipboard = async (text) => {
     }
   };
 
-  // --- DELETE NOTE ---
-  const handleDelete = () => {
-    setConfirmModal({
-      show: true,
-      message: "Are you sure you want to delete this note?",
-      onConfirm: async () => {
-        try {
-          setConfirmModal((m) => ({ ...m, loading: true }));
-          await onDelete(note.id);
-          setConfirmModal({ show: false, message: "", onConfirm: null });
-          toast.success("Deleted!");
-        } catch {
-          toast.error("Failed to delete!");
-        }
-      },
-    });
-  };
+// --- DELETE NOTE ---
+const handleDelete = () => {
+  setConfirmModal({
+    show: true,
+    message: "Are you sure you want to delete this note?",
+    onConfirm: async () => {
+      try {
+        setConfirmModal((m) => ({ ...m, loading: true }));
+        await onDelete(note.id);
+
+        // 🧾 Decrease note usage count
+        await updatePackageUsage(user.id, "notes", "decrement");
+
+        setConfirmModal({ show: false, message: "", onConfirm: null });
+        toast.success("Deleted!");
+      } catch {
+        toast.error("Failed to delete!");
+      }
+    },
+  });
+};
+
 
   const handleDownload = (format) => {
     setDropdownOpen(false);

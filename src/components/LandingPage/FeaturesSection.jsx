@@ -96,7 +96,7 @@ const FeaturesSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08, duration: 0.6 }}
               viewport={{ once: true }}
-              className={`p-8 rounded-3xl border border-white/10 dark:border-zinc-800 bg-gradient-to-br ${feature.color} backdrop-blur-xl shadow-md hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300`}
+              className={`p-8 rounded-3xl border border-white/10 dark:border-zinc-800 bg-gradient-to-br ${feature.color} backdrop-blur-xl shadow-md hover:-translate-y-1 transition-all duration-300`}
             >
               <div className="flex flex-col items-center text-center">
                 <motion.div

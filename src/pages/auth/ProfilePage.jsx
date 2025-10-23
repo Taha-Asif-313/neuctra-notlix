@@ -1,31 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { ReactUserProfile } from "@neuctra/authix";
 import { useNavigate } from "react-router-dom";
-import { createPackage, checkPackage } from "../../authix/authixinit";
+import { createPackage, getPackage, authix } from "../../authix/authixinit";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
 import { AlertTriangle } from "lucide-react";
 import CustomLoader from "../../components/CustomLoader";
+import PlanInfo from "../../components/TextEditor/PlanInfo";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { darkMode } = useAppContext();
+  const { darkMode, user } = useAppContext();
   const [userPackage, setUserPackage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
+
   useEffect(() => {
     const fetchPackage = async () => {
       try {
         console.log("🔄 Starting package fetch...");
 
-        const storedUser = JSON.parse(localStorage.getItem("userInfo"));
-        console.log("📋 Stored user:", storedUser);
-
-        const user = storedUser?.user || storedUser;
         const userId = user?.id;
-
         if (!userId) {
           toast.error("User not found. Please log in again.");
           navigate("/login");
@@ -42,13 +39,16 @@ const ProfilePage = () => {
           return;
         }
 
-        console.log("🧩 Checking if user already has a package...");
-        const hasPackage = await checkPackage(userId);
+        console.log("📦 Checking if user already has a package...");
+        const res = await getPackage(userId);
+        console.log("📦 getPackage() result:", res);
 
-        let pkg = null;
+        // 🧩 Create a variable to store package info
+        let pkg = res; // ✅ FIXED — declare pkg
 
-        if (!hasPackage) {
-          console.log("⚙️ No package found — creating default starter plan...");
+        // 🆕 Create Free plan if none found
+        if (!pkg) {
+          console.log("🆕 No package found — creating default Free plan...");
           pkg = await createPackage(userId, {
             name: "Free",
             tier: "starter",
@@ -61,23 +61,31 @@ const ProfilePage = () => {
               "Collaborative note links",
               "Sync across devices",
             ],
+            usage: {
+              notesUsed: 0,
+              aiPromptsUsed: 0,
+            },
             category: "package",
             createdAt: new Date().toISOString(),
           });
 
           if (pkg) toast.success("🎉 Default Free plan activated!");
         } else {
-          console.log("📦 Package exists — fetching current plan...");
+          console.log("📦 Package exists:", pkg);
         }
 
         // ✅ Format final package data
         const packageData = {
+          id: pkg?.id,
           name: pkg?.name || "Free",
           price: pkg?.price || 0,
           period: pkg?.period || pkg?.billingPeriod || "Forever",
+          aiPromptsPerMonth: pkg?.aiPromptsPerMonth || 5,
+          usage: pkg?.usage || { notesUsed: 0, aiPromptsUsed: 0 },
+          features: pkg?.features || [],
         };
 
-        console.log("🎯 Final package data:", packageData);
+        console.log("✅ Final package data:", packageData);
         setUserPackage(packageData);
       } catch (err) {
         console.error("❌ Package fetch error:", err);
@@ -89,28 +97,22 @@ const ProfilePage = () => {
     };
 
     fetchPackage();
-  }, [navigate]);
+  }, [navigate, user]);
 
+  // 🎨 Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        duration: 0.3,
-      },
+      transition: { staggerChildren: 0.1, duration: 0.3 },
     },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.4,
-        ease: "easeOut",
-      },
+      transition: { duration: 0.4, ease: "easeOut" },
     },
   };
 
@@ -123,12 +125,9 @@ const ProfilePage = () => {
 
   return (
     <>
-      {/* 🧠 Dynamic Metadata for SEO */}
       <Metadata
         title="Profile – Manage Your Account | Neuctra Notes"
         description="View and manage your Neuctra Notes profile, subscription plan, and account settings. Update your information and securely control your preferences anytime."
-        keywords="Neuctra profile, account settings, manage plan, AI notes account, subscription management, secure profile, Neuctra Notes"
-        image="https://yourdomain.com/assets/og-profile.png"
       />
 
       <div
@@ -138,6 +137,7 @@ const ProfilePage = () => {
             : "bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900"
         }`}
       >
+      
         <motion.div
           initial="hidden"
           animate="visible"
@@ -163,11 +163,11 @@ const ProfilePage = () => {
             )}
           </AnimatePresence>
 
-          {/* 🌿 Package Info Banner (only if verified) */}
+          {/* 🌿 Package Info Banner */}
           {isVerified && (
             <AnimatePresence mode="wait">
               {loading ? (
-                <CustomLoader  message="Profile is loading" />
+                <CustomLoader message="Profile is loading" />
               ) : (
                 <motion.div
                   key="package-banner"
@@ -198,15 +198,13 @@ const ProfilePage = () => {
                         ? "You’re using the Free plan."
                         : "You have an active plan."}
                     </span>
-                    {userPackage?.price &&
-                    userPackage.price !== "0" &&
-                    userPackage.price !== "0.00" ? (
+                    {isFreePlan() ? (
                       <span className="font-semibold text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
-                        (${userPackage.price} / {userPackage.period})
+                        Free Forever
                       </span>
                     ) : (
                       <span className="font-semibold text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
-                        Free Forever
+                        (${userPackage.price} / {userPackage.period})
                       </span>
                     )}
                   </div>
@@ -261,6 +259,18 @@ const ProfilePage = () => {
               darkMode={darkMode}
             />
           </motion.div>
+          
+    {/* Divider */}
+          <motion.div
+            variants={itemVariants}
+            className={`h-px w-full my-4 max-w-2xl ${
+              darkMode
+                ? "bg-gradient-to-r from-transparent via-zinc-700 to-transparent"
+                : "bg-gradient-to-r from-transparent via-gray-200 to-transparent"
+            }`}
+          />
+
+            <PlanInfo pkg={userPackage} loading={loading} />
         </motion.div>
       </div>
     </>

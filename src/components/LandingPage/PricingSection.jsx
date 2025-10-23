@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Crown, Rocket, Star } from "lucide-react";
+import { CheckCircle2, Rocket, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const plans = [
@@ -33,21 +33,6 @@ const plans = [
     color: "from-green-500 to-emerald-600",
     highlight: true,
   },
-  {
-    name: "Team",
-    icon: <Crown className="w-8 h-8 text-yellow-400" />,
-    price: 19,
-    period: "per month",
-    features: [
-      "Everything in Pro",
-      "Team dashboards",
-      "Role-based permissions",
-      "Version control",
-      "Priority support",
-    ],
-    color: "from-lime-400 to-primary",
-    highlight: false,
-  },
 ];
 
 const PricingSection = () => {
@@ -58,7 +43,7 @@ const PricingSection = () => {
       id="pricing"
       className="py-20 px-6 sm:px-10 bg-gradient-to-b from-white to-emerald-50 dark:from-zinc-950 dark:to-green-950/30"
     >
-      <div className="max-w-6xl mx-auto text-center">
+      <div className="max-w-5xl mx-auto text-center">
         {/* Header */}
         <motion.h2
           initial={{ opacity: 0, y: 10 }}
@@ -69,6 +54,7 @@ const PricingSection = () => {
         >
           Simple, Transparent <span className="text-primary">Pricing</span>
         </motion.h2>
+
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -81,7 +67,7 @@ const PricingSection = () => {
         </motion.p>
 
         {/* Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {plans.map((plan, index) => (
             <motion.div
               key={plan.name}
@@ -96,10 +82,10 @@ const PricingSection = () => {
                     : "bg-white/80 dark:bg-zinc-900/60 border-gray-200 dark:border-zinc-800"
                 }`}
             >
-              {/* Plan Icon */}
+              {/* Icon */}
               <div className="flex justify-center mb-5">{plan.icon}</div>
 
-              {/* Plan Name */}
+              {/* Name */}
               <h3
                 className={`text-2xl font-bold mb-2 ${
                   plan.highlight
@@ -110,7 +96,7 @@ const PricingSection = () => {
                 {plan.name}
               </h3>
 
-              {/* Plan Price */}
+              {/* Price */}
               <div
                 className={`text-4xl font-extrabold mb-2 ${
                   plan.highlight ? "text-white" : "text-primary"
@@ -137,7 +123,7 @@ const PricingSection = () => {
                   >
                     <CheckCircle2
                       className={`w-5 h-5 ${
-                        plan.highlight ? "text-white" : "text-primary "
+                        plan.highlight ? "text-white" : "text-primary"
                       }`}
                     />
                     <span

@@ -18,11 +18,12 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "../../components/RichTextEditor";
 import { CreateNoteAiAgent } from "../../agent/NoteMaker";
-import { createNote } from "../../authix/authixinit";
+import { createNote, updatePackageUsage } from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
 import toast from "react-hot-toast";
 import CustomLoader from "../../components/CustomLoader";
+import { useNoteAiAgent } from "../../hooks/useNoteAiAgent";
 
 const CreateNote = () => {
   const navigate = useNavigate();
@@ -48,6 +49,8 @@ const CreateNote = () => {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [mobileView, setMobileView] = useState(false);
+
+  const { generateNote, aiLoading, aiError } = useNoteAiAgent();
 
   // Detect mobile view
   useEffect(() => {
@@ -78,20 +81,28 @@ const CreateNote = () => {
     const noteData = {
       title: title.trim(),
       content,
-      wordCount
+      wordCount,
     };
 
     try {
-      setLoading(true); // 🔹 start loading
+      setLoading(true);
+
+      // 📝 Create the note
       const response = await createNote(user.id, noteData);
-      console.log("Note created:", response);
+      console.log("✅ Note created:", response);
+
+      // 🔼 Increment note usage in package
+      await updatePackageUsage(user.id, "notes", "increment");
+
+      // ⏱️ Mark last saved time
       setLastSaved(new Date());
+      toast.success("Note saved successfully!");
       navigate("/notes");
     } catch (err) {
-      console.error("Error saving note:", err);
-      toast.error(err.message);
+      console.error("❌ Error saving note:", err);
+      toast.error("Failed to save note. Please try again.");
     } finally {
-      setLoading(false); // 🔹 stop loading
+      setLoading(false);
     }
   };
 
@@ -170,28 +181,28 @@ const CreateNote = () => {
     }
   };
 
-  // --- AI GENERATION ---
   const handleAIGenerate = async () => {
-    if (!aiPrompt.trim()) return;
+    console.log("🚀 Button clicked"); // <--- Add this at top
+    console.log("Prompt value:", aiPrompt);
+
     setLoading(true);
     try {
-      const aiResponse = await CreateNoteAiAgent(aiPrompt);
-      if (aiResponse) {
-        const newContent = content + aiResponse;
-        setContent(newContent);
-        editorRef.current?.setEditorContent(newContent);
-      }
-      setShowModal(false);
-      setAiPrompt("");
+      const aiResponse = await generateNote(aiPrompt);
+      console.log("✅ AI response received:", aiResponse);
+      // ...
     } catch (err) {
-      console.error("AI generation failed", err);
+      console.error("❌ AI generation failed:", err);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleUpdateAiPromt = async () => {
+    await updatePackageUsage(user.id, "ai", "increment");
+  };
+
   // --- LOADING RETURN JSX ---
-  if (loading) return <CustomLoader message="Creating Note Please Wait" />
+  if (loading) return <CustomLoader message="Creating Note Please Wait" />;
 
   return (
     <>
@@ -402,7 +413,7 @@ const CreateNote = () => {
                     Cancel
                   </button>
                   <button
-                    onClick={handleAIGenerate}
+                    onClick={()=>{handleUpdateAiPromt();handleAIGenerate();}}
                     disabled={loading || !aiPrompt.trim()}
                     className="flex-1 inline-flex items-center justify-center gap-3 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-green-500 text-white font-semibold shadow hover:scale-105 transition disabled:opacity-50"
                   >
