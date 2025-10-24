@@ -1,0 +1,6 @@
+
+# 🔀 Redirects for React Router (SPA support)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
