@@ -11,7 +11,7 @@ const LandingPageNav = () => {
   const ctaLabel = user ? "Go to Notes" : "Get Started";
   const ctaLink = user ? "/notes" : "/login";
 
-    useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -45,13 +45,13 @@ const LandingPageNav = () => {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center justify-center space-x-6">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item}
-                href={`#${item.toLowerCase()}`}
+                to={`/#${item.toLowerCase()}`}
                 className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"
               >
                 {item}
-              </a>
+              </Link>
             ))}
           </nav>
 
