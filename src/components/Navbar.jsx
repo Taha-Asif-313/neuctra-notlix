@@ -40,7 +40,7 @@ const Navbar = () => {
       >
         <div className="py-4 flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
+          <Link to="/notes" className="flex items-center space-x-2 group">
             <div className="relative">
               <div className="relative">
                 <img

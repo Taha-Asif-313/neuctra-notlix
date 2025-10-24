@@ -49,7 +49,9 @@ export const AppProvider = ({ children }) => {
     const root = document.documentElement;
 
     if (darkMode === "system") {
-      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const systemPrefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
       root.classList.toggle("dark", systemPrefersDark);
     } else {
       root.classList.toggle("dark", !!darkMode);
@@ -59,19 +61,32 @@ export const AppProvider = ({ children }) => {
   // Detect theme on first load if not stored
   useEffect(() => {
     if (localStorage.getItem("neuctra-dark-mode") === null) {
-      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const systemPrefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
       setDarkMode(systemPrefersDark);
     }
   }, [setDarkMode]);
 
   const toggleTheme = () => {
     if (darkMode === "system") {
-      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const systemPrefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
       setDarkMode(!systemPrefersDark);
     } else {
       setDarkMode((prev) => !prev);
     }
   };
+
+  useEffect(() => {
+  if (!userInfo) {
+    // user deleted or logged out — clean up
+    localStorage.removeItem("userInfo");
+    console.log("👋 User logged out — clearing session");
+  }
+}, [userInfo]);
+
 
   /* ----------------------------------------
      🎯 Context Value

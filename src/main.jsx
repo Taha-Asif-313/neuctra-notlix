@@ -5,9 +5,7 @@ import App from "./App.jsx";
 import { AppProvider } from "./context/useAppContext.jsx";
 
 createRoot(document.getElementById("root")).render(
-
-    <AppProvider>
-      <App />
-    </AppProvider>
- 
+  <AppProvider>
+    <App />
+  </AppProvider>
 );
