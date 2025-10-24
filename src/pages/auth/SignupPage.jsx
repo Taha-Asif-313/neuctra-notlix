@@ -26,7 +26,7 @@ const SignupPage = () => {
       />
 
       <div
-        className={`w-full h-screen flex items-center justify-center transition-colors duration-300 ${
+        className={`w-full min-h-screen py-20 flex items-center justify-center transition-colors duration-300 ${
           darkMode ? "bg-black text-white" : "bg-white text-gray-900"
         }`}
       >

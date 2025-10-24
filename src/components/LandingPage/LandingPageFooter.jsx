@@ -91,7 +91,7 @@ const LandingPageFooter = () => {
         {/* --- Bottom Bar --- */}
         <div className="border-t border-emerald-100 dark:border-primary mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 md:mb-0">
-            © {new Date().getFullYear()} Neuctra Notes. Cultivate your ideas 🌱
+            © {new Date().getFullYear()} Neuctra Notes. Cultivate your ideas.
           </p>
           <div className="flex space-x-6 text-sm">
             {[

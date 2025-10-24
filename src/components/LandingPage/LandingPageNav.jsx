@@ -50,7 +50,7 @@ const LandingPageNav = () => {
               <a
                 key={item}
                 href={`#${item.toLowerCase()}`}
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-emerald-400 transition-colors"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary transition-colors"
               >
                 {item}
               </a>
@@ -109,7 +109,7 @@ const LandingPageNav = () => {
                   key={item}
                   href={`#${item.toLowerCase()}`}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2 px-3 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-primary dark:hover:text-emerald-400 transition-all"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2 px-3 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-primary transition-all"
                 >
                   {item}
                 </a>
