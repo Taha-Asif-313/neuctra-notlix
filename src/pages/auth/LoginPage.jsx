@@ -1,21 +1,20 @@
 import React, { useEffect } from "react";
 import toast from "react-hot-toast";
-import { ReactUserLogin } from "@neuctra/authix";
-import { useNavigate } from "react-router-dom";
+import { ReactSignedOut, ReactUserLogin } from "@neuctra/authix";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { darkMode, user } = useAppContext();
-
-  // 🧭 Redirect if already logged in
-  useEffect(() => {
-    if (user) navigate("/notes");
-  }, [user, navigate]);
+  const { darkMode } = useAppContext();
 
   return (
-    <>
+    <ReactSignedOut
+      width={"100%"}
+      height={"100%"}
+      fallback={<Navigate to="/notes" replace />}
+    >
       {/* 🧠 Metadata for SEO & Social */}
       <Metadata
         title="Login – Neuctra Notes"
@@ -42,7 +41,7 @@ const LoginPage = () => {
           }}
         />
       </div>
-    </>
+    </ReactSignedOut>
   );
 };
 
