@@ -10,17 +10,13 @@ const LandingPageFooter = () => {
       title: "Product",
       links: [
         { name: "Features", path: "/features" },
-        { name: "Pricing", path: "/pricing" },
-        { name: "Use Cases", path: "/use-cases" },
-        { name: "Integrations", path: "/integrations" },
+        { name: "Pricing", path: "/pricing" }
       ],
     },
     {
       title: "Company",
       links: [
         { name: "About", path: "/about" },
-        { name: "Blog", path: "/blog" },
-        { name: "Careers", path: "/careers" },
         { name: "Contact", path: "/contact" },
       ],
     },
@@ -28,9 +24,7 @@ const LandingPageFooter = () => {
       title: "Legal",
       links: [
         { name: "Privacy Policy", path: "/privacy-policy" },
-        { name: "Terms of Service", path: "/terms" },
-        { name: "Security", path: "/security" },
-        { name: "Compliance", path: "/compliance" },
+        { name: "Terms of Service", path: "/terms" }
       ],
     },
   ];
@@ -38,7 +32,7 @@ const LandingPageFooter = () => {
   const socialIcons = [Globe, MessageCircle, Users];
 
   return (
-    <footer className="bg-white dark:bg-black border-t border-emerald-100 dark:border-emerald-800">
+    <footer className="bg-white dark:bg-black border-t border-emerald-100 dark:border-primary">
       <div className="container mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* --- Brand Section --- */}
@@ -95,7 +89,7 @@ const LandingPageFooter = () => {
         </div>
 
         {/* --- Bottom Bar --- */}
-        <div className="border-t border-emerald-100 dark:border-emerald-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+        <div className="border-t border-emerald-100 dark:border-primary mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 md:mb-0">
             © {new Date().getFullYear()} Neuctra Notes. Cultivate your ideas 🌱
           </p>
@@ -103,12 +97,12 @@ const LandingPageFooter = () => {
             {[
               { name: "Privacy Policy", path: "/privacy-policy" },
               { name: "Terms of Service", path: "/terms" },
-              { name: "Cookie Policy", path: "/cookies" },
+              { name: "Contact Us", path: "/contact" },
             ].map((item, i) => (
               <Link
                 key={i}
                 to={item.path}
-                className="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-emerald-400 transition-colors"
+                className="text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
               >
                 {item.name}
               </Link>

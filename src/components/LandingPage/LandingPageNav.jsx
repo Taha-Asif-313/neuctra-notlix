@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Moon, Sun, Menu, X, MoveRight } from "lucide-react";
 import { useAppContext } from "../../context/useAppContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 const LandingPageNav = () => {
   const { darkMode, toggleTheme, user } = useAppContext();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const menuItems = ["Features", "Testimonials", "Pricing", "FAQ"];
   const ctaLabel = user ? "Go to Notes" : "Get Started";
   const ctaLink = user ? "/notes" : "/login";
@@ -20,103 +22,111 @@ const LandingPageNav = () => {
   return (
     <header
       className={`fixed w-full z-50 transition-all duration-300 ${
-        isScrolled ? "py-4 bg-white dark:bg-black" : "py-4 bg-transparent"
+        isScrolled || mobileMenuOpen
+          ? "py-3 bg-white/90 dark:bg-black backdrop-blur-md shadow-md"
+          : "py-4 bg-transparent"
       }`}
     >
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-6">
-        <div className="grid lg:grid-cols-3 grid-cols-2 items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <div className="relative">
-              <img
-                src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
-                alt="Neuctra Notes"
-                className="h-10 w-10 object-cover"
-              />
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 items-center justify-between">
+          {/* 🔹 Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <img
+              src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
+              alt="Neuctra Notes"
+              className="h-10 w-10 object-contain"
+            />
             <div className="flex flex-col">
-              <span className="text-[10px] text-primary leading-3">
+              <span className="text-[10px] leading-[10px] text-primary font-semibold">
                 Neuctra
               </span>
-              <span className="text-lg font-bold leading-3">Notexa</span>
+              <span className="text-lg leading-[16px] font-bold">Notexa</span>
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center justify-center space-x-6">
+          {/* 🔸 Desktop Menu */}
+          <nav className="hidden lg:flex items-center justify-center space-x-8">
             {menuItems.map((item) => (
-              <Link
+              <a
                 key={item}
-                to={`/#${item.toLowerCase()}`}
-                className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors"
+                href={`#${item.toLowerCase()}`}
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-emerald-400 transition-colors"
               >
                 {item}
-              </Link>
+              </a>
             ))}
           </nav>
 
-          {/* Right Section */}
+          {/* 🔸 Right Side (Theme + CTA + Mobile Button) */}
           <div className="flex items-center justify-end space-x-3">
+            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="mx-4 lg:mx-6 transition-all"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
               aria-label="Toggle dark mode"
             >
               {darkMode ? (
-                <Sun size={24} className="text-primary" />
+                <Sun size={22} className="text-primary" />
               ) : (
-                <Moon size={24} className="text-primary" />
+                <Moon size={22} className="text-primary" />
               )}
             </button>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
-            </button>
-
-            {/* CTA Button */}
+            {/* CTA (hidden on very small screens) */}
             <Link
               to={ctaLink}
-              className="hidden sm:flex text-sm items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-primary to-green-600 text-white rounded-lg font-medium shadow hover:shadow-md transition-all"
+              className="hidden lg:flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-primary to-green-600 text-white rounded-lg font-medium text-sm hover:shadow-lg transition-all"
             >
               <span>{ctaLabel}</span>
               <MoveRight size={16} />
             </Link>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+              onClick={() => setMobileMenuOpen((p) => !p)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 shadow-lg">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex flex-col space-y-1">
+      {/* 🔸 Mobile Menu (Animated) */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+            className="lg:hidden absolute top-full left-0 w-full bg-white dark:bg-black shadow-lg border-t border-gray-200 dark:border-zinc-800 backdrop-blur-lg"
+          >
+            <div className="px-5 py-4 space-y-2">
               {menuItems.map((item) => (
                 <a
                   key={item}
                   href={`#${item.toLowerCase()}`}
-                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-emerald-400 transition-colors py-3 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800"
                   onClick={() => setMobileMenuOpen(false)}
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 py-2 px-3 rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 hover:text-primary dark:hover:text-emerald-400 transition-all"
                 >
                   {item}
                 </a>
               ))}
+
+              {/* CTA Button */}
               <Link
                 to={ctaLink}
-                className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary to-green-600 text-white rounded-lg font-medium mt-2"
                 onClick={() => setMobileMenuOpen(false)}
+                className="block w-full text-center px-4 py-3 bg-gradient-to-r from-primary to-green-600 text-white rounded-lg font-medium mt-3"
               >
-                <span>{ctaLabel}</span>
-                <MoveRight size={16} />
+                {ctaLabel}
               </Link>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 };

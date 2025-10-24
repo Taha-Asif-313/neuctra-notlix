@@ -28,14 +28,14 @@ const LandingPage = () => {
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-200 dark:bg-primary rounded-full blur-3xl opacity-20 animate-pulse-slow delay-1000"></div>
         </div>
 
-        <LandingPageNav />
+
         <HeroSection />
         <FeaturesSection />
         <TestimonialsSection />
         <PricingSection />
         <FAQSection />
         <FinalCTA />
-        <LandingPageFooter />
+    
       </div>
     </>
   );
