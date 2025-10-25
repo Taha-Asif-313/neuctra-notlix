@@ -45,7 +45,7 @@ const LandingPageFooter = () => {
               />
               <div className="flex flex-col">
                 <span className="text-[10px] text-primary leading-3">Neuctra</span>
-                <span className="text-lg font-bold leading-3">Notexa</span>
+                <span className="text-lg font-bold leading-3">Notlix</span>
               </div>
             </Link>
 

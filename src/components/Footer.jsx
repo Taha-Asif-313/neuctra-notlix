@@ -22,7 +22,7 @@ const Footer = () => {
                 Neuctra
               </span>
               <span className="text-lg dark:text-white text-black font-bold leading-3">
-                Notexa
+                Notlix
               </span>
             </div>
           </Link>
@@ -31,7 +31,7 @@ const Footer = () => {
           <p className="text-gray-600 dark:text-gray-400 text-sm text-center md:text-right">
             © {new Date().getFullYear()}{" "}
             <span className="font-medium text-gray-800 dark:text-gray-200">
-              Neuctra Notes
+              Neuctra Notlix
             </span>
             . All rights reserved.
           </p>

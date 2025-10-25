@@ -70,7 +70,7 @@ const ProfilePage = () => {
             createdAt: new Date().toISOString(),
           });
 
-          if (pkg) toast.success("🎉 Default Free plan activated!");
+          if (pkg) toast.success("Default Free plan activated!");
         } else {
           console.log("📦 Package exists:", pkg);
         }

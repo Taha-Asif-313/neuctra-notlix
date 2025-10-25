@@ -18,7 +18,11 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "../../components/RichTextEditor";
 import { CreateNoteAiAgent } from "../../agent/NoteMaker";
-import { createNote, getPackage, updatePackageUsage } from "../../authix/authixinit";
+import {
+  createNote,
+  getPackage,
+  updatePackageUsage,
+} from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 import Metadata from "../../MetaData";
 import toast from "react-hot-toast";
@@ -31,12 +35,106 @@ const CreateNote = () => {
   const { user } = useAppContext();
 
   const quickPrompts = [
-    "Meeting notes template",
-    "Study summary outline",
-    "Project ideas brainstorm",
-    "Daily reflection template",
-    "Shopping list organizer",
-    "Recipe instructions",
+    {
+      key: "meeting_notes",
+      value:
+        "Create a professional meeting notes template with agenda, key points, decisions, and action items.",
+    },
+    {
+      key: "study_summary",
+      value:
+        "Generate a study summary outline with main topics, key concepts, and short explanations.",
+    },
+    {
+      key: "project_ideas",
+      value:
+        "Brainstorm a list of creative project ideas, including purpose, tools, and potential challenges.",
+    },
+    {
+      key: "daily_reflection",
+      value:
+        "Create a daily reflection note layout including gratitude, highlights, and lessons learned.",
+    },
+    {
+      key: "shopping_list",
+      value:
+        "Make a categorized shopping list with sections for groceries, cleaning, and essentials.",
+    },
+    {
+      key: "recipe_notes",
+      value:
+        "Generate a recipe note format with ingredients, step-by-step instructions, and cooking tips.",
+    },
+    {
+      key: "book_summary",
+      value:
+        "Write a book summary template with title, author, main idea, and favorite quotes.",
+    },
+    {
+      key: "goal_tracker",
+      value:
+        "Design a goal tracking note with short-term, long-term goals, and progress milestones.",
+    },
+    {
+      key: "workout_log",
+      value:
+        "Create a workout log with date, exercises, sets, reps, and performance notes.",
+    },
+    {
+      key: "habit_tracker",
+      value:
+        "Generate a daily habit tracker layout for consistency and motivation.",
+    },
+    {
+      key: "travel_plan",
+      value:
+        "Make a travel planning note including destinations, itinerary, budget, and must-see places.",
+    },
+    {
+      key: "content_ideas",
+      value:
+        "Brainstorm social media or blog content ideas with topics, captions, and hashtags.",
+    },
+    {
+      key: "project_plan",
+      value:
+        "Create a project planning note with objectives, timeline, deliverables, and status updates.",
+    },
+    {
+      key: "learning_journal",
+      value:
+        "Generate a learning journal layout to capture what was learned, challenges, and takeaways.",
+    },
+    {
+      key: "gratitude_journal",
+      value:
+        "Design a gratitude journal entry with sections for things you're thankful for and reflections.",
+    },
+    {
+      key: "bug_report",
+      value:
+        "Make a structured bug report template with issue details, reproduction steps, and status.",
+    },
+    {
+      key: "meeting_agenda",
+      value:
+        "Create a meeting agenda format with objectives, discussion points, and expected outcomes.",
+    },
+    {
+      key: "idea_brainstorm",
+      value:
+        "Generate an idea brainstorming sheet for creative projects and innovation sessions.",
+    },
+    {
+      key: "financial_tracker",
+      value:
+        "Design a financial tracker note with income, expenses, and savings breakdowns.",
+    },
+    {
+      key: "study_plan",
+      value:
+        "Create a study plan layout with topics, deadlines, and completion progress.",
+    },
   ];
 
   const [title, setTitle] = useState("");
@@ -69,52 +167,69 @@ const CreateNote = () => {
     setWordCount(words);
   }, [title, content]);
 
- 
   const handleSubmit = async (e) => {
-  e?.preventDefault();
+    e?.preventDefault();
 
-  if (!title.trim()) {
-    toast.error("Please enter a title before saving!");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    // 🔹 Get user package
-    const pkg = await getPackage(user.id);
-    if (!pkg) {
-      toast.error("Failed to verify your package.");
+    if (!title.trim()) {
+      toast.error("Please enter a title before saving!");
       return;
     }
 
-    const notesUsed = pkg?.usage?.notesUsed ?? 0;
-    const notesLimit = parseInt(pkg?.features?.find(f => f.includes("Up to"))?.match(/\d+/)?.[0] || 100);
+    try {
+      setLoading(true);
 
-    if (notesUsed >= notesLimit) {
-      toast.error(`Note limit reached (${notesLimit} notes). Upgrade your plan to add more.`);
-      return;
+      // ✅ Step 1: Check if user exists
+      if (!user || !user.id) {
+        toast.error("User not found. Please log in again.");
+        navigate("/login");
+        return;
+      }
+
+      // ✅ Step 2: Check if user is verified
+      if (!user.isVerified && !user.verified) {
+        toast.error("Please verify your email before creating a note.");
+        navigate("/notes/profile");
+        return;
+      }
+
+      // 🔹 Step 3: Get user package
+      const pkg = await getPackage(user.id);
+      if (!pkg) {
+        toast.error("Failed to verify your package.");
+        return;
+      }
+
+      const notesUsed = pkg?.usage?.notesUsed ?? 0;
+      const notesLimit = parseInt(
+        pkg?.features?.find((f) => f.includes("Up to"))?.match(/\d+/)?.[0] ||
+          100
+      );
+
+      if (notesUsed >= notesLimit) {
+        toast.error(
+          `Note limit reached (${notesLimit} notes). Upgrade your plan to add more.`
+        );
+        return;
+      }
+
+      // 📝 Step 4: Create the note
+      const noteData = { title: title.trim(), content, wordCount };
+      const response = await createNote(user.id, noteData);
+      console.log("✅ Note created:", response);
+
+      // 🔼 Step 5: Increment usage
+      await updatePackageUsage(user.id, "notes", "increment");
+
+      setLastSaved(new Date());
+      toast.success("Note saved successfully!");
+      navigate("/notes");
+    } catch (err) {
+      console.error("❌ Error saving note:", err);
+      toast.error("Failed to save note. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    // 📝 Create the note
-    const noteData = { title: title.trim(), content, wordCount };
-    const response = await createNote(user.id, noteData);
-    console.log("✅ Note created:", response);
-
-    // 🔼 Increment note usage
-    await updatePackageUsage(user.id, "notes", "increment");
-
-    setLastSaved(new Date());
-    toast.success("Note saved successfully!");
-    navigate("/notes");
-  } catch (err) {
-    console.error("❌ Error saving note:", err);
-    toast.error("Failed to save note. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   // --- EXPORTS ---
   const exportNote = () => {
@@ -191,48 +306,50 @@ const CreateNote = () => {
     }
   };
 
-const handleAIGenerate = async () => {
-  if (!aiPrompt.trim()) {
-    toast.error("Please enter a prompt first!");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    // 🔹 Fetch package info
-    const pkg = await getPackage(user.id);
-    if (!pkg) {
-      toast.error("Failed to verify your package.");
+  const handleAIGenerate = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error("Please enter a prompt first!");
       return;
     }
 
-    const used = pkg?.usage?.aiPromptsUsed ?? 0;
-    const limit = pkg?.aiPromptsPerMonth ?? 5;
+    try {
+      setLoading(true);
 
-    if (used >= limit) {
-      toast.error(`AI prompt limit reached (${limit}/month). Upgrade to continue.`);
-      return;
+      // 🔹 Fetch package info
+      const pkg = await getPackage(user.id);
+      if (!pkg) {
+        toast.error("Failed to verify your package.");
+        return;
+      }
+
+      const used = pkg?.usage?.aiPromptsUsed ?? 0;
+      const limit = pkg?.aiPromptsPerMonth ?? 5;
+
+      if (used >= limit) {
+        toast.error(
+          `AI prompt limit reached (${limit}/month). Upgrade to continue.`
+        );
+        return;
+      }
+
+      // 🧠 Generate AI Note
+      const aiResponse = await generateNote(aiPrompt);
+      console.log("✅ AI response received:", aiResponse);
+
+      // 🔼 Update AI usage
+      await updatePackageUsage(user.id, "ai", "increment");
+
+      // 📝 Set AI content into editor
+      setContent(aiResponse || "");
+      editorRef.current?.setEditorContent(aiResponse || "");
+      toast.success("AI note generated successfully!");
+    } catch (err) {
+      console.error("❌ AI generation failed:", err);
+      toast.error("Failed to generate note. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    // 🧠 Generate AI Note
-    const aiResponse = await generateNote(aiPrompt);
-    console.log("✅ AI response received:", aiResponse);
-
-    // 🔼 Update AI usage
-    await updatePackageUsage(user.id, "ai", "increment");
-
-    // 📝 Set AI content into editor
-    setContent(aiResponse || "");
-    editorRef.current?.setEditorContent(aiResponse || "");
-    toast.success("AI note generated successfully!");
-  } catch (err) {
-    console.error("❌ AI generation failed:", err);
-    toast.error("Failed to generate note. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // --- LOADING RETURN JSX ---
   if (loading)
@@ -242,18 +359,17 @@ const handleAIGenerate = async () => {
 
   return (
     <>
-    {/* 🧠 Metadata for SEO & Social */}
-<Metadata
-  title="Create New Note – Neuctra Notlix | AI-Powered Note Editor"
-  description="Create and organize your ideas effortlessly with Neuctra Notlix — the AI-powered note editor for writing, formatting, and saving your thoughts in the cloud. Generate, refine, and export your notes instantly."
-  keywords="create note, new note, AI note editor, Neuctra Notlix, note creator, AI writing tool, smart notes, cloud workspace, export notes, productivity app"
-  image="https://yourdomain.com/assets/og-create-note.png"
-  ogTitle="Create New Note – Neuctra Notlix | Smart AI Note Editor"
-  ogDescription="Write, format, and save new notes with Neuctra Notlix — your AI-powered cloud editor for effortless creativity and organization."
-  twitterTitle="Create New Note – Neuctra Notlix"
-  twitterDescription="Start writing with Neuctra Notlix — the AI-powered note editor for seamless creation, organization, and productivity."
-/>
-
+      {/* 🧠 Metadata for SEO & Social */}
+      <Metadata
+        title="Create New Note – Neuctra Notlix | AI-Powered Note Editor"
+        description="Create and organize your ideas effortlessly with Neuctra Notlix — the AI-powered note editor for writing, formatting, and saving your thoughts in the cloud. Generate, refine, and export your notes instantly."
+        keywords="create note, new note, AI note editor, Neuctra Notlix, note creator, AI writing tool, smart notes, cloud workspace, export notes, productivity app"
+        image="https://yourdomain.com/assets/og-create-note.png"
+        ogTitle="Create New Note – Neuctra Notlix | Smart AI Note Editor"
+        ogDescription="Write, format, and save new notes with Neuctra Notlix — your AI-powered cloud editor for effortless creativity and organization."
+        twitterTitle="Create New Note – Neuctra Notlix"
+        twitterDescription="Start writing with Neuctra Notlix — the AI-powered note editor for seamless creation, organization, and productivity."
+      />
 
       <div className="min-h-screen w-full bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">
         {/* Header */}
@@ -400,110 +516,110 @@ const handleAIGenerate = async () => {
         </motion.div>
 
         {/* AI Modal */}
-        {/* 🌟 AI Modal */}
-<AnimatePresence>
-  {showModal && (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex flex-col justify-end"
-    >
-      {/* Background overlay */}
-      <div
-        onClick={() => setShowModal(false)}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-      />
-
-      {/* Drawer */}
-      <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", stiffness: 100, damping: 22 }}
-        className="relative w-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border-t border-gray-200/50 dark:border-zinc-700/50 shadow-2xl rounded-t-3xl flex flex-col"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/60 dark:border-zinc-700/60">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500 to-green-500 shadow-md">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                AI Note Assistant
-              </h2>
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                Generate ideas, summaries, or outlines instantly.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowModal(false)}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-          >
-            <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          </button>
-        </div>
-
-        {/* Prompt Input */}
-        <div className="p-6 flex-1 overflow-y-auto">
-          <textarea
-            rows={4}
-            value={aiPrompt}
-            onChange={(e) => setAiPrompt(e.target.value)}
-            placeholder="Ask AI to write meeting notes, summaries, ideas..."
-            className="w-full p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white/70 dark:bg-zinc-800/70 outline-none resize-none text-sm sm:text-base focus:ring-2 focus:ring-amber-500 transition"
-          />
-
-          {/* Quick Prompts */}
-          <div className="mt-6">
-            <h3 className="text-sm text-gray-500 dark:text-gray-400 mb-2 font-medium">
-              Quick Prompts
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {quickPrompts.map((prompt, i) => (
-                <button
-                  key={i}
-                  onClick={() => setAiPrompt(prompt)}
-                  className="p-3 text-left text-sm rounded-xl bg-gray-100/70 dark:bg-zinc-800/70 hover:bg-amber-100/60 dark:hover:bg-amber-500/10 transition border border-transparent hover:border-amber-300 dark:hover:border-amber-500"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="p-6 border-t border-gray-200 dark:border-zinc-700 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md">
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={() => setShowModal(false)}
-              className="flex-1 px-6 py-4 rounded-xl border border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition font-medium"
+        <AnimatePresence>
+          {showModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex flex-col justify-end"
             >
-              Cancel
-            </button>
-            <button
-              onClick={handleAIGenerate}
-              disabled={loading || !aiPrompt.trim()}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 via-green-500 to-emerald-600 text-white font-semibold shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Send className="w-5 h-5" /> Generate with AI
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+              {/* Background overlay */}
+              <div
+                onClick={() => setShowModal(false)}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              />
 
+              {/* Drawer */}
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 100, damping: 22 }}
+                className="relative w-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border-t border-gray-200/50 dark:border-zinc-700/50 shadow-2xl rounded-t-3xl flex flex-col"
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200/60 dark:border-zinc-700/60">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500 to-green-500 shadow-md">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                        AI Note Assistant
+                      </h2>
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                        Generate ideas, summaries, or outlines instantly.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                  >
+                    <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                  </button>
+                </div>
+
+                {/* Prompt Input */}
+                <div className="p-6 flex-1 max-h-80 overflow-y-auto">
+                  <textarea
+                    rows={4}
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="Ask AI to write meeting notes, summaries, ideas..."
+                    className="w-full p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 bg-white/70 dark:bg-zinc-800/70 outline-none resize-none text-sm sm:text-base focus:ring-2 focus:ring-amber-500 transition"
+                  />
+
+                  {/* Quick Prompts */}
+                  <div className="mt-6">
+                    <h3 className="text-sm text-gray-500 dark:text-gray-400 mb-2 font-medium">
+                      Quick Prompts
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {quickPrompts.map((prompt) => (
+                        <button
+                          key={prompt.key}
+                          onClick={() => setAiPrompt(prompt.value)}
+                          className="p-3 text-left text-sm rounded-xl bg-gray-100/70 dark:bg-zinc-800/70 hover:bg-amber-100/60 dark:hover:bg-amber-500/10 transition border border-transparent hover:border-amber-300 dark:hover:border-amber-500"
+                        >
+                          {prompt.key
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (c) => c.toUpperCase())}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="p-6 border-t border-gray-200 dark:border-zinc-700 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={() => setShowModal(false)}
+                      className="flex-1 px-6 py-4 rounded-xl border border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAIGenerate}
+                      disabled={loading || !aiPrompt.trim()}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-500 via-green-500 to-emerald-600 text-white font-semibold shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5" /> Generate with AI
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

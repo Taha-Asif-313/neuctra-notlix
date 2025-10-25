@@ -33,14 +33,14 @@ const LandingPageNav = () => {
           <Link to="/" className="flex items-center space-x-2">
             <img
               src={darkMode ? "/logo-dark.png" : "/logo-white.png"}
-              alt="Neuctra Notes"
+              alt="Neuctra Notlix"
               className="h-10 w-10 object-contain"
             />
             <div className="flex flex-col">
               <span className="text-[10px] leading-[10px] text-primary font-semibold">
                 Neuctra
               </span>
-              <span className="text-lg leading-[16px] font-bold">Notexa</span>
+              <span className="text-lg leading-[18px] font-bold">Notlix</span>
             </div>
           </Link>
 

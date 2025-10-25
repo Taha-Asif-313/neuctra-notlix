@@ -57,8 +57,6 @@ export async function createNote(userId, newNote) {
       userId,
       data: noteData,
     });
-
-    toast.success("Note saved successfully!");
     return savedNote;
   } catch (err) {
     console.error("❌ Error saving note:", err);
@@ -161,7 +159,6 @@ export async function createPackage(userId, packageData) {
     });
 
     console.log("✅ Package created:", res?.data);
-    toast.success("Package created successfully!");
     return res?.data || null;
   } catch (err) {
     console.error("❌ Package creation failed:", err);

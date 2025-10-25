@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const location = useLocation();
-  const { darkMode, toggleTheme } = useAppContext();
+  const { darkMode, toggleTheme, user } = useAppContext();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isActive = (path) => location.pathname === path;
   const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
@@ -51,11 +51,11 @@ const Navbar = () => {
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] text-primary leading-3">
+              <span className="text-[10px] text-primary leading-4">
                 Neuctra
               </span>
               <span className="text-lg dark:text-white text-black font-bold leading-3">
-                Notexa
+                Notlix
               </span>
             </div>
           </Link>
@@ -223,7 +223,7 @@ const Navbar = () => {
                         Neuctra
                       </span>
                       <span className="text-sm font-semibold text-primary">
-                        Notexa
+                        Notlix
                       </span>
                     </div>
                   </div>
@@ -299,21 +299,7 @@ const Navbar = () => {
                 </motion.button>
               </nav>
 
-              {/* Drawer Footer */}
-              <div className="p-6 border-t border-gray-200 dark:border-zinc-800">
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <ReactSignedIn>
-                    <ReactUserButton
-                      darkMode={darkMode}
-                      profileUrl="/notes/profile"
-                    />
-                  </ReactSignedIn>
-                </motion.div>
-              </div>
+             
             </motion.div>
           </>
         )}
