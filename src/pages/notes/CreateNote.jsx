@@ -242,12 +242,18 @@ const handleAIGenerate = async () => {
 
   return (
     <>
-      <Metadata
-        title="Create New Note – Neuctra Notes"
-        description="Write, format, and save new notes instantly with Neuctra’s AI-powered editor. Generate ideas, organize thoughts, and export your work in multiple formats."
-        keywords="create note, new note, AI writing, Neuctra Notes editor, note maker, save notes, AI note generator, export notes, productivity app"
-        image="https://yourdomain.com/assets/og-create-note.png" // 🔗 replace with your Open Graph preview image
-      />
+    {/* 🧠 Metadata for SEO & Social */}
+<Metadata
+  title="Create New Note – Neuctra Notlix | AI-Powered Note Editor"
+  description="Create and organize your ideas effortlessly with Neuctra Notlix — the AI-powered note editor for writing, formatting, and saving your thoughts in the cloud. Generate, refine, and export your notes instantly."
+  keywords="create note, new note, AI note editor, Neuctra Notlix, note creator, AI writing tool, smart notes, cloud workspace, export notes, productivity app"
+  image="https://yourdomain.com/assets/og-create-note.png"
+  ogTitle="Create New Note – Neuctra Notlix | Smart AI Note Editor"
+  ogDescription="Write, format, and save new notes with Neuctra Notlix — your AI-powered cloud editor for effortless creativity and organization."
+  twitterTitle="Create New Note – Neuctra Notlix"
+  twitterDescription="Start writing with Neuctra Notlix — the AI-powered note editor for seamless creation, organization, and productivity."
+/>
+
 
       <div className="min-h-screen w-full bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">
         {/* Header */}

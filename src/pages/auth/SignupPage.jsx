@@ -17,13 +17,18 @@ const SignupPage = () => {
 
   return (
     <>
-      {/* 🧠 Metadata for SEO & Social */}
-      <Metadata
-        title="Sign Up – Neuctra Notes"
-        description="Create your Neuctra Notes account to start writing, organizing, and collaborating with smart AI-powered notes. Join for free and sync your ideas anywhere."
-        keywords="Neuctra signup, create account, Neuctra Notes, register, AI note app, free note taking, collaborative notes"
-        image="https://yourdomain.com/assets/og-signup.png"
-      />
+ {/* 🧠 Metadata for SEO & Social */}
+<Metadata
+  title="Sign Up – Neuctra Notlix | Create Your AI-Powered Cloud Notes Account"
+  description="Join Neuctra Notlix today — the AI-powered cloud note platform for creating, organizing, and collaborating effortlessly. Sign up for free and sync your ideas anywhere, anytime."
+  keywords="Neuctra signup, Notlix register, create account, AI note app, cloud notes, collaborative notes, free note taking, Neuctra Notes, smart workspace"
+  image="https://yourdomain.com/assets/og-signup.png"
+  ogTitle="Sign Up for Neuctra Notlix | AI-Powered Cloud Notes"
+  ogDescription="Create your Neuctra Notlix account to start writing, collaborating, and organizing smarter with AI-driven cloud notes."
+  twitterTitle="Sign Up – Neuctra Notlix"
+  twitterDescription="Join Neuctra Notlix — the AI-powered cloud note app for creativity, collaboration, and productivity. Sign up free today."
+/>
+
 
       <div
         className={`w-full min-h-screen py-20 flex items-center justify-center transition-colors duration-300 ${

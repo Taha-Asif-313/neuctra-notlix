@@ -119,7 +119,7 @@ const SharedNotePreview = () => {
   }, [token]);
 
   // ⏳ Loading screen
-  if (loading) return <CustomLoader message="Loading Note Please Wait" />
+  if (loading) return <CustomLoader message="Loading Note Please Wait" />;
 
   // ⌛ Expired screen
   if (expired)
@@ -153,38 +153,42 @@ const SharedNotePreview = () => {
   // 📝 Main view
   return (
     <>
-      {/* 🧠 Auto-generated SEO Metadata */}
+      {/* 🧠 Auto-Generated SEO Metadata */}
       <Metadata
-        title={`${title || "Shared Note"} | Notexa`}
+        title={`${title || "Shared Note"} | Neuctra Notlix`}
         description={(() => {
-          // 🧹 Step 1: Remove HTML tags from content
+          // 🧹 Step 1: Remove HTML tags from note content
           const cleanText =
             content
-              ?.replace(/<[^>]*>/g, " ") // remove HTML tags
+              ?.replace(/<[^>]*>/g, " ") // strip HTML
               ?.replace(/\s+/g, " ") // collapse whitespace
               ?.trim() || "";
 
-          // 🪄 Step 2: Analyze and make human-readable summary
-          if (!cleanText) return "View this shared note securely on Notexa.";
+          // 🪄 Step 2: Build a natural-language summary
+          if (!cleanText)
+            return "View this shared note securely on Neuctra Notlix — your AI-powered cloud workspace for collaboration and creativity.";
 
-          // 🧠 Step 3: Smart summary logic
+          // 🧠 Step 3: Extract a concise, human-readable preview
           const sentences = cleanText.split(/[.!?]\s/);
-          let summary = "";
+          let summary =
+            sentences.length > 1
+              ? sentences.slice(0, 2).join(". ")
+              : cleanText.slice(0, 160);
 
-          if (sentences.length > 1) {
-            // take first 1–2 meaningful sentences
-            summary = sentences.slice(0, 2).join(". ");
-          } else {
-            summary = cleanText.slice(0, 160);
-          }
-
-          // 🧱 Step 4: Trim long content
+          // 🧱 Step 4: Trim overly long snippets
           if (summary.length > 160) summary = summary.slice(0, 157) + "...";
 
-          return summary || "A shared note available for viewing on Notexa.";
+          return (
+            summary ||
+            "A shared note available for secure viewing and collaboration on Neuctra Notlix."
+          );
         })()}
-        keywords="shared note, Notexa, collaboration, real-time notes, secure sharing"
-        image="/collab-preview.png"
+        keywords="shared note, Neuctra Notlix, AI collaboration, cloud notes, secure sharing, real-time editing, team notes, productivity app"
+        image="https://yourdomain.com/assets/og-shared-note.png"
+        ogTitle={`${title || "Shared Note"} | Neuctra Notlix`}
+        ogDescription="View and collaborate on this shared note using Neuctra Notlix — the AI-powered cloud platform for smart notes and teamwork."
+        twitterTitle={`${title || "Shared Note"} | Neuctra Notlix`}
+        twitterDescription="Open and view this shared note securely in Neuctra Notlix — collaborate, comment, and organize smarter with AI."
       />
 
       <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 pb-10">

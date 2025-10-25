@@ -15,13 +15,18 @@ const LoginPage = () => {
       height={"100%"}
       fallback={<Navigate to="/notes" replace />}
     >
-      {/* 🧠 Metadata for SEO & Social */}
-      <Metadata
-        title="Login – Neuctra Notes"
-        description="Access your Neuctra Notes account to continue creating, organizing, and collaborating with AI-powered smart notes — secure, fast, and simple."
-        keywords="Neuctra login, Neuctra Notes login, sign in, secure note app, AI notes, encrypted notes, collaborative notes"
-        image="https://yourdomain.com/assets/og-login.png"
-      />
+     {/* 🧠 Metadata for SEO & Social */}
+<Metadata
+  title="Login – Neuctra Notlix | Smart Cloud Notes with AI Collaboration"
+  description="Sign in to Neuctra Notlix — your AI-powered cloud workspace for effortless note creation, real-time collaboration, and secure organization in the cloud. Fast, reliable, and beautifully simple."
+  keywords="Neuctra login, Notlix login, AI notes app, cloud note platform, collaborative notes, secure workspace, Neuctra cloud, AI productivity tool, note creation app"
+  image="https://yourdomain.com/assets/og-login.png"
+  ogTitle="Login to Neuctra Notlix | AI-Powered Cloud Notes"
+  ogDescription="Access your Neuctra Notlix account to collaborate, create, and organize smarter with AI-driven cloud notes — built for speed and security."
+  twitterTitle="Login – Neuctra Notlix"
+  twitterDescription="Sign in to Neuctra Notlix, the next-gen AI note platform for collaboration and creativity in the cloud."
+/>
+
 
       <div
         className={`w-full h-screen flex items-center justify-center transition-colors duration-300 ${

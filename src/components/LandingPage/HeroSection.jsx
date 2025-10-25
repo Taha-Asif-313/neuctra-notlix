@@ -100,7 +100,7 @@ const HeroSection = () => {
         </Link>
         <Link
           to="/notes"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-gray-200 font-semibold hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-gray-200 font-semibold hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all"
         >
           <Brain className="w-5 h-5" />
           Try Demo

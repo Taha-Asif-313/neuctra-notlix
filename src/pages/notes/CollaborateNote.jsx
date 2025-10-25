@@ -110,12 +110,18 @@ const CollaborateNote = () => {
 
   return (
     <>
-      <Metadata
-        title="Collaborate on Note | Notexa"
-        description="Real-time collaboration on notes with your team."
-        keywords="collaboration, notes, realtime, editor"
-        image="/collab-preview.png"
-      />
+   {/* 🧠 Metadata for SEO & Social */}
+<Metadata
+  title="Collaborate on Notes – Neuctra Notlix | Real-Time AI Collaboration Workspace"
+  description="Collaborate in real time with your team using Neuctra Notlix — the AI-powered cloud workspace for smarter note sharing, editing, and brainstorming. Create together seamlessly from anywhere."
+  keywords="Neuctra collaboration, Notlix team notes, real-time editing, AI note app, collaborative workspace, cloud note editor, shared notes, productivity tool"
+  image="https://yourdomain.com/assets/og-collaborate.png"
+  ogTitle="Collaborate on Notes – Neuctra Notlix | AI-Powered Collaboration"
+  ogDescription="Experience real-time collaboration with Neuctra Notlix. Write, edit, and brainstorm together using AI-enhanced cloud notes."
+  twitterTitle="Collaborate on Notes – Neuctra Notlix"
+  twitterDescription="Collaborate instantly with your team using Neuctra Notlix — the AI-powered workspace for cloud-based note creation and editing."
+/>
+
       {expired ? (
         <div className="flex flex-col items-center justify-center min-h-screen text-center p-6">
           <Clock className="w-12 h-12 text-primary mb-4" />

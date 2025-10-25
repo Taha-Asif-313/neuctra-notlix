@@ -253,18 +253,34 @@ const EditNote = () => {
   // ✅ UI
   return (
     <>
-      <Metadata
-        title={
-          title ? `${title} — Edit Note | NoteCraft` : "Edit Note | NoteCraft"
-        }
-        description={
-          content
-            ? `Continue editing your note titled "${title}". Write, preview, and use AI tools to refine your content easily.`
-            : "Edit or create a new note with AI assistance, export tools, and a rich text editor."
-        }
-        keywords="Edit Note, AI Writer, Note Editor, NoteCraft, Rich Text Editor, Markdown, Productivity"
-        image="https://yourdomain.com/assets/og/edit-note-preview.png" // optional image
-      />
+   {/* 🧠 Metadata for SEO & Social */}
+<Metadata
+  title={
+    title
+      ? `${title} — Edit Note | Neuctra Notlix`
+      : "Edit Note | Neuctra Notlix"
+  }
+  description={
+    content
+      ? `Continue editing your note titled "${title}" with Neuctra Notlix — use AI tools to refine, organize, and perfect your content effortlessly in the cloud.`
+      : "Edit or create a new note in Neuctra Notlix with AI-powered writing, real-time collaboration, and advanced formatting tools."
+  }
+  keywords="Edit note, Neuctra Notlix editor, AI note writing, cloud note app, smart notes, markdown editor, productivity tool, collaborative editing"
+  image="https://yourdomain.com/assets/og/edit-note-preview.png"
+  ogTitle={title ? `${title} — Edit Note | Neuctra Notlix` : "Edit Note | Neuctra Notlix"}
+  ogDescription={
+    content
+      ? `Continue editing "${title}" with Neuctra Notlix’s AI-powered editor — refine and organize your notes seamlessly.`
+      : "Edit or create notes using Neuctra Notlix — the AI-powered cloud editor for smart, collaborative writing."
+  }
+  twitterTitle={title ? `${title} — Edit Note | Neuctra Notlix` : "Edit Note | Neuctra Notlix"}
+  twitterDescription={
+    content
+      ? `Keep improving your note "${title}" with AI and smart formatting in Neuctra Notlix.`
+      : "Create or edit notes in Neuctra Notlix — the AI-powered workspace for writing and collaboration."
+  }
+/>
+
       <div className="min-h-screen bg-white dark:bg-zinc-950 text-black dark:text-white transition-colors">
         {/* Header */}
         <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-black backdrop-blur-md">

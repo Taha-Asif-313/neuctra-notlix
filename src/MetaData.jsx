@@ -1,51 +1,74 @@
 import { useEffect } from "react";
 
 /**
- * 🧠 Custom Metadata component
- * Dynamically updates <title>, <meta> tags, and social preview tags
- * Works without Helmet.js
+ * 🧠 Custom Metadata Component (Enhanced)
+ * Dynamically injects SEO, OpenGraph, and Twitter meta tags.
+ * - Works without Helmet.js
+ * - Fully supports title overrides for OG & Twitter
+ * - Avoids duplicate tag creation
  */
-const Metadata = ({ title, description, keywords, image }) => {
+const Metadata = ({
+  title,
+  description,
+  keywords,
+  image,
+  ogTitle,
+  ogDescription,
+  twitterTitle,
+  twitterDescription,
+  twitterCard = "summary_large_image",
+}) => {
   useEffect(() => {
     if (title) document.title = title;
 
-    const updateMeta = (name, content) => {
+    const ensureMeta = (selector, key, attr, content) => {
       if (!content) return;
-      let tag =
-        document.querySelector(`meta[name="${name}"]`) ||
-        document.createElement("meta");
-      tag.setAttribute("name", name);
+      let tag = document.querySelector(selector);
+      if (!tag) {
+        tag = document.createElement("meta");
+        tag.setAttribute(attr, key);
+        document.head.appendChild(tag);
+      }
       tag.setAttribute("content", content);
-      document.head.appendChild(tag);
-    };
-
-    const updateProperty = (property, content) => {
-      if (!content) return;
-      let tag =
-        document.querySelector(`meta[property="${property}"]`) ||
-        document.createElement("meta");
-      tag.setAttribute("property", property);
-      tag.setAttribute("content", content);
-      document.head.appendChild(tag);
     };
 
     // 🧱 Standard Meta
-    updateMeta("description", description);
-    updateMeta("keywords", keywords);
+    ensureMeta('meta[name="description"]', "description", "name", description);
+    ensureMeta('meta[name="keywords"]', "keywords", "name", keywords);
 
     // 🧩 Open Graph (for social media)
-    updateProperty("og:title", title);
-    updateProperty("og:description", description);
-    updateProperty("og:image", image);
-    updateProperty("og:type", "website");
-    updateProperty("og:url", window.location.href);
+    ensureMeta('meta[property="og:title"]', "og:title", "property", ogTitle || title);
+    ensureMeta(
+      'meta[property="og:description"]',
+      "og:description",
+      "property",
+      ogDescription || description
+    );
+    ensureMeta('meta[property="og:image"]', "og:image", "property", image);
+    ensureMeta('meta[property="og:type"]', "og:type", "property", "website");
+    ensureMeta('meta[property="og:url"]', "og:url", "property", window.location.href);
 
     // 🐦 Twitter Card
-    updateMeta("twitter:card", "summary_large_image");
-    updateMeta("twitter:title", title);
-    updateMeta("twitter:description", description);
-    updateMeta("twitter:image", image);
-  }, [title, description, keywords, image]);
+    ensureMeta('meta[name="twitter:card"]', "twitter:card", "name", twitterCard);
+    ensureMeta('meta[name="twitter:title"]', "twitter:title", "name", twitterTitle || title);
+    ensureMeta(
+      'meta[name="twitter:description"]',
+      "twitter:description",
+      "name",
+      twitterDescription || description
+    );
+    ensureMeta('meta[name="twitter:image"]', "twitter:image", "name", image);
+  }, [
+    title,
+    description,
+    keywords,
+    image,
+    ogTitle,
+    ogDescription,
+    twitterTitle,
+    twitterDescription,
+    twitterCard,
+  ]);
 
   return null; // 🫥 nothing rendered visually
 };

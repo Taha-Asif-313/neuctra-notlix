@@ -126,10 +126,18 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Metadata
-        title="Profile – Manage Your Account | Neuctra Notes"
-        description="View and manage your Neuctra Notes profile, subscription plan, and account settings. Update your information and securely control your preferences anytime."
-      />
+    {/* 🧠 Metadata for SEO & Social */}
+<Metadata
+  title="Profile – Manage Your Account | Neuctra Notlix"
+  description="Manage your Neuctra Notlix profile and account settings with ease. Update your personal details, control preferences, and oversee your AI-powered note workspace — securely and seamlessly."
+  keywords="Neuctra profile, Notlix account, manage account, profile settings, subscription management, Neuctra Notes profile, AI notes, secure workspace, account preferences"
+  image="https://yourdomain.com/assets/og-profile.png"
+  ogTitle="Profile – Manage Your Account | Neuctra Notlix"
+  ogDescription="Access and manage your Neuctra Notlix profile, update preferences, and control your AI-powered cloud workspace securely anytime."
+  twitterTitle="Profile – Manage Your Account | Neuctra Notlix"
+  twitterDescription="View and manage your Neuctra Notlix profile and account settings — secure, smart, and cloud-powered."
+/>
+
 
       <div
         className={`min-h-screen p-4 w-full flex items-center justify-center transition-colors duration-500 ${
