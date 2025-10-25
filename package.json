@@ -19,6 +19,7 @@
     "html2pdf.js": "^0.12.1",
     "jspdf": "^3.0.3",
     "lucide-react": "^0.542.0",
+    "marked": "^16.4.1",
     "openai": "^5.19.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

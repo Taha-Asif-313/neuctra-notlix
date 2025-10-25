@@ -19,86 +19,113 @@ const ProfilePage = () => {
   console.log(user);
 
   useEffect(() => {
-    const fetchPackage = async () => {
-      try {
-        console.log("🔄 Starting package fetch...");
+  const fetchPackage = async () => {
+    try {
+      console.log("🔄 Starting package fetch...");
 
-        const userId = user?.id;
-        if (!userId) {
-          toast.error("User not found. Please log in again.");
-          navigate("/login");
-          return;
-        }
+      const userId = user?.id;
+      if (!userId) {
+        toast.error("User not found. Please log in again.");
+        navigate("/login");
+        return;
+      }
 
-        // ✅ Check user verification
-        const verified = user?.verified || user?.isVerified || false;
-        setIsVerified(verified);
+      // ✅ Check user verification
+      const verified = user?.verified || user?.isVerified || false;
+      setIsVerified(verified);
 
-        if (!verified) {
-          console.warn("⚠️ User not verified.");
-          setLoading(false);
-          return;
-        }
+      if (!verified) {
+        console.warn("⚠️ User not verified.");
+        setLoading(false);
+        return;
+      }
 
-        console.log("📦 Checking if user already has a package...");
-        const res = await getPackage(userId);
-        console.log("📦 getPackage() result:", res);
+      console.log("📦 Checking if user already has a package...");
+      const res = await getPackage(userId);
+      console.log("📦 getPackage() result:", res);
 
-        // 🧩 Create a variable to store package info
-        let pkg = res; // ✅ FIXED — declare pkg
+      let pkg = res;
 
-        // 🆕 Create Free plan if none found
-        if (!pkg) {
-          console.log("🆕 No package found — creating default Free plan...");
-          pkg = await createPackage(userId, {
-            name: "Free",
-            tier: "starter",
-            price: 0,
-            aiPromptsPerMonth: 5,
-            collaborativeLinks: true,
-            features: [
-              "Up to 100 notes",
-              "Basic AI prompts (5/month)",
-              "Collaborative note links",
-              "Sync across devices",
-            ],
-            usage: {
-              notesUsed: 0,
-              aiPromptsUsed: 0,
-            },
-            category: "package",
-            createdAt: new Date().toISOString(),
-          });
+      // 🆕 Create Free plan if none found
+      if (!pkg) {
+        console.log("🆕 No package found — creating default Free plan...");
+        pkg = await createPackage(userId, {
+          name: "Free",
+          tier: "starter",
+          price: 0,
+          aiPromptsPerDay: 5, // 🆕 daily prompts
+          collaborativeLinks: true,
+          features: [
+            "Up to 100 notes",
+            "Basic AI prompts (5/day)",
+            "Collaborative note links",
+            "Sync across devices",
+          ],
+          usage: {
+            notesUsed: 0,
+            aiPromptsUsed: 0,
+            lastReset: new Date().toISOString(), // 🕓 Track daily reset
+          },
+          category: "package",
+          createdAt: new Date().toISOString(),
+        });
 
-          if (pkg) toast.success("Default Free plan activated!");
-        } else {
-          console.log("📦 Package exists:", pkg);
-        }
+        if (pkg) toast.success("Default Free plan activated!");
+      } else {
+        console.log("📦 Package exists:", pkg);
+      }
 
-        // ✅ Format final package data
-        const packageData = {
-          id: pkg?.id,
-          name: pkg?.name || "Free",
-          price: pkg?.price || 0,
-          period: pkg?.period || pkg?.billingPeriod || "Forever",
-          aiPromptsPerMonth: pkg?.aiPromptsPerMonth || 5,
-          usage: pkg?.usage || { notesUsed: 0, aiPromptsUsed: 0 },
-          features: pkg?.features || [],
+      // 🕓 Daily reset logic
+      const now = new Date();
+      const lastReset = pkg?.usage?.lastReset ? new Date(pkg.usage.lastReset) : null;
+
+      const isNewDay =
+        !lastReset ||
+        now.getFullYear() !== lastReset.getFullYear() ||
+        now.getMonth() !== lastReset.getMonth() ||
+        now.getDate() !== lastReset.getDate();
+
+      if (isNewDay) {
+        console.log("🌅 New day detected — resetting daily usage...");
+
+        const updatedUsage = {
+          ...pkg.usage,
+          notesUsed: 0,
+          aiPromptsUsed: 0,
+          lastReset: now.toISOString(),
         };
 
-        console.log("✅ Final package data:", packageData);
-        setUserPackage(packageData);
-      } catch (err) {
-        console.error("❌ Package fetch error:", err);
-        toast.error("Failed to load package info.");
-        setUserPackage({ name: "Free", price: "0", period: "Forever" });
-      } finally {
-        setLoading(false);
-      }
-    };
+        await updatePackage(userId, { usage: updatedUsage });
+        pkg.usage = updatedUsage;
 
-    fetchPackage();
-  }, [navigate, user]);
+        toast.success("Daily AI prompt limit reset ☀️");
+      }
+
+      // ✅ Final formatted package
+      const packageData = {
+        id: pkg?.id,
+        name: pkg?.name || "Free",
+        price: pkg?.price || 0,
+        period: "Daily",
+        aiPromptsPerDay: pkg?.aiPromptsPerDay || 5,
+        usage: pkg?.usage || { notesUsed: 0, aiPromptsUsed: 0 },
+        features: pkg?.features || [],
+      };
+
+      console.log("✅ Final package data:", packageData);
+      setUserPackage(packageData);
+    } catch (err) {
+      console.error("❌ Package fetch error:", err);
+      toast.error("Failed to load package info.");
+      setUserPackage({ name: "Free", price: "0", period: "Daily" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchPackage();
+}, [navigate, user]);
+
 
   // 🎨 Animation variants
   const containerVariants = {

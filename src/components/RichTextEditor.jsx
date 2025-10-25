@@ -983,49 +983,6 @@ const RichTextEditor = forwardRef(
       editorRef.current?.focus();
     };
 
-    const optimizeAction = (act) => {
-      switch (act) {
-        case "cleanFormatting": {
-          const el = editorRef.current;
-          if (!el) return;
-          const plain = el.innerText;
-          el.innerHTML = `<p>${plain
-            .replace(/\n\n/g, "</p><p>")
-            .replace(/\n/g, "<br/>")}</p>`;
-          triggerChange();
-          break;
-        }
-        case "autofitTable": {
-          if (selectedTable) performTableAction("autofit");
-          break;
-        }
-        case "equalizeCells": {
-          if (selectedTable) performTableAction("equalize");
-          break;
-        }
-        case "resetColors": {
-          if (selectedTable) performTableAction("resetColors");
-          break;
-        }
-        default:
-          break;
-      }
-      setOpenDropdown(null);
-    };
-
-    const applyQuoteStyle = (styleIndex) => {
-      const range = getRange();
-      if (!range) return;
-      const block = document.createElement("blockquote");
-      block.className = `quote-style-${styleIndex}`;
-      const contents = range.extractContents();
-      const p = document.createElement("p");
-      p.appendChild(contents);
-      block.appendChild(p);
-      range.insertNode(block);
-      triggerChange();
-    };
-
     const handlePaste = (e) => {
       e.preventDefault();
       const text = (e.clipboardData || window.clipboardData).getData(
@@ -1057,18 +1014,6 @@ const RichTextEditor = forwardRef(
       }
     };
 
-    const exportHTML = (title = "note") => {
-      const noteHTML = `<!doctype html><html><head><meta charset="utf-8" /><title>${title}</title><meta name="viewport" content="width=device-width,initial-scale=1" /><style>body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#111827;} .note-title{font-size:1.6rem;font-weight:700;margin-bottom:8px;color:${PRIMARY};} .note-content{line-height:1.6;} table{border-collapse:collapse;width:100%;} table td,table th{border:1px solid #e5e7eb;padding:8px;} blockquote{border-left:4px solid ${PRIMARY};padding:8px 16px;background:#f7fff2;}</style></head><body><div class="note-title">${title}</div><div class="note-meta">Exported: ${new Date().toLocaleString()}</div><div class="note-content">${
-        editorRef.current?.innerHTML || ""
-      }</div></body></html>`;
-      const blob = new Blob([noteHTML], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${title.replace(/\W+/g, "_")}.html`;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
 
     const exportTXT = (title = "note") => {
       const txt = editorRef.current?.innerText || "";
@@ -1126,7 +1071,7 @@ const RichTextEditor = forwardRef(
             </div>
             <div>
               <div className="text-sm font-semibold text-black dark:text-white">
-                Notexa Text Editor
+                Notlix Text Editor
               </div>
               <div className="text-xs">
                 Updated{" "}
