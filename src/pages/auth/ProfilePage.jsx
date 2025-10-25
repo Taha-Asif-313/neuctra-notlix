@@ -16,6 +16,7 @@ const ProfilePage = () => {
   const [userPackage, setUserPackage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
+  console.log(user);
 
   useEffect(() => {
     const fetchPackage = async () => {
@@ -137,7 +138,6 @@ const ProfilePage = () => {
             : "bg-gradient-to-br from-gray-50 to-blue-50 text-gray-900"
         }`}
       >
-      
         <motion.div
           initial="hidden"
           animate="visible"
@@ -151,14 +151,13 @@ const ProfilePage = () => {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className={`w-full text-sm flex gap-2 justify-center items-center text-center py-3 px-4 rounded-lg border shadow-sm ${
+                className={`w-full text-xs flex gap-2 justify-center items-center text-center py-3 px-4 rounded-lg border shadow-sm ${
                   darkMode
                     ? "bg-red-500/5 border-red-500 text-red-500"
                     : "bg-red-50 border-red-300 text-red-700"
                 }`}
               >
-                <AlertTriangle size={20} /> Please verify your account to access
-                your plan and features.
+                <AlertTriangle size={20} /> Please verify your account
               </motion.div>
             )}
           </AnimatePresence>
@@ -249,8 +248,11 @@ const ProfilePage = () => {
           {/* Profile Section */}
           <motion.div variants={itemVariants} className="w-full">
             <ReactUserProfile
-              primaryColor="var(--primary)"
+              primaryColor="#00d616"
               homeUrl={"/notes"}
+              onVerify={() => {
+                window.location.reload();
+              }}
               onLogout={() => {
                 localStorage.clear();
                 navigate("/");
@@ -259,8 +261,8 @@ const ProfilePage = () => {
               darkMode={darkMode}
             />
           </motion.div>
-          
-    {/* Divider */}
+
+          {/* Divider */}
           <motion.div
             variants={itemVariants}
             className={`h-px w-full my-4 max-w-2xl ${
@@ -270,7 +272,7 @@ const ProfilePage = () => {
             }`}
           />
 
-            <PlanInfo pkg={userPackage} loading={loading} />
+          <PlanInfo pkg={userPackage} loading={loading} />
         </motion.div>
       </div>
     </>

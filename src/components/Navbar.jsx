@@ -164,7 +164,7 @@ const Navbar = () => {
             <ReactSignedIn>
               <ReactUserButton
                 darkMode={darkMode}
-                profileUrl="/profile"
+                profileUrl="/notes/profile"
                 onLogout={() => {
                   localStorage.removeItem("neuctra-dark-mode");
                   localStorage.removeItem("neuctra-notes");
@@ -309,7 +309,7 @@ const Navbar = () => {
                   <ReactSignedIn>
                     <ReactUserButton
                       darkMode={darkMode}
-                      profileUrl="/profile"
+                      profileUrl="/notes/profile"
                     />
                   </ReactSignedIn>
                 </motion.div>
