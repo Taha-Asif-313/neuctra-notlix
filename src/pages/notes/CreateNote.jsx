@@ -21,7 +21,11 @@ import AIModal from "../../components/AiModal";
 import CustomLoader from "../../components/CustomLoader";
 import Metadata from "../../MetaData";
 
-import { createNote, getPackage, updatePackageUsage } from "../../authix/authixinit";
+import {
+  createNote,
+  getPackage,
+  updatePackageUsage,
+} from "../../authix/authixinit";
 import { useAppContext } from "../../context/useAppContext";
 import { useNoteAiAgent } from "../../hooks/useNoteAiAgent";
 
@@ -49,10 +53,19 @@ const CreateNote = () => {
 
   // Quick Prompts
   const quickPrompts = [
-    { key: "meeting_notes", value: "Create a professional meeting notes template..." },
+    {
+      key: "meeting_notes",
+      value: "Create a professional meeting notes template...",
+    },
     { key: "study_summary", value: "Generate a study summary outline..." },
-    { key: "project_ideas", value: "Brainstorm a list of creative project ideas..." },
-    { key: "daily_reflection", value: "Create a daily reflection note layout..." },
+    {
+      key: "project_ideas",
+      value: "Brainstorm a list of creative project ideas...",
+    },
+    {
+      key: "daily_reflection",
+      value: "Create a daily reflection note layout...",
+    },
   ];
 
   // -----------------------------
@@ -107,7 +120,8 @@ const CreateNote = () => {
 
       const notesUsed = pkg?.usage?.notesUsed ?? 0;
       const notesLimit = parseInt(
-        pkg?.features?.find((f) => f.includes("Up to"))?.match(/\d+/)?.[0] || 100
+        pkg?.features?.find((f) => f.includes("Up to"))?.match(/\d+/)?.[0] ||
+          100
       );
 
       if (notesUsed >= notesLimit) {
@@ -132,57 +146,54 @@ const CreateNote = () => {
     }
   };
 
- // -----------------------------
-// 🤖 Generate with AI (Daily Limit)
-// -----------------------------
-const handleAIGenerate = async () => {
-  if (!aiPrompt.trim()) {
-    toast.error("Please enter a prompt first!");
-    return;
-  }
-
-  try {
-    setNoteLoading(true);
-
-    const pkg = await getPackage(user.id);
-    if (!pkg) {
-      toast.error("Failed to verify your package.");
+  // -----------------------------
+  // 🤖 Generate with AI (Daily Limit)
+  // -----------------------------
+  const handleAIGenerate = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error("Please enter a prompt first!");
       return;
     }
 
-    // 🧠 Use daily prompt limit instead of monthly
-    const used = pkg?.usage?.aiPromptsUsed ?? 0;
-    const limit = pkg?.aiPromptsPerDay ?? 5;
+    try {
+      const pkg = await getPackage(user.id);
+      if (!pkg) {
+        toast.error("Failed to verify your package.");
+        return;
+      }
 
-    if (used >= limit) {
-      toast.error(`AI prompt limit reached (${limit}/day).`);
-      return;
+      // 🧠 Use daily prompt limit instead of monthly
+      const used = pkg?.usage?.aiPromptsUsed ?? 0;
+      const limit = pkg?.aiPromptsPerDay ?? 5;
+
+      if (used >= limit) {
+        toast.error(`AI prompt limit reached (${limit}/day).`);
+        return;
+      }
+
+      // 🚀 Generate AI content
+      const aiResult = await generateNote(aiPrompt);
+      if (!aiResult) {
+        toast.error("AI did not return a valid response.");
+        return;
+      }
+
+      // 📊 Increment usage count
+      await updatePackageUsage(user.id, "ai", "increment");
+
+      // 📝 Update editor content
+      setContent(aiResult);
+      editorRef.current?.setEditorContent(aiResult);
+
+      toast.success("AI note generated successfully!");
+      setShowModal(false);
+    } catch (err) {
+      console.error("❌ AI Generation Error:", err);
+      toast.error("AI failed to generate note.");
+    } finally {
+      setNoteLoading(false);
     }
-
-    // 🚀 Generate AI content
-    const aiResult = await generateNote(aiPrompt);
-    if (!aiResult) {
-      toast.error("AI did not return a valid response.");
-      return;
-    }
-
-    // 📊 Increment usage count
-    await updatePackageUsage(user.id, "ai", "increment");
-
-    // 📝 Update editor content
-    setContent(aiResult);
-    editorRef.current?.setEditorContent(aiResult);
-
-    toast.success("AI note generated successfully!");
-    setShowModal(false);
-  } catch (err) {
-    console.error("❌ AI Generation Error:", err);
-    toast.error("AI failed to generate note.");
-  } finally {
-    setNoteLoading(false);
-  }
-};
-
+  };
 
   // -----------------------------
   // 📤 Export / Import Helpers
@@ -262,7 +273,8 @@ const handleAIGenerate = async () => {
   // -----------------------------
   // 🌀 Loading Screens
   // -----------------------------
-  if (noteLoading) return <CustomLoader message="Saving your note, please wait..." />;
+  if (noteLoading)
+    return <CustomLoader message="Saving your note, please wait..." />;
   if (aiLoading) return <CustomLoader message="Generating AI content..." />;
 
   // -----------------------------
@@ -292,7 +304,10 @@ const handleAIGenerate = async () => {
             <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
               <Clock size={13} />
               <span>
-                {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                {lastSaved.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </span>
             </div>
           </div>

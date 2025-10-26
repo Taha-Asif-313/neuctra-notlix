@@ -134,18 +134,29 @@ export async function createPackage(userId, packageData) {
   }
 }
 
-export async function updatePackage(userId, packageId, updatedData) {
+export async function updatePackage(userId, packageId, updatedData = {}) {
   try {
     await delay();
+
+    // Ensure valid object
+    const safeData = typeof updatedData === "object" && updatedData !== null ? updatedData : {};
+
     const dataToUpdate = {
-      ...updatedData,
-      category: updatedData.category || "package",
+      ...safeData,
+      category: safeData.category || "package",
       updatedAt: new Date().toISOString(),
     };
 
+    // ✅ If packageId is an object, extract the .id
+    const validDataId = typeof packageId === "object" ? packageId.id : packageId;
+
+    if (!validDataId) {
+      throw new Error("Invalid packageId provided to updatePackage()");
+    }
+
     const res = await authix.updateUserData({
       userId,
-      dataId: packageId,
+      dataId: validDataId,
       data: dataToUpdate,
     });
 
@@ -158,6 +169,8 @@ export async function updatePackage(userId, packageId, updatedData) {
     return null;
   }
 }
+
+
 
 export async function checkPackage(userId) {
   try {

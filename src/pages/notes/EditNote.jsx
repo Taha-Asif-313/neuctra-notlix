@@ -215,7 +215,7 @@ const handleAIGenerate = async () => {
   }
 
   try {
-    setNoteLoading(true);
+
 
     const pkg = await getPackage(user.id);
     if (!pkg) {

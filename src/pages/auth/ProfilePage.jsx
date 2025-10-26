@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ReactUserProfile } from "@neuctra/authix";
 import { useNavigate } from "react-router-dom";
-import { createPackage, getPackage, authix } from "../../authix/authixinit";
+import { createPackage, getPackage, authix, updatePackage } from "../../authix/authixinit";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "../../context/useAppContext";
@@ -95,7 +95,8 @@ const ProfilePage = () => {
           lastReset: now.toISOString(),
         };
 
-        await updatePackage(userId, { usage: updatedUsage });
+   await updatePackage(userId, pkg.id, { usage: updatedUsage });
+
         pkg.usage = updatedUsage;
 
         toast.success("Daily AI prompt limit reset ☀️");
