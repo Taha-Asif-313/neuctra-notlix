@@ -184,7 +184,6 @@ const SharedNotePreview = () => {
           );
         })()}
         keywords="shared note, Neuctra Notlix, AI collaboration, cloud notes, secure sharing, real-time editing, team notes, productivity app"
-        image="https://yourdomain.com/assets/og-shared-note.png"
         ogTitle={`${title || "Shared Note"} | Neuctra Notlix`}
         ogDescription="View and collaborate on this shared note using Neuctra Notlix — the AI-powered cloud platform for smart notes and teamwork."
         twitterTitle={`${title || "Shared Note"} | Neuctra Notlix`}

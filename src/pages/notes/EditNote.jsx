@@ -37,26 +37,106 @@ const EditNote = () => {
   const { generateNote, aiResponses, loading: aiLoading } = useNoteAiAgent();
 
   const quickPrompts = [
-    { key: "meeting_notes", value: "Create a professional meeting notes template with agenda, key points, decisions, and action items." },
-    { key: "study_summary", value: "Generate a study summary outline with main topics, key concepts, and short explanations." },
-    { key: "project_ideas", value: "Brainstorm a list of creative project ideas, including purpose, tools, and potential challenges." },
-    { key: "daily_reflection", value: "Create a daily reflection note layout including gratitude, highlights, and lessons learned." },
-    { key: "shopping_list", value: "Make a categorized shopping list with sections for groceries, cleaning, and essentials." },
-    { key: "recipe_notes", value: "Generate a recipe note format with ingredients, step-by-step instructions, and cooking tips." },
-    { key: "book_summary", value: "Write a book summary template with title, author, main idea, and favorite quotes." },
-    { key: "goal_tracker", value: "Design a goal tracking note with short-term, long-term goals, and progress milestones." },
-    { key: "workout_log", value: "Create a workout log with date, exercises, sets, reps, and performance notes." },
-    { key: "habit_tracker", value: "Generate a daily habit tracker layout for consistency and motivation." },
-    { key: "travel_plan", value: "Make a travel planning note including destinations, itinerary, budget, and must-see places." },
-    { key: "content_ideas", value: "Brainstorm social media or blog content ideas with topics, captions, and hashtags." },
-    { key: "project_plan", value: "Create a project planning note with objectives, timeline, deliverables, and status updates." },
-    { key: "learning_journal", value: "Generate a learning journal layout to capture what was learned, challenges, and takeaways." },
-    { key: "gratitude_journal", value: "Design a gratitude journal entry with sections for things you're thankful for and reflections." },
-    { key: "bug_report", value: "Make a structured bug report template with issue details, reproduction steps, and status." },
-    { key: "meeting_agenda", value: "Create a meeting agenda format with objectives, discussion points, and expected outcomes." },
-    { key: "idea_brainstorm", value: "Generate an idea brainstorming sheet for creative projects and innovation sessions." },
-    { key: "financial_tracker", value: "Design a financial tracker note with income, expenses, and savings breakdowns." },
-    { key: "study_plan", value: "Create a study plan layout with topics, deadlines, and completion progress." },
+    {
+      key: "meeting_notes",
+      value:
+        "Create a professional meeting notes template with agenda, key points, decisions, and action items.",
+    },
+    {
+      key: "study_summary",
+      value:
+        "Generate a study summary outline with main topics, key concepts, and short explanations.",
+    },
+    {
+      key: "project_ideas",
+      value:
+        "Brainstorm a list of creative project ideas, including purpose, tools, and potential challenges.",
+    },
+    {
+      key: "daily_reflection",
+      value:
+        "Create a daily reflection note layout including gratitude, highlights, and lessons learned.",
+    },
+    {
+      key: "shopping_list",
+      value:
+        "Make a categorized shopping list with sections for groceries, cleaning, and essentials.",
+    },
+    {
+      key: "recipe_notes",
+      value:
+        "Generate a recipe note format with ingredients, step-by-step instructions, and cooking tips.",
+    },
+    {
+      key: "book_summary",
+      value:
+        "Write a book summary template with title, author, main idea, and favorite quotes.",
+    },
+    {
+      key: "goal_tracker",
+      value:
+        "Design a goal tracking note with short-term, long-term goals, and progress milestones.",
+    },
+    {
+      key: "workout_log",
+      value:
+        "Create a workout log with date, exercises, sets, reps, and performance notes.",
+    },
+    {
+      key: "habit_tracker",
+      value:
+        "Generate a daily habit tracker layout for consistency and motivation.",
+    },
+    {
+      key: "travel_plan",
+      value:
+        "Make a travel planning note including destinations, itinerary, budget, and must-see places.",
+    },
+    {
+      key: "content_ideas",
+      value:
+        "Brainstorm social media or blog content ideas with topics, captions, and hashtags.",
+    },
+    {
+      key: "project_plan",
+      value:
+        "Create a project planning note with objectives, timeline, deliverables, and status updates.",
+    },
+    {
+      key: "learning_journal",
+      value:
+        "Generate a learning journal layout to capture what was learned, challenges, and takeaways.",
+    },
+    {
+      key: "gratitude_journal",
+      value:
+        "Design a gratitude journal entry with sections for things you're thankful for and reflections.",
+    },
+    {
+      key: "bug_report",
+      value:
+        "Make a structured bug report template with issue details, reproduction steps, and status.",
+    },
+    {
+      key: "meeting_agenda",
+      value:
+        "Create a meeting agenda format with objectives, discussion points, and expected outcomes.",
+    },
+    {
+      key: "idea_brainstorm",
+      value:
+        "Generate an idea brainstorming sheet for creative projects and innovation sessions.",
+    },
+    {
+      key: "financial_tracker",
+      value:
+        "Design a financial tracker note with income, expenses, and savings breakdowns.",
+    },
+    {
+      key: "study_plan",
+      value:
+        "Create a study plan layout with topics, deadlines, and completion progress.",
+    },
   ];
 
   const [title, setTitle] = useState("");
@@ -205,57 +285,54 @@ const EditNote = () => {
     }
   };
 
-// -----------------------------
-// 🤖 Generate with AI (Daily Limit)
-// -----------------------------
-const handleAIGenerate = async () => {
-  if (!aiPrompt.trim()) {
-    toast.error("Please enter a prompt first!");
-    return;
-  }
-
-  try {
-
-
-    const pkg = await getPackage(user.id);
-    if (!pkg) {
-      toast.error("Failed to verify your package.");
+  // -----------------------------
+  // 🤖 Generate with AI (Daily Limit)
+  // -----------------------------
+  const handleAIGenerate = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error("Please enter a prompt first!");
       return;
     }
 
-    // 🧠 Use daily prompt limit instead of monthly
-    const used = pkg?.usage?.aiPromptsUsed ?? 0;
-    const limit = pkg?.aiPromptsPerDay ?? 5;
+    try {
+      const pkg = await getPackage(user.id);
+      if (!pkg) {
+        toast.error("Failed to verify your package.");
+        return;
+      }
 
-    if (used >= limit) {
-      toast.error(`AI prompt limit reached (${limit}/day).`);
-      return;
+      // 🧠 Use daily prompt limit instead of monthly
+      const used = pkg?.usage?.aiPromptsUsed ?? 0;
+      const limit = pkg?.aiPromptsPerDay ?? 5;
+
+      if (used >= limit) {
+        toast.error(`AI prompt limit reached (${limit}/day).`);
+        return;
+      }
+
+      // 🚀 Generate AI content
+      const aiResult = await generateNote(aiPrompt);
+      if (!aiResult) {
+        toast.error("AI did not return a valid response.");
+        return;
+      }
+
+      // 📊 Increment usage count
+      await updatePackageUsage(user.id, "ai", "increment");
+
+      // 📝 Update editor content
+      setContent(aiResult);
+      editorRef.current?.setEditorContent(aiResult);
+
+      toast.success("AI note generated successfully!");
+      setShowModal(false);
+    } catch (err) {
+      console.error("❌ AI Generation Error:", err);
+      toast.error("AI failed to generate note.");
+    } finally {
+      setNoteLoading(false);
     }
-
-    // 🚀 Generate AI content
-    const aiResult = await generateNote(aiPrompt);
-    if (!aiResult) {
-      toast.error("AI did not return a valid response.");
-      return;
-    }
-
-    // 📊 Increment usage count
-    await updatePackageUsage(user.id, "ai", "increment");
-
-    // 📝 Update editor content
-    setContent(aiResult);
-    editorRef.current?.setEditorContent(aiResult);
-
-    toast.success("AI note generated successfully!");
-    setShowModal(false);
-  } catch (err) {
-    console.error("❌ AI Generation Error:", err);
-    toast.error("AI failed to generate note.");
-  } finally {
-    setNoteLoading(false);
-  }
-};
-
+  };
 
   if (loading) return <CustomLoader message="Saving Note..." />;
 

@@ -106,21 +106,20 @@ const CollaborateNote = () => {
     });
   };
 
-  if (loading) return <CustomLoader message="Loading Note Please Wait" />
+  if (loading) return <CustomLoader message="Loading Note Please Wait" />;
 
   return (
     <>
-   {/* 🧠 Metadata for SEO & Social */}
-<Metadata
-  title="Collaborate on Notes – Neuctra Notlix | Real-Time AI Collaboration Workspace"
-  description="Collaborate in real time with your team using Neuctra Notlix — the AI-powered cloud workspace for smarter note sharing, editing, and brainstorming. Create together seamlessly from anywhere."
-  keywords="Neuctra collaboration, Notlix team notes, real-time editing, AI note app, collaborative workspace, cloud note editor, shared notes, productivity tool"
-  image="https://yourdomain.com/assets/og-collaborate.png"
-  ogTitle="Collaborate on Notes – Neuctra Notlix | AI-Powered Collaboration"
-  ogDescription="Experience real-time collaboration with Neuctra Notlix. Write, edit, and brainstorm together using AI-enhanced cloud notes."
-  twitterTitle="Collaborate on Notes – Neuctra Notlix"
-  twitterDescription="Collaborate instantly with your team using Neuctra Notlix — the AI-powered workspace for cloud-based note creation and editing."
-/>
+      {/* 🧠 Metadata for SEO & Social */}
+      <Metadata
+        title="Collaborate on Notes – Neuctra Notlix | Real-Time AI Collaboration Workspace"
+        description="Collaborate in real time with your team using Neuctra Notlix — the AI-powered cloud workspace for smarter note sharing, editing, and brainstorming. Create together seamlessly from anywhere."
+        keywords="Neuctra collaboration, Notlix team notes, real-time editing, AI note app, collaborative workspace, cloud note editor, shared notes, productivity tool"
+        ogTitle="Collaborate on Notes – Neuctra Notlix | AI-Powered Collaboration"
+        ogDescription="Experience real-time collaboration with Neuctra Notlix. Write, edit, and brainstorm together using AI-enhanced cloud notes."
+        twitterTitle="Collaborate on Notes – Neuctra Notlix"
+        twitterDescription="Collaborate instantly with your team using Neuctra Notlix — the AI-powered workspace for cloud-based note creation and editing."
+      />
 
       {expired ? (
         <div className="flex flex-col items-center justify-center min-h-screen text-center p-6">

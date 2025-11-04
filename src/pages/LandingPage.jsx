@@ -16,7 +16,6 @@ const LandingPage = () => {
         title="Neuctra Notes – Smarter, Secure, and Collaborative Note-Taking"
         description="Neuctra Notes is an AI-powered note-taking app that helps you capture ideas, collaborate in real-time, and stay productive — all with end-to-end encryption and a modern minimal design."
         keywords="AI notes, collaborative notes, secure note taking, encrypted notes, productivity app, Neuctra, Neuctra Notes"
-        image="https://yourdomain.com/assets/og-preview.png" // 🔗 replace with your actual Open Graph image URL
       />
 
       <div
@@ -28,14 +27,12 @@ const LandingPage = () => {
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-200 dark:bg-primary rounded-full blur-3xl opacity-20 animate-pulse-slow delay-1000"></div>
         </div>
 
-
         <HeroSection />
         <FeaturesSection />
         <TestimonialsSection />
         <PricingSection />
         <FAQSection />
         <FinalCTA />
-    
       </div>
     </>
   );

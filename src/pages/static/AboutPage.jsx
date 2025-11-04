@@ -17,7 +17,6 @@ const AboutPage = () => {
         title="About Notexa | Smart Notes for Everyone"
         description="Learn about Notexa — a modern, AI-powered note app designed for productivity, creativity, and collaboration."
         keywords="about, Notexa, AI notes, productivity, collaboration, modern note app"
-        image="/og/about.png"
       />
 
       {/* 🌟 Hero Section */}
@@ -47,10 +46,9 @@ const AboutPage = () => {
         <Rocket className="w-10 h-10 mx-auto text-primary" />
         <h2 className="text-3xl font-semibold mb-2">Our Mission</h2>
         <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-          We believe note-taking should feel effortless and inspiring.
-          That’s why Notexa blends AI assistance with a beautifully simple
-          interface — so you can capture, organize, and expand your ideas
-          without friction.
+          We believe note-taking should feel effortless and inspiring. That’s
+          why Notexa blends AI assistance with a beautifully simple interface —
+          so you can capture, organize, and expand your ideas without friction.
         </p>
       </motion.div>
 
@@ -154,8 +152,16 @@ const AboutPage = () => {
         <h2 className="text-3xl font-semibold mb-8">Meet the Team</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-10">
           {[
-            { name: "Huzaifa Khan", role: "Founder & Developer", img: "/team/huzaifa.jpg" },
-            { name: "Aisha Malik", role: "Product Designer", img: "/team/aisha.jpg" },
+            {
+              name: "Huzaifa Khan",
+              role: "Founder & Developer",
+              img: "/team/huzaifa.jpg",
+            },
+            {
+              name: "Aisha Malik",
+              role: "Product Designer",
+              img: "/team/aisha.jpg",
+            },
             { name: "Omar Farooq", role: "AI Engineer", img: "/team/omar.jpg" },
           ].map((member, i) => (
             <div
@@ -185,7 +191,8 @@ const AboutPage = () => {
         transition={{ delay: 1.2 }}
         className="mt-24 text-center text-sm text-gray-500 dark:text-gray-500"
       >
-        © {new Date().getFullYear()} Notexa — Built with ❤️ to empower thinkers worldwide.
+        © {new Date().getFullYear()} Notexa — Built with ❤️ to empower thinkers
+        worldwide.
       </motion.div>
     </div>
   );

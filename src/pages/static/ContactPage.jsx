@@ -66,7 +66,6 @@ const ContactPage = () => {
         title="Contact Us | Notexa"
         description="Have questions or feedback? Contact the Notexa team — we'd love to hear from you."
         keywords="contact, support, Notexa, feedback, help center"
-        image="/og/contact.png"
       />
 
       <motion.div
@@ -183,9 +182,7 @@ const ContactPage = () => {
                             required
                             placeholder="John Doe"
                             className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-transparent focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 ${
-                              darkMode
-                                ? "border-zinc-700"
-                                : "border-gray-200"
+                              darkMode ? "border-zinc-700" : "border-gray-200"
                             }`}
                           />
                         </div>
@@ -206,9 +203,7 @@ const ContactPage = () => {
                             required
                             placeholder="john@example.com"
                             className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-transparent focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300 ${
-                              darkMode
-                                ? "border-zinc-700"
-                                : "border-gray-200"
+                              darkMode ? "border-zinc-700" : "border-gray-200"
                             }`}
                           />
                         </div>

@@ -39,7 +39,7 @@ const AllNotes = () => {
       } catch (error) {
         console.error("❌ Failed to fetch notes:", error);
         console.log(error);
-        
+
         setNotes([]);
       } finally {
         setLoading(false);
@@ -89,18 +89,16 @@ const AllNotes = () => {
 
   return (
     <>
-  {/* 🧠 Metadata for SEO & Social */}
-<Metadata
-  title="All Notes – Neuctra Notlix | Smart Cloud Note Manager"
-  description="Access and manage all your notes in one intelligent workspace. With Neuctra Notlix, you can search, edit, organize, and collaborate effortlessly — powered by AI and the cloud."
-  keywords="Neuctra all notes, Notlix dashboard, manage notes, AI note manager, note organization, cloud notes app, collaborative notes, productivity workspace, Neuctra Notes"
-  image="https://yourdomain.com/assets/og-all-notes.png"
-  ogTitle="All Notes – Neuctra Notlix | AI Cloud Note Manager"
-  ogDescription="Browse, search, and organize your notes in Neuctra Notlix — the AI-powered note manager for seamless productivity and collaboration."
-  twitterTitle="All Notes – Neuctra Notlix"
-  twitterDescription="View and manage all your Neuctra Notlix notes — smart, secure, and AI-driven for ultimate productivity."
-/>
-
+      {/* 🧠 Metadata for SEO & Social */}
+      <Metadata
+        title="All Notes – Neuctra Notlix | Smart Cloud Note Manager"
+        description="Access and manage all your notes in one intelligent workspace. With Neuctra Notlix, you can search, edit, organize, and collaborate effortlessly — powered by AI and the cloud."
+        keywords="Neuctra all notes, Notlix dashboard, manage notes, AI note manager, note organization, cloud notes app, collaborative notes, productivity workspace, Neuctra Notes"
+        ogTitle="All Notes – Neuctra Notlix | AI Cloud Note Manager"
+        ogDescription="Browse, search, and organize your notes in Neuctra Notlix — the AI-powered note manager for seamless productivity and collaboration."
+        twitterTitle="All Notes – Neuctra Notlix"
+        twitterDescription="View and manage all your Neuctra Notlix notes — smart, secure, and AI-driven for ultimate productivity."
+      />
 
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -124,7 +122,7 @@ const AllNotes = () => {
 
             {/* 🔹 Loading State */}
             {loading ? (
-              <CustomLoader message="Loading notes please wait"/>
+              <CustomLoader message="Loading notes please wait" />
             ) : filteredNotes.length === 0 ? (
               // 🔹 Empty State
               <div className="text-center py-16 bg-white dark:bg-zinc-950 rounded-2xl shadow-sm transition-all duration-300">

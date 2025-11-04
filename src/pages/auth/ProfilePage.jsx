@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { ReactUserProfile } from "@neuctra/authix";
 import { useNavigate } from "react-router-dom";
-import { createPackage, getPackage, authix, updatePackage } from "../../authix/authixinit";
+import {
+  createPackage,
+  getPackage,
+  authix,
+  updatePackage,
+} from "../../authix/authixinit";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "../../context/useAppContext";
@@ -19,114 +24,115 @@ const ProfilePage = () => {
   console.log(user);
 
   useEffect(() => {
-  const fetchPackage = async () => {
-    try {
-      console.log("🔄 Starting package fetch...");
+    const fetchPackage = async () => {
+      try {
+        console.log("🔄 Starting package fetch...");
 
-      const userId = user?.id;
-      if (!userId) {
-        toast.error("User not found. Please log in again.");
-        navigate("/login");
-        return;
-      }
+        const userId = user?.id;
+        if (!userId) {
+          toast.error("User not found. Please log in again.");
+          navigate("/login");
+          return;
+        }
 
-      // ✅ Check user verification
-      const verified = user?.verified || user?.isVerified || false;
-      setIsVerified(verified);
+        // ✅ Check user verification
+        const verified = user?.verified || user?.isVerified || false;
+        setIsVerified(verified);
 
-      if (!verified) {
-        console.warn("⚠️ User not verified.");
-        setLoading(false);
-        return;
-      }
+        if (!verified) {
+          console.warn("⚠️ User not verified.");
+          setLoading(false);
+          return;
+        }
 
-      console.log("📦 Checking if user already has a package...");
-      const res = await getPackage(userId);
-      console.log("📦 getPackage() result:", res);
+        console.log("📦 Checking if user already has a package...");
+        const res = await getPackage(userId);
+        console.log("📦 getPackage() result:", res);
 
-      let pkg = res;
+        let pkg = res;
 
-      // 🆕 Create Free plan if none found
-      if (!pkg) {
-        console.log("🆕 No package found — creating default Free plan...");
-        pkg = await createPackage(userId, {
-          name: "Free",
-          tier: "starter",
-          price: 0,
-          aiPromptsPerDay: 5, // 🆕 daily prompts
-          collaborativeLinks: true,
-          features: [
-            "Up to 100 notes",
-            "Basic AI prompts (5/day)",
-            "Collaborative note links",
-            "Sync across devices",
-          ],
-          usage: {
+        // 🆕 Create Free plan if none found
+        if (!pkg) {
+          console.log("🆕 No package found — creating default Free plan...");
+          pkg = await createPackage(userId, {
+            name: "Free",
+            tier: "starter",
+            price: 0,
+            aiPromptsPerDay: 5, // 🆕 daily prompts
+            collaborativeLinks: true,
+            features: [
+              "Up to 100 notes",
+              "Basic AI prompts (5/day)",
+              "Collaborative note links",
+              "Sync across devices",
+            ],
+            usage: {
+              notesUsed: 0,
+              aiPromptsUsed: 0,
+              lastReset: new Date().toISOString(), // 🕓 Track daily reset
+            },
+            category: "package",
+            createdAt: new Date().toISOString(),
+          });
+
+          if (pkg) toast.success("Default Free plan activated!");
+        } else {
+          console.log("📦 Package exists:", pkg);
+        }
+
+        // 🕓 Daily reset logic
+        const now = new Date();
+        const lastReset = pkg?.usage?.lastReset
+          ? new Date(pkg.usage.lastReset)
+          : null;
+
+        const isNewDay =
+          !lastReset ||
+          now.getFullYear() !== lastReset.getFullYear() ||
+          now.getMonth() !== lastReset.getMonth() ||
+          now.getDate() !== lastReset.getDate();
+
+        if (isNewDay) {
+          console.log("🌅 New day detected — resetting daily usage...");
+
+          const updatedUsage = {
+            ...pkg.usage,
             notesUsed: 0,
             aiPromptsUsed: 0,
-            lastReset: new Date().toISOString(), // 🕓 Track daily reset
-          },
-          category: "package",
-          createdAt: new Date().toISOString(),
-        });
+            lastReset: now.toISOString(),
+          };
 
-        if (pkg) toast.success("Default Free plan activated!");
-      } else {
-        console.log("📦 Package exists:", pkg);
-      }
+          await updatePackage(userId, pkg.id, { usage: updatedUsage });
 
-      // 🕓 Daily reset logic
-      const now = new Date();
-      const lastReset = pkg?.usage?.lastReset ? new Date(pkg.usage.lastReset) : null;
+          pkg.usage = updatedUsage;
 
-      const isNewDay =
-        !lastReset ||
-        now.getFullYear() !== lastReset.getFullYear() ||
-        now.getMonth() !== lastReset.getMonth() ||
-        now.getDate() !== lastReset.getDate();
+          toast.success("Daily AI prompt limit reset ☀️");
+        }
 
-      if (isNewDay) {
-        console.log("🌅 New day detected — resetting daily usage...");
-
-        const updatedUsage = {
-          ...pkg.usage,
-          notesUsed: 0,
-          aiPromptsUsed: 0,
-          lastReset: now.toISOString(),
+        // ✅ Final formatted package
+        const packageData = {
+          id: pkg?.id,
+          name: pkg?.name || "Free",
+          price: pkg?.price || 0,
+          period: "Daily",
+          aiPromptsPerDay: pkg?.aiPromptsPerDay || 5,
+          usage: pkg?.usage || { notesUsed: 0, aiPromptsUsed: 0 },
+          features: pkg?.features || [],
         };
 
-   await updatePackage(userId, pkg.id, { usage: updatedUsage });
-
-        pkg.usage = updatedUsage;
-
-        toast.success("Daily AI prompt limit reset ☀️");
+        console.log("✅ Final package data:", packageData);
+        setUserPackage(packageData);
+      } catch (err) {
+        console.error("❌ Package fetch error:", err);
+        toast.error("Failed to load package info.");
+        setUserPackage({ name: "Free", price: "0", period: "Daily" });
+      } finally {
+        setLoading(false);
       }
+    };
 
-      // ✅ Final formatted package
-      const packageData = {
-        id: pkg?.id,
-        name: pkg?.name || "Free",
-        price: pkg?.price || 0,
-        period: "Daily",
-        aiPromptsPerDay: pkg?.aiPromptsPerDay || 5,
-        usage: pkg?.usage || { notesUsed: 0, aiPromptsUsed: 0 },
-        features: pkg?.features || [],
-      };
-
-      console.log("✅ Final package data:", packageData);
-      setUserPackage(packageData);
-    } catch (err) {
-      console.error("❌ Package fetch error:", err);
-      toast.error("Failed to load package info.");
-      setUserPackage({ name: "Free", price: "0", period: "Daily" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchPackage();
-}, [navigate, user]);
-
+    fetchPackage();
+  }, [navigate, user]);
 
   // 🎨 Animation variants
   const containerVariants = {
@@ -154,18 +160,16 @@ const ProfilePage = () => {
 
   return (
     <>
-    {/* 🧠 Metadata for SEO & Social */}
-<Metadata
-  title="Profile – Manage Your Account | Neuctra Notlix"
-  description="Manage your Neuctra Notlix profile and account settings with ease. Update your personal details, control preferences, and oversee your AI-powered note workspace — securely and seamlessly."
-  keywords="Neuctra profile, Notlix account, manage account, profile settings, subscription management, Neuctra Notes profile, AI notes, secure workspace, account preferences"
-  image="https://yourdomain.com/assets/og-profile.png"
-  ogTitle="Profile – Manage Your Account | Neuctra Notlix"
-  ogDescription="Access and manage your Neuctra Notlix profile, update preferences, and control your AI-powered cloud workspace securely anytime."
-  twitterTitle="Profile – Manage Your Account | Neuctra Notlix"
-  twitterDescription="View and manage your Neuctra Notlix profile and account settings — secure, smart, and cloud-powered."
-/>
-
+      {/* 🧠 Metadata for SEO & Social */}
+      <Metadata
+        title="Profile – Manage Your Account | Neuctra Notlix"
+        description="Manage your Neuctra Notlix profile and account settings with ease. Update your personal details, control preferences, and oversee your AI-powered note workspace — securely and seamlessly."
+        keywords="Neuctra profile, Notlix account, manage account, profile settings, subscription management, Neuctra Notes profile, AI notes, secure workspace, account preferences"
+        ogTitle="Profile – Manage Your Account | Neuctra Notlix"
+        ogDescription="Access and manage your Neuctra Notlix profile, update preferences, and control your AI-powered cloud workspace securely anytime."
+        twitterTitle="Profile – Manage Your Account | Neuctra Notlix"
+        twitterDescription="View and manage your Neuctra Notlix profile and account settings — secure, smart, and cloud-powered."
+      />
 
       <div
         className={`min-h-screen p-4 w-full flex items-center justify-center transition-colors duration-500 ${
