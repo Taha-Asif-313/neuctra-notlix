@@ -4,8 +4,10 @@ import "./index.css";
 import App from "./App.jsx";
 import { AppProvider } from "./context/useAppContext.jsx";
 
-createRoot(document.getElementById("root")).render(
-  <AppProvider>
-    <App />
-  </AppProvider>
-);
+
+  createRoot(document.getElementById("root")).render(
+    <AppProvider>
+      <App />
+    </AppProvider>
+  )
+
