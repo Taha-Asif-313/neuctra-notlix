@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- 🧠 Primary Meta -->
-    <title>Neuctra Notlix – AI-Powered Cloud Note Creation & Collaboration</title>
+    <title>Neuctra Notlix — AI-Powered Cloud Note Creation & Collaboration</title>
     <meta
       name="description"
       content="Neuctra Notlix is an AI-powered cloud note creation platform that helps you write, organize, and collaborate in real time. Create smarter, work faster, and stay perfectly synced anywhere."
@@ -18,16 +18,17 @@
     <meta name="author" content="Neuctra" />
     <meta name="robots" content="index, follow" />
 
-    <!-- 🌐 Open Graph (Facebook / LinkedIn / Discord / etc.) -->
+    <!-- 🌐 Open Graph (Social Preview) -->
     <meta property="og:type" content="website" />
     <meta
       property="og:title"
-      content="Neuctra Notlix – AI-Powered Cloud Note Creation & Collaboration"
+      content="Neuctra Notlix — AI-Powered Cloud Note Creation & Collaboration"
     />
     <meta
       property="og:description"
       content="Collaborate, write, and organize smarter with Neuctra Notlix — your AI-driven cloud workspace for intelligent note creation and seamless teamwork."
     />
+    <!-- 👇 Fallback OG image if no dynamic OG generation -->
     <meta
       property="og:image"
       content="https://notlix.neuctra.com/logo-white.png"
@@ -39,7 +40,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta
       name="twitter:title"
-      content="Neuctra Notlix – AI-Powered Cloud Note Creation"
+      content="Neuctra Notlix — AI-Powered Cloud Note Creation"
     />
     <meta
       name="twitter:description"
@@ -51,10 +52,13 @@
     />
     <meta name="twitter:site" content="@Neuctra" />
 
+    <!-- 🔗 Canonical URL -->
+    <link rel="canonical" href="https://notlix.neuctra.com/" />
+
     <!-- 🧩 Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- 🧠 Font Optimization -->
+    <!-- 🧠 Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -65,9 +69,25 @@
     <!-- ⚡ Performance -->
     <link rel="preload" href="/src/main.jsx" as="script" />
 
-    <!-- 📱 Progressive Enhancement (Optional for PWA) -->
+    <!-- 📱 Progressive Enhancement -->
     <meta name="theme-color" content="#111827" />
-    <link rel="manifest" href="/manifest.json" />
+
+    <!-- 🧩 Optional Structured Data (for richer indexing) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Neuctra Notlix",
+        "url": "https://notlix.neuctra.com",
+        "applicationCategory": "Productivity",
+        "operatingSystem": "All",
+        "author": {
+          "@type": "Organization",
+          "name": "Neuctra"
+        },
+        "description": "AI-powered cloud note creation platform that helps you write, organize, and collaborate in real time."
+      }
+    </script>
   </head>
 
   <body>

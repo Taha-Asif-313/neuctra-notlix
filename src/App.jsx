@@ -35,6 +35,7 @@ import { useAppContext } from "./context/useAppContext";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react"; // fallback icon (if no logo)
 import ScrollToHashElement from "./components/ScrollToHashElement";
+import ScrollToTop from "./components/ScrollToTop";
 
 /* ----------------------------------------
    🌀 Session Loading Screen (Modern)
@@ -123,6 +124,7 @@ function App() {
   return (
     <>
       <Router>
+        <ScrollToTop/>
         <ScrollToHashElement/>
         <Routes>
           {/* 🌐 Public Pages */}

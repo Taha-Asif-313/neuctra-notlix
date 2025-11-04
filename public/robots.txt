@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
+
 Sitemap: https://notlix.neuctra.com/sitemap.xml

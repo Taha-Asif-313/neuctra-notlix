@@ -71,7 +71,7 @@ const FeaturesSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-4xl sm:text-5xl font-extrabold mb-6 tracking-tight bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent"
+          className="text-4xl sm:text-5xl font-extrabold mb-6"
         >
           Intelligent Tools for Modern Creators
         </motion.h2>
