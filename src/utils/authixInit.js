@@ -45,7 +45,7 @@ export async function createNote(userId, newNote) {
       createdAt: new Date().toISOString(),
     };
     
-    const savedNote = await authix.addUserData({ userId, data: noteData,dataCatogory:"note" });
+    const savedNote = await authix.addUserData({ userId, data: noteData, dataCategory:"note" });
     return savedNote;
   } catch (err) {
     console.error("❌ Error saving note:", err);
