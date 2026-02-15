@@ -1,10 +1,6 @@
-:root {
-  --text-dark: #0f172a;
-  --text-light: #f8fafc;
-}
 
-/* Main Editor */
-.editor {
+
+.rich-text-editor {
   min-height: 220px;
   line-height: 1.65;
   font-family: "Inter", system-ui, sans-serif;
@@ -13,35 +9,33 @@
   overflow-x: auto;
 }
 
-.editor:focus {
+.rich-text-editor:focus {
   outline: none;
 }
 
-/* ---------------- TABLE ROW SELECTION ---------------- */
-
-.editor table tr.selected-row {
+/* --- Table Row Selection --- */
+.rich-text-editor table tr.selected-row {
   background: rgba(0, 214, 22, 0.1) !important;
 }
 
-.editor table tr.selected-row td,
-.editor table tr.selected-row th {
+.rich-text-editor table tr.selected-row td,
+.rich-text-editor table tr.selected-row th {
   border-left: 2px solid var(--primary) !important;
   border-right: 2px solid var(--primary) !important;
 }
 
-.editor table tr.selected-row:first-child td,
-.editor table tr.selected-row:first-child th {
+.rich-text-editor table tr.selected-row:first-child td,
+.rich-text-editor table tr.selected-row:first-child th {
   border-top: 2px solid var(--primary) !important;
 }
 
-.editor table tr.selected-row:last-child td,
-.editor table tr.selected-row:last-child th {
+.rich-text-editor table tr.selected-row:last-child td,
+.rich-text-editor table tr.selected-row:last-child th {
   border-bottom: 2px solid var(--primary) !important;
 }
 
-/* ---------------- QUOTES ---------------- */
-
-.editor blockquote {
+/* --- Quotes --- */
+.rich-text-editor blockquote {
   margin: 14px 0;
   padding: 14px 18px;
   border-left: 5px solid var(--primary);
@@ -51,27 +45,39 @@
   font-style: italic;
 }
 
-.editor .quote-style-1 {
+.rich-text-editor .quote-style-1 {
   border-left-color: var(--primary);
-  background: linear-gradient(90deg, rgba(0,214,22,0.05), transparent);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 214, 22, 0.05),
+    rgba(255, 255, 255, 0)
+  );
   color: #063e2a;
 }
 
-.editor .quote-style-2 {
+.rich-text-editor .quote-style-2 {
   border-left-color: #2563eb;
-  background: linear-gradient(90deg, rgba(37,99,235,0.05), transparent);
+  background: linear-gradient(
+    90deg,
+    rgba(37, 99, 235, 0.05),
+    rgba(255, 255, 255, 0)
+  );
   color: #07336b;
 }
 
-.editor .quote-style-3 {
+.rich-text-editor .quote-style-3 {
   border-left-color: #7c3aed;
-  background: linear-gradient(90deg, rgba(124,58,237,0.05), transparent);
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.05),
+    rgba(255, 255, 255, 0)
+  );
   color: #3e0f66;
+  font-style: italic;
 }
 
-/* ---------------- TABLES ---------------- */
-
-.editor table {
+/* --- Tables --- */
+.rich-text-editor table {
   width: 100%;
   border-collapse: collapse;
   margin: 16px 0;
@@ -79,117 +85,124 @@
   overflow: hidden;
 }
 
-.editor table.modern-table th {
+.rich-text-editor table.modern-table th {
   background: #f8fafc;
   font-weight: 600;
 }
 
-.editor table.modern-table td,
-.editor table.modern-table th {
-  border: 1px solid rgba(0,0,0,0.06);
+.rich-text-editor table.modern-table td,
+.rich-text-editor table.modern-table th {
+  border: 1px solid rgba(0, 0, 0, 0.06);
   padding: 10px 12px;
   vertical-align: top;
 }
 
-.editor table.modern-table tr:nth-child(even) {
-  background: rgba(0,0,0,0.02);
+.rich-text-editor table.modern-table tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
 }
 
-.editor table.modern-table tr:hover {
-  background: rgba(0,214,22,0.04);
+.rich-text-editor table.modern-table tr:hover {
+  background: rgba(0, 214, 22, 0.04);
 }
 
-/* ---------------- LINKS ---------------- */
-
-.editor a {
+/* --- Links --- */
+.rich-text-editor a {
+  color: var(--primary);
   text-decoration: underline;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
 }
 
-.editor a:hover {
-  background: rgba(0,214,22,0.05);
+.rich-text-editor a:hover {
+  color: #059669;
+  background: rgba(0, 214, 22, 0.05);
 }
 
-/* ---------------- LISTS ---------------- */
-
-.editor ul,
-.editor ol {
+/* --- Lists --- */
+.rich-text-editor ul,
+.rich-text-editor ol {
   margin: 10px 0 10px 25px;
-  padding-left: 1.2em;
+  padding-left: 1.2em; /* ensure space for bullets/numbers */
 }
 
-.editor ul {
-  list-style-type: disc;
+.rich-text-editor ul {
+  list-style-type: disc; /* shows ● bullets */
+  list-style-position: outside;
 }
 
-.editor ol {
-  list-style-type: decimal;
+.rich-text-editor ol {
+  list-style-type: decimal; /* shows 1. 2. 3. */
+  list-style-position: outside;
 }
 
-.editor li {
+.rich-text-editor li {
   margin-bottom: 4px;
 }
 
-.editor ul.checklist {
+/* Optional — custom checkmark bullets for modern style */
+.rich-text-editor ul.checklist {
   list-style: none;
   padding-left: 0;
 }
 
-.editor ul.checklist li::before {
+.rich-text-editor ul.checklist li::before {
   content: "✔";
+  color: var(--primary);
   margin-right: 8px;
   font-weight: 600;
 }
 
-/* ---------------- HEADINGS ---------------- */
-
-.editor h1 {
+/* --- Headings --- */
+.rich-text-editor h1 {
   font-size: 1.8rem;
   font-weight: 700;
   margin: 1rem 0;
 }
 
-.editor h2 {
+.rich-text-editor h2 {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0.9rem 0;
 }
 
-.editor h3 {
+.rich-text-editor h3 {
   font-size: 1.3rem;
   font-weight: 500;
   margin: 0.8rem 0;
 }
 
-/* ---------------- RESPONSIVE ---------------- */
-
+/* --- Responsive Typography --- */
 @media (max-width: 640px) {
-  .editor {
+  .rich-text-editor {
     font-size: 14px;
     line-height: 1.6;
     padding: 8px;
   }
 
-  .editor h1 { font-size: 1.4rem; }
-  .editor h2 { font-size: 1.2rem; }
+  .rich-text-editor h1 {
+    font-size: 1.4rem;
+  }
+  .rich-text-editor h2 {
+    font-size: 1.2rem;
+  }
 }
 
-/* ---------------- DARK MODE ---------------- */
-
-:global(.dark) .editor {
+/* --- Dark Mode --- */
+.dark .rich-text-editor {
   color: var(--text-light);
 }
 
-:global(.dark) .editor table.modern-table th {
+.dark .rich-text-editor table.modern-table th {
   background: #1e293b;
 }
 
-:global(.dark) .editor table.modern-table td,
-:global(.dark) .editor table.modern-table th {
-  border-color: rgba(255,255,255,0.08);
+.dark .rich-text-editor table.modern-table td,
+.dark .rich-text-editor table.modern-table th {
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
-:global(.dark) .editor blockquote {
-  background: rgba(0,214,22,0.08);
+.dark .rich-text-editor blockquote {
+  background: rgba(0, 214, 22, 0.08);
   color: #bbf7d0;
 }

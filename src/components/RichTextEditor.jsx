@@ -26,10 +26,13 @@ import {
   RemoveFormatting,
   ImagePlus,
   Stars,
+  Edit2,
 } from "lucide-react";
 import "../RichTextEditor.module.css";
 import Dropdown from "./TextEditor/DropDown";
-import TableActionsPanel from "./TextEditor/TableActionsPannel";
+import EditableTable from "./TextEditor/EditableTable";
+import EditImage from "./TextEditor/EditImage";
+import TextEditorBlock from "./TextEditor/TextEditorBlock";
 
 // Reusable button component for bottom panel
 const AddBlockButton = ({ icon, label, onClick }) => (
@@ -193,15 +196,13 @@ const RichTextEditor = forwardRef(
 
     const [blocks, setBlocks] = useState([]);
 
+    console.log(blocks);
     const [tableOfContents, setTableOfContents] = useState([]);
 
-    const [selectedRows, setSelectedRows] = useState([]);
     // dropdown states (replace modals)
     const [openDropdown, setOpenDropdown] = useState(null); // 'color','highlight','link','table','size','opt'
     const [dropdownAnchor, setDropdownAnchor] = useState(null); // ref for positioning if needed
 
-    const [quoteStyle, setQuoteStyle] = useState(1);
-    const [selectedTable, setSelectedTable] = useState(null);
     const [selectedCell, setSelectedCell] = useState(null);
 
     const [activeColor, setActiveColor] = useState(PRIMARY);
@@ -210,15 +211,10 @@ const RichTextEditor = forwardRef(
     const undoRef = useRef([]); // array of html snapshots
     const redoRef = useRef([]);
     const suppressStackRef = useRef(false);
-    const saveTimerRef = useRef(null);
 
     // link inputs
     const [linkUrl, setLinkUrl] = useState("");
     const [linkText, setLinkText] = useState("");
-
-    // table inputs
-    const [tableRows, setTableRows] = useState(3);
-    const [tableCols, setTableCols] = useState(3);
 
     // color dropdown type context (text/background/cell)
     const [colorType, setColorType] = useState("text");
@@ -272,18 +268,6 @@ const RichTextEditor = forwardRef(
         document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // close dropdown on outside click
-    useEffect(() => {
-      const handler = (e) => {
-        if (!rootRef.current) return;
-        if (!rootRef.current.contains(e.target)) {
-          setOpenDropdown(null);
-        }
-      };
-      document.addEventListener("mousedown", handler);
-      return () => document.removeEventListener("mousedown", handler);
-    }, []);
-
     // 🧠 Keyboard Shortcuts for Undo / Redo
     useEffect(() => {
       const handleKeyDown = (e) => {
@@ -307,24 +291,6 @@ const RichTextEditor = forwardRef(
       return () => document.removeEventListener("keydown", handleKeyDown);
     }, []); // ✅ runs once
 
-    // Add this useEffect after your other useEffects
-    useEffect(() => {
-      if (selectedTable && selectedRows.length > 0) {
-        // Clear previous selections
-        selectedTable.querySelectorAll("tr").forEach((row) => {
-          row.classList.remove("selected-row");
-        });
-
-        // Apply selection to current rows
-        selectedRows.forEach((rowIndex) => {
-          const row = selectedTable.rows[rowIndex];
-          if (row) {
-            row.classList.add("selected-row");
-          }
-        });
-      }
-    }, [selectedRows, selectedTable]);
-
     // Add a new block at given index with type
     const addBlock = (index, type = "text") => {
       const newBlock = {
@@ -345,47 +311,7 @@ const RichTextEditor = forwardRef(
     // Update text block content
     const updateBlock = (id, content) => {
       setBlocks(blocks.map((b) => (b.id === id ? { ...b, content } : b)));
-    };
-
-    const handleRowSelect = (rowIndex, ctrlKey = false) => {
-      setSelectedRows((prev) => {
-        if (ctrlKey) {
-          // Multi-select with Ctrl/Cmd
-          return prev.includes(rowIndex)
-            ? prev.filter((i) => i !== rowIndex)
-            : [...prev, rowIndex];
-        } else {
-          // Single select
-          return [rowIndex];
-        }
-      });
-    };
-
-    const attachTableListeners = () => {
-      const el = editorRef.current;
-      if (!el) return;
-
-      el.querySelectorAll("table").forEach((t) => {
-        if (!t.__rich_attached) {
-          t.addEventListener("click", (ev) => {
-            ev.stopPropagation();
-            setSelectedTable(t);
-
-            const cell = ev.target.closest("td,th");
-            if (cell) {
-              setSelectedCell(cell);
-
-              // Get row index - FIXED: Use the actual table 't' not undefined variable
-              const row = cell.closest("tr");
-              const rowIndex = Array.from(t.rows).indexOf(row);
-
-              // Select row on click
-              handleRowSelect(rowIndex, ev.ctrlKey || ev.metaKey);
-            }
-          });
-          t.__rich_attached = true;
-        }
-      });
+      triggerChange();
     };
 
     const getRange = () => {
@@ -757,52 +683,6 @@ const RichTextEditor = forwardRef(
       }
     };
 
-    const applyRowStyle = (styleType, value) => {
-      if (!selectedTable || selectedRows.length === 0) return;
-
-      selectedRows.forEach((rowIndex) => {
-        const row = selectedTable.rows[rowIndex];
-        if (!row) return;
-
-        switch (styleType) {
-          case "backgroundColor":
-            Array.from(row.cells).forEach((cell) => {
-              cell.style.backgroundColor = value;
-            });
-            break;
-
-          case "textColor":
-            Array.from(row.cells).forEach((cell) => {
-              cell.style.color = value;
-            });
-            break;
-
-          case "fontWeight":
-            Array.from(row.cells).forEach((cell) => {
-              cell.style.fontWeight = value;
-            });
-            break;
-
-          case "textAlign":
-            Array.from(row.cells).forEach((cell) => {
-              cell.style.textAlign = value;
-            });
-            break;
-
-          case "border":
-            Array.from(row.cells).forEach((cell) => {
-              cell.style.border = value;
-            });
-            break;
-
-          default:
-            break;
-        }
-      });
-
-      triggerChange();
-    };
-
     const insertLink = (url, text) => {
       const range = getRange(); // same helper as insertTable
       if (!range) {
@@ -848,165 +728,6 @@ const RichTextEditor = forwardRef(
       setLinkText("");
     };
 
-    const insertTable = (rows = 3, cols = 3) => {
-      const range = getRange();
-      const table = document.createElement("table");
-      table.className = "editor-table modern-table";
-      table.style.width = "100%";
-      table.style.borderCollapse = "collapse";
-      table.style.margin = "12px 0";
-
-      for (let r = 0; r < rows; r++) {
-        const tr = document.createElement("tr");
-        for (let c = 0; c < cols; c++) {
-          const cell =
-            r === 0
-              ? document.createElement("th")
-              : document.createElement("td");
-          cell.innerHTML = "<br/>";
-          cell.style.border = "1px solid rgba(0,0,0,0.08)";
-          cell.style.padding = "10px";
-          tr.appendChild(cell);
-        }
-        table.appendChild(tr);
-      }
-
-      // Use the same event listener as in attachTableListeners
-      table.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        setSelectedTable(table);
-
-        const cell = ev.target.closest("td,th");
-        if (cell) {
-          setSelectedCell(cell);
-
-          // Get row index
-          const row = cell.closest("tr");
-          const rowIndex = Array.from(table.rows).indexOf(row);
-
-          // Select row on click
-          handleRowSelect(rowIndex, ev.ctrlKey || ev.metaKey);
-        }
-      });
-
-      if (range) {
-        range.deleteContents();
-        range.insertNode(table);
-      } else {
-        editorRef.current.appendChild(table);
-      }
-
-      triggerChange();
-      setOpenDropdown(null);
-    };
-
-    const performTableAction = (action) => {
-      if (!selectedTable) return;
-
-      switch (action) {
-        /** ➕ Add or Remove Rows/Columns */
-        case "addRow": {
-          const row = selectedTable.insertRow();
-          const cellCount = selectedTable.rows[0]?.cells.length || 1;
-          for (let i = 0; i < cellCount; i++)
-            row.insertCell().textContent = " ";
-          break;
-        }
-
-        case "addColumn": {
-          for (const row of selectedTable.rows)
-            row.insertCell().textContent = " ";
-          break;
-        }
-
-        case "deleteRow": {
-          selectedTable.deleteRow(selectedTable.rows.length - 1);
-          break;
-        }
-
-        case "deleteColumn": {
-          const colCount = selectedTable.rows[0]?.cells.length || 0;
-          if (colCount > 0) {
-            for (const row of selectedTable.rows) row.deleteCell(colCount - 1);
-          }
-          break;
-        }
-
-        /** 🧾 Equalize widths */
-        case "equalize": {
-          const colCount = selectedTable.rows[0]?.cells.length || 0;
-          if (colCount > 0) {
-            const width = `${100 / colCount}%`;
-            selectedTable.querySelectorAll("td, th").forEach((cell) => {
-              cell.style.width = width;
-            });
-          }
-          break;
-        }
-
-        /** 🧹 Delete table */
-        case "deleteTable": {
-          selectedTable.remove();
-          setSelectedTable(null);
-          break;
-        }
-
-        /** 🧭 Cell Alignment */
-        case "alignLeft":
-        case "justifyCenter":
-        case "justifyRight": {
-          const align =
-            action === "alignLeft"
-              ? "left"
-              : action === "justifyCenter"
-                ? "center"
-                : "right";
-
-          selectedTable.querySelectorAll("td, th").forEach((cell) => {
-            cell.style.textAlign = align;
-          });
-          break;
-        }
-
-        default:
-          break;
-      }
-
-      triggerChange?.();
-      editorRef.current?.focus();
-    };
-
-    const handlePaste = (e) => {
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData(
-        "text/plain",
-      );
-      const html = text.replace(/\n/g, "<br/>");
-      document.execCommand("insertHTML", false, html);
-      triggerChange();
-    };
-
-    const handleInput = () => {
-      triggerChange();
-    };
-
-    const handleEditorKeyDown = (e) => {
-      if (e.key === "Tab") {
-        const sel = window.getSelection();
-        if (!sel) return;
-        const li =
-          (sel.anchorNode &&
-            sel.anchorNode.closest &&
-            sel.anchorNode.closest("li")) ||
-          null;
-        if (li) {
-          e.preventDefault();
-          if (e.shiftKey) document.execCommand("outdent");
-          else document.execCommand("indent");
-        }
-      }
-    };
-
     /* ---------- JSX ---------- */
     return (
       <div
@@ -1015,18 +736,6 @@ const RichTextEditor = forwardRef(
       >
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-2 p-3 border-b border-gray-100 dark:border-zinc-700 bg-white dark:bg-black">
-          <ToolbarButton title="H1" onClick={() => exec("formatBlock", "h1")}>
-            H1
-          </ToolbarButton>
-
-          <ToolbarButton title="H2" onClick={() => exec("formatBlock", "h2")}>
-            H2
-          </ToolbarButton>
-
-          <ToolbarButton title="H3" onClick={() => exec("formatBlock", "h3")}>
-            H3
-          </ToolbarButton>
-
           <ToolbarButton title="Undo" onClick={handleUndo} compact>
             <RotateCcw size={16} />
           </ToolbarButton>
@@ -1252,76 +961,6 @@ const RichTextEditor = forwardRef(
             </Dropdown>
           </div>
 
-          {/* Table dropdown */}
-          <div className="relative">
-            <ToolbarButton
-              title="Insert table"
-              onClick={(e) => {
-                setOpenDropdown(openDropdown === "table" ? null : "table");
-                setDropdownAnchor(e.currentTarget);
-              }}
-              compact
-            >
-              <Table size={16} />
-            </ToolbarButton>
-
-            <Dropdown
-              open={openDropdown === "table"}
-              anchorRef={{ current: dropdownAnchor }}
-              onClose={() => setOpenDropdown(null)}
-              className="w-56 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-700 rounded-lg shadow-lg p-3"
-            >
-              <div className="text-xs text-gray-600 dark:text-gray-300 mb-2">
-                Insert table
-              </div>
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    Rows
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={tableRows}
-                    onChange={(e) =>
-                      setTableRows(Math.max(1, parseInt(e.target.value || "1")))
-                    }
-                    className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500 dark:text-gray-400">
-                    Columns
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={tableCols}
-                    onChange={(e) =>
-                      setTableCols(Math.max(1, parseInt(e.target.value || "1")))
-                    }
-                    className="w-full p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setOpenDropdown(null)}
-                  className="flex-1 p-2 text-sm rounded-md border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => insertTable(tableRows, tableCols)}
-                  className="flex-1 p-2 text-sm rounded-md bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Insert
-                </button>
-              </div>
-            </Dropdown>
-          </div>
-
           <div className="w-px h-6 bg-gray-200 dark:bg-zinc-700 mx-1" />
           {/* 🧩 Text Size Dropdown */}
           <div className="relative">
@@ -1440,14 +1079,6 @@ const RichTextEditor = forwardRef(
           >
             <RemoveFormatting size={16} />
           </ToolbarButton>
-
-          <ToolbarButton
-            title="Delete selected table"
-            onClick={() => performTableAction("deleteTable")}
-            compact
-          >
-            <Trash2 size={16} />
-          </ToolbarButton>
         </div>
 
         {tableOfContents.length > 0 && (
@@ -1477,44 +1108,170 @@ const RichTextEditor = forwardRef(
 
         {/* Editor Area */}
         <div className="p-6 bg-white dark:bg-black">
-          <div ref={editorRef} className=" mx-auto space-y-6">
+          <div ref={editorRef} className="mx-auto space-y-6">
             {blocks.map((block, index) => (
               <div key={block.id} className="relative group">
                 {/* Render block by type */}
                 {block.type === "text" && (
-                  <div
-                    contentEditable
-                    suppressContentEditableWarning
-                    data-block-id={block.id}
-                    dangerouslySetInnerHTML={{ __html: block.content }}
-                    onInput={(e) =>
-                      updateBlock(block.id, e.currentTarget.innerHTML)
-                    }
-                    className="min-h-[80px] p-4 rounded-lg border-2 border-dashed border-primary focus:outline-none transition-all duration-200"
+                  <TextEditorBlock
+                    value={block.content || ""}
+                    onChange={(html) => updateBlock(block.id, html)}
                   />
                 )}
 
                 {block.type === "image" && (
-                  <div className="min-h-[120px] border-2 border-dashed border-blue-400 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-zinc-800">
-                    <span className="text-gray-400">Image Placeholder</span>
+                  <div className="relative">
+                    {block.content?.isEditing ? (
+                      <EditImage
+                        initialUrl={block.content.url || ""}
+                        onDone={(newUrl) =>
+                          updateBlock(block.id, {
+                            content: { url: newUrl, isEditing: false },
+                          })
+                        }
+                        onCancel={() =>
+                          updateBlock(block.id, {
+                            content: { ...block.content, isEditing: false },
+                          })
+                        }
+                      />
+                    ) : (
+                      <div className="relative group">
+                        {block.content?.url ? (
+                          <>
+                            <img
+                              src={block.content.url}
+                              alt="User uploaded"
+                              className="w-full h-auto max-h-[300px] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700"
+                            />
+                            <div className="absolute top-2 right-2 flex gap-2">
+                              <button
+                                onClick={() =>
+                                  updateBlock(block.id, {
+                                    content: {
+                                      ...block.content,
+                                      isEditing: true,
+                                    },
+                                  })
+                                }
+                                className="p-1 text-sky-600 hover:text-sky-700 rounded-full bg-white dark:bg-zinc-900 shadow hover:shadow-md transition"
+                                title="Edit image"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => deleteBlock(block.id)}
+                                className="p-1 text-red-600 hover:text-red-700 rounded-full bg-white dark:bg-zinc-900 shadow hover:shadow-md transition"
+                                title="Delete image"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <div
+                            onClick={() =>
+                              updateBlock(block.id, {
+                                content: { url: "", isEditing: true },
+                              })
+                            }
+                            className="cursor-pointer min-h-[180px] border-2 border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg flex flex-col items-center justify-center gap-3 bg-zinc-50 dark:bg-zinc-800/50"
+                          >
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                              Click to add image
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {block.type === "table" && (
-                  <table className="w-full border-collapse border border-gray-300 dark:border-zinc-600">
-                    <thead>
-                      <tr>
-                        <th className="border p-2">Header 1</th>
-                        <th className="border p-2">Header 2</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="border p-2">Data 1</td>
-                        <td className="border p-2">Data 2</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <div className="relative">
+                    {block.content.isEditing ? (
+                      <EditableTable
+                        initialRows={block.content?.rows.length || 2}
+                        initialCols={block.content?.headers.length || 2}
+                        initialData={block.content}
+                        onDone={(data) => {
+                          // Save edited table
+                          updateBlock(block.id, { ...data, isEditing: false });
+                        }}
+                      />
+                    ) : block.content ? (
+                      <>
+                        {/* Render modern table */}
+                        <div className="relative overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm bg-white dark:bg-zinc-900">
+                          <table className="w-full text-sm text-left text-zinc-700 dark:text-zinc-200 border-collapse">
+                            <thead className="bg-zinc-100 dark:bg-zinc-800">
+                              <tr>
+                                {block.content.headers.map((h, i) => (
+                                  <th
+                                    key={i}
+                                    className="px-4 py-2 font-medium text-zinc-900 dark:text-zinc-100 border-b border-zinc-300 dark:border-zinc-600 text-left"
+                                  >
+                                    {h}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {block.content.rows.map((row, i) => (
+                                <tr
+                                  key={i}
+                                  className={`${
+                                    i % 2 === 0
+                                      ? "bg-white dark:bg-zinc-900"
+                                      : "bg-zinc-50 dark:bg-zinc-800/50"
+                                  } hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors`}
+                                >
+                                  {row.map((cell, j) => (
+                                    <td
+                                      key={j}
+                                      className="px-4 py-2 border-b border-zinc-200 dark:border-zinc-700"
+                                    >
+                                      {cell}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+
+                          {/* Edit/Delete buttons */}
+                          <div className="absolute top-2 right-2 flex gap-2">
+                            <button
+                              onClick={() =>
+                                updateBlock(block.id, {
+                                  ...block.content,
+                                  isEditing: true,
+                                })
+                              }
+                              className="p-1 text-sky-600 hover:text-sky-700 rounded-full bg-white dark:bg-zinc-900 shadow hover:shadow-md transition"
+                              title="Edit table"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button
+                              onClick={() => deleteBlock(block.id)}
+                              className="p-1 text-red-600 hover:text-red-700 rounded-full bg-white dark:bg-zinc-900 shadow hover:shadow-md transition"
+                              title="Delete table"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      // New table
+                      <EditableTable
+                        initialRows={2}
+                        initialCols={2}
+                        onDone={(data) => updateBlock(block.id, data)}
+                      />
+                    )}
+                  </div>
                 )}
 
                 {block.type === "ai" && (
@@ -1560,214 +1317,6 @@ const RichTextEditor = forwardRef(
             </div>
           </div>
         </div>
-
-        {/* 🧩 Table Actions Panel Component */}
-        <TableActionsPanel
-          selectedTable={selectedTable}
-          setSelectedTable={setSelectedTable}
-          selectedRows={selectedRows}
-          applyRowStyle={applyRowStyle}
-          performTableAction={performTableAction}
-        />
-
-        {/* 🌿 Styles: quotes, tables, links, and responsive behavior */}
-        <style>{`
-  :root {
-    --primary: ${PRIMARY};
-    --text-dark: #0f172a;
-    --text-light: #f8fafc;
-  }
-
-  .rich-text-editor {
-    min-height: 220px;
-    line-height: 1.65;
-    font-family: "Inter", system-ui, sans-serif;
-    color: var(--text-dark);
-    word-wrap: break-word;
-    overflow-x: auto;
-  }
-
-  .rich-text-editor:focus {
-    outline: none;
-  }
-
-  /* --- Table Row Selection --- */
-  .rich-text-editor table tr.selected-row {
-    background: rgba(0, 214, 22, 0.1) !important;
-  }
-
-  .rich-text-editor table tr.selected-row td,
-  .rich-text-editor table tr.selected-row th {
-    border-left: 2px solid var(--primary) !important;
-    border-right: 2px solid var(--primary) !important;
-  }
-
-  .rich-text-editor table tr.selected-row:first-child td,
-  .rich-text-editor table tr.selected-row:first-child th {
-    border-top: 2px solid var(--primary) !important;
-  }
-
-  .rich-text-editor table tr.selected-row:last-child td,
-  .rich-text-editor table tr.selected-row:last-child th {
-    border-bottom: 2px solid var(--primary) !important;
-  }
-
-  /* --- Quotes --- */
-  .rich-text-editor blockquote {
-    margin: 14px 0;
-    padding: 14px 18px;
-    border-left: 5px solid var(--primary);
-    border-radius: 8px;
-    background: rgba(0, 214, 22, 0.06);
-    color: #064e2a;
-    font-style: italic;
-  }
-
-  .rich-text-editor .quote-style-1 {
-    border-left-color: var(--primary);
-    background: linear-gradient(90deg, rgba(0, 214, 22, 0.05), rgba(255, 255, 255, 0));
-    color: #063e2a;
-  }
-
-  .rich-text-editor .quote-style-2 {
-    border-left-color: #2563eb;
-    background: linear-gradient(90deg, rgba(37, 99, 235, 0.05), rgba(255, 255, 255, 0));
-    color: #07336b;
-  }
-
-  .rich-text-editor .quote-style-3 {
-    border-left-color: #7c3aed;
-    background: linear-gradient(90deg, rgba(124, 58, 237, 0.05), rgba(255, 255, 255, 0));
-    color: #3e0f66;
-    font-style: italic;
-  }
-
-  /* --- Tables --- */
-  .rich-text-editor table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 16px 0;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .rich-text-editor table.modern-table th {
-    background: #f8fafc;
-    font-weight: 600;
-  }
-
-  .rich-text-editor table.modern-table td,
-  .rich-text-editor table.modern-table th {
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 10px 12px;
-    vertical-align: top;
-  }
-
-  .rich-text-editor table.modern-table tr:nth-child(even) {
-    background: rgba(0, 0, 0, 0.02);
-  }
-
-  .rich-text-editor table.modern-table tr:hover {
-    background: rgba(0, 214, 22, 0.04);
-  }
-
-  /* --- Links --- */
-  .rich-text-editor a {
-    color: var(--primary);
-    text-decoration: underline;
-    transition: color 0.2s ease, background 0.2s ease;
-  }
-
-  .rich-text-editor a:hover {
-    color: #059669;
-    background: rgba(0, 214, 22, 0.05);
-  }
-
-/* --- Lists --- */
-.rich-text-editor ul,
-.rich-text-editor ol {
-  margin: 10px 0 10px 25px;
-  padding-left: 1.2em; /* ensure space for bullets/numbers */
-}
-
-.rich-text-editor ul {
-  list-style-type: disc; /* shows ● bullets */
-  list-style-position: outside;
-}
-
-.rich-text-editor ol {
-  list-style-type: decimal; /* shows 1. 2. 3. */
-  list-style-position: outside;
-}
-
-.rich-text-editor li {
-  margin-bottom: 4px;
-}
-
-/* Optional — custom checkmark bullets for modern style */
-.rich-text-editor ul.checklist {
-  list-style: none;
-  padding-left: 0;
-}
-
-.rich-text-editor ul.checklist li::before {
-  content: "✔";
-  color: var(--primary);
-  margin-right: 8px;
-  font-weight: 600;
-}
-
-
-  /* --- Headings --- */
-  .rich-text-editor h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin: 1rem 0;
-  }
-
-  .rich-text-editor h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0.9rem 0;
-  }
-
-  .rich-text-editor h3 {
-    font-size: 1.3rem;
-    font-weight: 500;
-    margin: 0.8rem 0;
-  }
-
-  /* --- Responsive Typography --- */
-  @media (max-width: 640px) {
-    .rich-text-editor {
-      font-size: 14px;
-      line-height: 1.6;
-      padding: 8px;
-    }
-
-    .rich-text-editor h1 { font-size: 1.4rem; }
-    .rich-text-editor h2 { font-size: 1.2rem; }
-  }
-
-  /* --- Dark Mode --- */
-  .dark .rich-text-editor {
-    color: var(--text-light);
-  }
-
-  .dark .rich-text-editor table.modern-table th {
-    background: #1e293b;
-  }
-
-  .dark .rich-text-editor table.modern-table td,
-  .dark .rich-text-editor table.modern-table th {
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-
-  .dark .rich-text-editor blockquote {
-    background: rgba(0, 214, 22, 0.08);
-    color: #bbf7d0;
-  }
-`}</style>
       </div>
     );
   },
