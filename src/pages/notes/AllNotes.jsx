@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { Plus, Loader2 } from "lucide-react"; // ⚡ Add spinner icon
 import NoteCard from "../../components/NoteCard";
 import SearchBar from "../../components/SearchBar";
-import { useAppContext } from "../../context/useAppContext";
-import { deleteNote, getAllNotes } from "../../authix/authixinit";
+import { useAppContext } from "../../context/AppContext";
+import { deleteNote, getAllNotes } from "../../utils/authixInit";
 import Metadata from "../../MetaData";
 import CustomLoader from "../../components/CustomLoader";
 
@@ -103,20 +103,7 @@ const AllNotes = () => {
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="flex flex-col lg:flex-row gap-8">
           <main className="flex-1">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-white">
-                Your Notes
-              </h2>
-
-              <Link
-                to="/notes/create"
-                className="flex items-center text-sm px-4 py-2 bg-primary text-white font-medium rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-              >
-                <Plus size={20} className="mr-2" />
-                New Note
-              </Link>
-            </div>
+         
 
             <SearchBar value={searchTerm} onChange={setSearchTerm} />
 

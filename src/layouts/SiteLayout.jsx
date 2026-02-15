@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import LandingPageNav from "../components/LandingPage/LandingPageNav";
 import LandingPageFooter from "../components/LandingPage/LandingPageFooter";
-import { useAppContext } from "../context/useAppContext";
+import { useAppContext } from "../context/AppContext";
 
 const SiteLayout = () => {
   const { darkMode } = useAppContext();

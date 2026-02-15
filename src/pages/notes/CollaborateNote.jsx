@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
 import { decryptData } from "../../utils/cryptoUtils";
-import { getSingleNote, updateNote } from "../../authix/authixinit";
+import { getSingleNote, updateNote } from "../../utils/authixInit";
 import RichTextEditor from "../../components/RichTextEditor";
 import { Save, Loader2, Share2, Users, Clock } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";

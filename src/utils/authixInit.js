@@ -1,10 +1,10 @@
 import { NeuctraAuthix } from "@neuctra/authix";
-import { generateId } from "../utils/cryptoUtils";
+import { generateId } from "./cryptoUtils";
 import toast from "react-hot-toast";
 
 export const authix = new NeuctraAuthix({
   baseUrl: "https://server.authix.neuctra.com/api",
-  apiKey: "850a8c32c35f008d28295f065526825a656af0a784ea7b0910fc2a1f748adda3",
+  apiKey: "f712d0044d811fc224676e12645b68e81c43cee0f705a995edddcbbb3cef1f3e",
   appId: "ba73c20458ba4be9f11dab081550a960",
 });
 
@@ -44,8 +44,8 @@ export async function createNote(userId, newNote) {
       category: newNote.category || "note",
       createdAt: new Date().toISOString(),
     };
-
-    const savedNote = await authix.addUserData({ userId, data: noteData });
+    
+    const savedNote = await authix.addUserData({ userId, data: noteData,dataCatogory:"note" });
     return savedNote;
   } catch (err) {
     console.error("❌ Error saving note:", err);

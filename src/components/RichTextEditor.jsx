@@ -15,50 +15,36 @@ import {
   List,
   ListOrdered,
   Link as LinkIcon,
-  Quote,
   Table,
   Trash2,
   Palette,
   Highlighter,
-  Eraser,
-  X,
   Plus,
-  Minus,
-  Settings,
-  Upload,
-  FileText,
-  Download,
-  Droplets,
   RotateCcw,
   RotateCw,
-  WholeWord,
   Type,
-  ArrowLeftRight,
-  Columns3,
-  Table2,
-  LayoutGrid,
-  FileDown,
   RemoveFormatting,
+  ImagePlus,
+  Stars,
 } from "lucide-react";
-import jsPDF from "jspdf";
-import html2pdf from "html2pdf.js"; // Optional backup
-
-import html2canvas from "html2canvas";
-import Swal from "sweetalert2"; // for asking user input
-import { motion, AnimatePresence } from "framer-motion";
+import "../RichTextEditor.module.css";
 import Dropdown from "./TextEditor/DropDown";
 import TableActionsPanel from "./TextEditor/TableActionsPannel";
-import exportDocument from "./TextEditor/ExportDocument";
 
-/**
- * Fully custom RichTextEditor.jsx
- * - TailwindCSS styles
- * - Framer Motion dropdown animations
- * - Inline dropdowns (no modals)
- * - All features from your original component + Text Size dropdown
- *
- * Paste into: src/components/RichTextEditor.jsx
- */
+// Reusable button component for bottom panel
+const AddBlockButton = ({ icon, label, onClick }) => (
+  <div className="w-full max-w-6xl mx-auto flex items-center justify-center">
+    <div
+      onClick={onClick}
+      className="group w-full cursor-pointer border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-2xl h-36 flex flex-col items-center justify-center gap-2 transition-all duration-300 hover:border-primary hover:bg-primary/5"
+    >
+      <div className="w-12 h-12 rounded-full bg-white dark:bg-zinc-900 shadow-lg flex items-center justify-center transition-all duration-300 group-hover:bg-primary">
+        {icon}
+      </div>
+      <div className="text-center text-sm text-zinc-200">{label}</div>
+    </div>
+  </div>
+);
 
 const PRIMARY = "#00d616";
 
@@ -204,8 +190,11 @@ const RichTextEditor = forwardRef(
     const dropdownRef = useRef(null);
     const [html, setHtml] = useState(content || "<p><br/></p>");
     const [wordCount, setWordCount] = useState(0);
-    const [lastSaved, setLastSaved] = useState(new Date());
-    const [isTyping, setIsTyping] = useState(false);
+
+    const [blocks, setBlocks] = useState([]);
+
+    const [tableOfContents, setTableOfContents] = useState([]);
+
     const [selectedRows, setSelectedRows] = useState([]);
     // dropdown states (replace modals)
     const [openDropdown, setOpenDropdown] = useState(null); // 'color','highlight','link','table','size','opt'
@@ -247,6 +236,27 @@ const RichTextEditor = forwardRef(
     }));
 
     useEffect(() => {
+      const toc = [];
+
+      blocks.forEach((block, index) => {
+        const div = document.createElement("div");
+        div.innerHTML = block.html;
+
+        const heading = div.querySelector("h1, h2, h3");
+        if (heading) {
+          toc.push({
+            id: block.id,
+            text: heading.innerText,
+            level: heading.tagName.toLowerCase(),
+            index,
+          });
+        }
+      });
+
+      setTableOfContents(toc);
+    }, [blocks]);
+
+    useEffect(() => {
       const handleClickOutside = (e) => {
         if (
           rootRef.current &&
@@ -260,47 +270,6 @@ const RichTextEditor = forwardRef(
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    useEffect(() => {
-      if (editorRef.current) {
-        editorRef.current.innerHTML = content || "<p><br/></p>";
-        updateCounts(editorRef.current.innerText || "");
-        attachTableListeners();
-        undoRef.current = [editorRef.current.innerHTML];
-        redoRef.current = [];
-      }
-      editorRef.current.addEventListener("click", (e) => {
-        const link = e.target.closest("a");
-        if (link) {
-          setLinkUrl(link.href);
-          setLinkText(link.textContent);
-          setOpenDropdown("link");
-        }
-      });
-
-      const onKeyDown = (e) => {
-        const isMac = navigator.platform?.toLowerCase().includes("mac");
-        const mod = isMac ? e.metaKey : e.ctrlKey;
-
-        // Undo (Ctrl/Cmd + Z)
-        if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) {
-          e.preventDefault();
-          handleUndo();
-        }
-        // Redo (Ctrl/Cmd + Y) or Cmd/Ctrl+Shift+Z
-        if (
-          (mod && e.key.toLowerCase() === "y") ||
-          (mod && e.shiftKey && e.key.toLowerCase() === "z")
-        ) {
-          e.preventDefault();
-          handleRedo();
-        }
-      };
-
-      document.addEventListener("keydown", onKeyDown);
-      return () => document.removeEventListener("keydown", onKeyDown);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // close dropdown on outside click
@@ -355,6 +324,28 @@ const RichTextEditor = forwardRef(
         });
       }
     }, [selectedRows, selectedTable]);
+
+    // Add a new block at given index with type
+    const addBlock = (index, type = "text") => {
+      const newBlock = {
+        id: Date.now(),
+        type,
+        content: type === "text" ? "" : null, // text gets empty content, others optional
+      };
+      const updated = [...blocks];
+      updated.splice(index + 1, 0, newBlock);
+      setBlocks(updated);
+    };
+
+    // Delete block by id
+    const deleteBlock = (id) => {
+      setBlocks(blocks.filter((b) => b.id !== id));
+    };
+
+    // Update text block content
+    const updateBlock = (id, content) => {
+      setBlocks(blocks.map((b) => (b.id === id ? { ...b, content } : b)));
+    };
 
     const handleRowSelect = (rowIndex, ctrlKey = false) => {
       setSelectedRows((prev) => {
@@ -471,7 +462,7 @@ const RichTextEditor = forwardRef(
         const walker = document.createTreeWalker(
           frag,
           NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-          null
+          null,
         );
         let hasStyle = false;
 
@@ -480,7 +471,7 @@ const RichTextEditor = forwardRef(
         const tempWalker = document.createTreeWalker(
           tempFrag,
           NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
-          null
+          null,
         );
 
         while (tempWalker.nextNode()) {
@@ -549,6 +540,14 @@ const RichTextEditor = forwardRef(
       };
 
       switch (cmd) {
+        case "formatBlock": {
+          const blockEl = range.startContainer.closest("div[contenteditable]");
+          if (!blockEl) return;
+
+          blockEl.innerHTML = `<${value}>${blockEl.innerText}</${value}>`;
+          break;
+        }
+
         /** ✳️ Toggle Text Styles */
         case "bold":
           toggleInlineStyle("fontWeight", "bold");
@@ -597,8 +596,8 @@ const RichTextEditor = forwardRef(
             cmd === "justifyLeft"
               ? "left"
               : cmd === "justifyCenter"
-              ? "center"
-              : "right";
+                ? "center"
+                : "right";
           let blockEl = range.startContainer;
           while (
             blockEl &&
@@ -696,23 +695,17 @@ const RichTextEditor = forwardRef(
     };
 
     const triggerChange = () => {
-      if (!editorRef.current) return;
-      const newHtml = editorRef.current.innerHTML;
+      const newHtml = blocks.map((b) => b.html).join("");
       setHtml(newHtml);
       setContent?.(newHtml);
-      updateCounts(editorRef.current.innerText || "");
-      setIsTyping(true);
+
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = newHtml;
+      updateCounts(tempDiv.innerText || "");
 
       if (!suppressStackRef.current) {
         pushToUndo(newHtml);
-        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = setTimeout(() => {
-          setLastSaved(new Date());
-          setIsTyping(false);
-          saveTimerRef.current = null;
-        }, 700);
       }
-      setTimeout(attachTableListeners, 50);
     };
 
     const updateCounts = (text) => {
@@ -966,8 +959,8 @@ const RichTextEditor = forwardRef(
             action === "alignLeft"
               ? "left"
               : action === "justifyCenter"
-              ? "center"
-              : "right";
+                ? "center"
+                : "right";
 
           selectedTable.querySelectorAll("td, th").forEach((cell) => {
             cell.style.textAlign = align;
@@ -986,7 +979,7 @@ const RichTextEditor = forwardRef(
     const handlePaste = (e) => {
       e.preventDefault();
       const text = (e.clipboardData || window.clipboardData).getData(
-        "text/plain"
+        "text/plain",
       );
       const html = text.replace(/\n/g, "<br/>");
       document.execCommand("insertHTML", false, html);
@@ -1014,112 +1007,26 @@ const RichTextEditor = forwardRef(
       }
     };
 
-
-    const exportTXT = (title = "note") => {
-      const txt = editorRef.current?.innerText || "";
-      const blob = new Blob([`# ${title}\n\n${txt}`], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${title.replace(/\W+/g, "_")}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    const importFile = () => {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = ".html,.htm,.txt,.md";
-      input.onchange = (e) => {
-        const f = e.target.files?.[0];
-        if (!f) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          const text = ev.target.result;
-          const ext = (f.name.split(".").pop() || "").toLowerCase();
-          if (ext === "html" || ext === "htm") {
-            try {
-              const parser = new DOMParser();
-              const doc = parser.parseFromString(text, "text/html");
-              const body = doc.body.innerHTML;
-              editorRef.current.innerHTML = body || "<p><br/></p>";
-            } catch {
-              editorRef.current.innerHTML = text;
-            }
-          } else {
-            const html = text.replace(/\n/g, "<br/>");
-            editorRef.current.innerHTML = `<p>${html}</p>`;
-          }
-          triggerChange();
-        };
-        reader.readAsText(f);
-      };
-      input.click();
-    };
-
     /* ---------- JSX ---------- */
     return (
       <div
         ref={rootRef}
         className="w-full h-full bg-white dark:bg-black rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-100 dark:border-zinc-700">
-          <div className="flex items-center gap-3">
-            <div className="">
-              <img src="/logo-dark.png" alt="logo" width={30} height={30} />
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-black dark:text-white">
-                Notlix Text Editor
-              </div>
-              <div className="text-xs">
-                Updated{" "}
-                {lastSaved.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* 🧮 Word Count */}
-            <div className="hidden sm:flex items-center gap-2 px-2 py-1 rounded-md">
-              <WholeWord size={20} />
-              <span className="text-xs">{wordCount}</span>
-            </div>
-
-            {/* 📤 Import & Export Controls */}
-            <div className="flex items-center gap-2">
-              {/* 📥 Import */}
-              <ToolbarButton title="Import" onClick={importFile} compact>
-                <Upload size={16} />
-              </ToolbarButton>
-
-              {/* 🌐 Export HTML */}
-              <ToolbarButton
-                title="Export HTML"
-                onClick={() => exportDocument("html", "exported", editorRef)}
-                compact
-              >
-                <Download size={16} />
-              </ToolbarButton>
-
-              {/* 📄 Export TXT */}
-              <ToolbarButton
-                title="Export TXT"
-                onClick={() => exportTXT("exported")}
-                compact
-              >
-                <FileText size={16} />
-              </ToolbarButton>
-            </div>
-          </div>
-        </div>
-
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-2 p-3 border-b border-gray-100 dark:border-zinc-700 bg-white dark:bg-black">
+          <ToolbarButton title="H1" onClick={() => exec("formatBlock", "h1")}>
+            H1
+          </ToolbarButton>
+
+          <ToolbarButton title="H2" onClick={() => exec("formatBlock", "h2")}>
+            H2
+          </ToolbarButton>
+
+          <ToolbarButton title="H3" onClick={() => exec("formatBlock", "h3")}>
+            H3
+          </ToolbarButton>
+
           <ToolbarButton title="Undo" onClick={handleUndo} compact>
             <RotateCcw size={16} />
           </ToolbarButton>
@@ -1543,21 +1450,115 @@ const RichTextEditor = forwardRef(
           </ToolbarButton>
         </div>
 
+        {tableOfContents.length > 0 && (
+          <div className="p-4 border-b bg-gray-50 dark:bg-zinc-900">
+            <div className="font-semibold mb-2">Table of Contents</div>
+
+            {tableOfContents.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => {
+                  const element = document.querySelector(
+                    `[data-block-id="${item.id}"]`,
+                  );
+                  element?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className={`
+          cursor-pointer text-sm hover:text-green-600
+          ${item.level === "h2" ? "ml-4" : ""}
+          ${item.level === "h3" ? "ml-8" : ""}
+        `}
+              >
+                {item.text}
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Editor Area */}
-        <div className="p-4 min-h-[280px] bg-white dark:bg-black">
-          <div
-            ref={editorRef}
-            contentEditable
-            suppressContentEditableWarning
-            onInput={handleInput}
-            onPaste={handlePaste}
-            onKeyDown={handleEditorKeyDown}
-            className="rich-text-editor min-h-[220px] p-2 text-sm leading-6 text-gray-900 dark:text-gray-100"
-            style={{
-              fontFamily:
-                'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial',
-            }}
-          />
+        <div className="p-6 bg-white dark:bg-black">
+          <div ref={editorRef} className=" mx-auto space-y-6">
+            {blocks.map((block, index) => (
+              <div key={block.id} className="relative group">
+                {/* Render block by type */}
+                {block.type === "text" && (
+                  <div
+                    contentEditable
+                    suppressContentEditableWarning
+                    data-block-id={block.id}
+                    dangerouslySetInnerHTML={{ __html: block.content }}
+                    onInput={(e) =>
+                      updateBlock(block.id, e.currentTarget.innerHTML)
+                    }
+                    className="min-h-[80px] p-4 rounded-lg border-2 border-dashed border-primary focus:outline-none transition-all duration-200"
+                  />
+                )}
+
+                {block.type === "image" && (
+                  <div className="min-h-[120px] border-2 border-dashed border-blue-400 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-zinc-800">
+                    <span className="text-gray-400">Image Placeholder</span>
+                  </div>
+                )}
+
+                {block.type === "table" && (
+                  <table className="w-full border-collapse border border-gray-300 dark:border-zinc-600">
+                    <thead>
+                      <tr>
+                        <th className="border p-2">Header 1</th>
+                        <th className="border p-2">Header 2</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border p-2">Data 1</td>
+                        <td className="border p-2">Data 2</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                )}
+
+                {block.type === "ai" && (
+                  <div className="min-h-[80px] p-4 rounded-lg border-2 border-dashed border-purple-500 flex items-center justify-center text-gray-500">
+                    AI Generated Content
+                  </div>
+                )}
+
+                {/* Delete button */}
+                <button
+                  onClick={() => deleteBlock(block.id)}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+
+            {/* ================================= */}
+            {/* Large Dashed Add Section (BOTTOM) */}
+            {/* ================================= */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mt-4">
+              <AddBlockButton
+                icon={<Plus size={20} />}
+                label="Add Text"
+                onClick={() => addBlock(blocks.length - 1, "text")}
+              />
+              <AddBlockButton
+                icon={<ImagePlus size={20} />}
+                label="Add Image"
+                onClick={() => addBlock(blocks.length - 1, "image")}
+              />
+              <AddBlockButton
+                icon={<Table size={20} />}
+                label="Add Table"
+                onClick={() => addBlock(blocks.length - 1, "table")}
+              />
+              <AddBlockButton
+                icon={<Stars size={20} />}
+                label="Add AI Content"
+                onClick={() => addBlock(blocks.length - 1, "ai")}
+              />
+            </div>
+          </div>
         </div>
 
         {/* 🧩 Table Actions Panel Component */}
@@ -1769,7 +1770,7 @@ const RichTextEditor = forwardRef(
 `}</style>
       </div>
     );
-  }
+  },
 );
 
 export default RichTextEditor;

@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { decryptData } from "../../utils/cryptoUtils";
-import { getSingleNote } from "../../authix/authixinit";
+import { getSingleNote } from "../../utils/authixInit";
 import {
   Share2,
   Users,

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useAppContext } from "../context/useAppContext";
+import { useAppContext } from "../context/AppContext";
 
 const Footer = () => {
   return (

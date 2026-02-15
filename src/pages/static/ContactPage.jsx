@@ -9,7 +9,7 @@ import {
   Twitter,
   ExternalLink,
 } from "lucide-react";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../../context/AppContext";
 import Metadata from "../../MetaData";
 
 const ContactPage = () => {

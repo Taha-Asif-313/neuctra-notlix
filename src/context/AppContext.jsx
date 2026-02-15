@@ -1,5 +1,8 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getAllNotes } from "../authix/authixinit";
+import { authix } from "../utils/authixInit"; // ✅ import authix properly
+import CustomLoader from "../components/CustomLoader";
 
 /* ----------------------------------------
    🧠 Custom Hook: Local Storage Sync
@@ -34,13 +37,51 @@ function useLocalStorage(key, initialValue) {
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  // 🧩 Global States
   const [darkMode, setDarkMode] = useLocalStorage("neuctra-dark-mode", false);
   const [notes, setNotes] = useLocalStorage("neuctra-notes", []);
-  const [userInfo, setUserInfo] = useLocalStorage("userInfo", null);
+  const [userInfo, setUserInfo] = useState(null);
+
+  const [loading, setLoading] = useState(true);
 
   const user = userInfo && typeof userInfo === "object" ? userInfo : null;
   const isUserSignedIn = Boolean(user);
+
+  /* ----------------------------------------
+     🔐 INIT USER (UPGRADED)
+  ---------------------------------------- */
+  useEffect(() => {
+    const initUser = async () => {
+      try {
+        setLoading(true);
+
+        // 1️⃣ Check session
+        const sessionRes = await authix.checkUserSession();
+
+        if (!sessionRes?.user?.id) {
+          throw new Error("No active session");
+        }
+
+        const userId = sessionRes.user.id;
+
+        // 2️⃣ Fetch full profile
+        const profileRes = await authix.getUserProfile({ userId });
+
+        if (!profileRes?.user) {
+          throw new Error("User profile not found");
+        }
+
+        // 3️⃣ Save user to localStorage
+        setUserInfo(profileRes.user);
+      } catch (err) {
+        console.warn("Auth init failed:", err);
+        setUserInfo(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initUser();
+  }, [setUserInfo]);
 
   /* ----------------------------------------
      🌓 Dark Mode Handling
@@ -50,7 +91,7 @@ export const AppProvider = ({ children }) => {
 
     if (darkMode === "system") {
       const systemPrefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       root.classList.toggle("dark", systemPrefersDark);
     } else {
@@ -58,11 +99,10 @@ export const AppProvider = ({ children }) => {
     }
   }, [darkMode]);
 
-  // Detect theme on first load if not stored
   useEffect(() => {
     if (localStorage.getItem("neuctra-dark-mode") === null) {
       const systemPrefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       setDarkMode(systemPrefersDark);
     }
@@ -71,7 +111,7 @@ export const AppProvider = ({ children }) => {
   const toggleTheme = () => {
     if (darkMode === "system") {
       const systemPrefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       setDarkMode(!systemPrefersDark);
     } else {
@@ -79,14 +119,14 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-  if (!userInfo) {
-    // user deleted or logged out — clean up
-    localStorage.removeItem("userInfo");
-    console.log("👋 User logged out — clearing session");
-  }
-}, [userInfo]);
-
+  const logoutUser = async () => {
+    try {
+      await authix.logoutUser();
+      setUserInfo(null);
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
 
   /* ----------------------------------------
      🎯 Context Value
@@ -100,13 +140,19 @@ export const AppProvider = ({ children }) => {
     user,
     setUserInfo,
     isUserSignedIn,
+    logoutUser,
+    loading, // ✅ added loading state
   };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      {loading ? <CustomLoader message="Getting user session..." /> : children}
+    </AppContext.Provider>
+  );
 };
 
 /* ----------------------------------------
-   🧩 Custom Hook for Easy Access
+   🧩 Custom Hook
 ---------------------------------------- */
 export const useAppContext = () => {
   const context = useContext(AppContext);

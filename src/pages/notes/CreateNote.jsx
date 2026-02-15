@@ -25,8 +25,8 @@ import {
   createNote,
   getPackage,
   updatePackageUsage,
-} from "../../authix/authixinit";
-import { useAppContext } from "../../context/useAppContext";
+} from "../../utils/authixInit";
+import { useAppContext } from "../../context/AppContext";
 import { useNoteAiAgent } from "../../hooks/useNoteAiAgent";
 
 const CreateNote = () => {

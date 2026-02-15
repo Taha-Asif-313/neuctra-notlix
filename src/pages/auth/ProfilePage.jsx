@@ -6,10 +6,10 @@ import {
   getPackage,
   authix,
   updatePackage,
-} from "../../authix/authixinit";
+} from "../../utils/authixInit";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../../context/AppContext";
 import Metadata from "../../MetaData";
 import { AlertTriangle } from "lucide-react";
 import CustomLoader from "../../components/CustomLoader";

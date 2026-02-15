@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Globe, MessageCircle, Users } from "lucide-react";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../../context/AppContext";
 
 const LandingPageFooter = () => {
   const { darkMode } = useAppContext();

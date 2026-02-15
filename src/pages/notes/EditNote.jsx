@@ -20,8 +20,8 @@ import {
   getSingleNote,
   updateNote,
   updatePackageUsage,
-} from "../../authix/authixinit";
-import { useAppContext } from "../../context/useAppContext";
+} from "../../utils/authixInit";
+import { useAppContext } from "../../context/AppContext";
 import Metadata from "../../MetaData";
 import CustomLoader from "../../components/CustomLoader";
 import toast from "react-hot-toast";
@@ -345,22 +345,22 @@ const EditNote = () => {
 
       <div className="min-h-screen bg-white dark:bg-zinc-950 text-black dark:text-white">
         <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-black backdrop-blur-md">
-          <div className="max-w-6xl mx-auto grid grid-cols-3 items-center px-4 py-3">
+          <div className="max-w-7xl mx-auto grid grid-cols-3 items-center px-4 py-4">
             <div className="flex items-center">
               <Link
                 to="/notes"
                 className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-6 h-6" />
                 {!mobileView && <span>Back</span>}
               </Link>
             </div>
 
             <div className="text-center">
-              <h1 className="text-lg font-semibold">Edit Note</h1>
+              <h1 className="text-xl font-semibold">Edit Note</h1>
             </div>
 
-            <div className="flex items-center justify-end gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-end gap-1.5 text-xs text-black dark:text-white">
               <Clock size={13} />
               <span>
                 {lastSaved.toLocaleTimeString([], {
@@ -375,7 +375,7 @@ const EditNote = () => {
         {loadingNote ? (
           <CustomLoader message="Loading Note..." />
         ) : (
-          <main className="max-w-6xl mx-auto px-4 py-6">
+          <main className="max-w-7xl mx-auto px-4 py-6">
             <input
               type="text"
               value={title}

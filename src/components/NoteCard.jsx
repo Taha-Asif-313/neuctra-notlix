@@ -15,12 +15,11 @@ import {
 import toast from "react-hot-toast";
 import { encryptData } from "../utils/cryptoUtils";
 import { Link, useNavigate } from "react-router-dom";
-import { useAppContext } from "../context/useAppContext";
-import { createNote, updatePackageUsage } from "../authix/authixinit";
+import { useAppContext } from "../context/AppContext";
+import { createNote, updatePackageUsage } from "../utils/authixInit";
 
 const NoteCard = ({ note, onDelete, onDownload, viewMode = "grid" }) => {
   const { user, setNotes } = useAppContext();
-  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modal, setModal] = useState({ show: false, type: "", link: "" });
   const [confirmModal, setConfirmModal] = useState({
@@ -369,7 +368,7 @@ const handleDelete = () => {
 
             {/* Edit */}
             <Link
-              to={`/notes/edit/${note.id}`}
+              to={`/note/edit/${note.id}`}
               className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition"
             >
               <Edit size={18} />

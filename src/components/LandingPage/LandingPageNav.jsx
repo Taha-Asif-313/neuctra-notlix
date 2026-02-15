@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Moon, Sun, Menu, X, MoveRight } from "lucide-react";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../../context/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 const LandingPageNav = () => {

@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import toast from "react-hot-toast";
 import { ReactSignedOut, ReactUserLogin } from "@neuctra/authix";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../../context/AppContext";
 import Metadata from "../../MetaData";
 
 const LoginPage = () => {
@@ -11,8 +11,6 @@ const LoginPage = () => {
 
   return (
     <ReactSignedOut
-      width={"100%"}
-      height={"100%"}
       fallback={<Navigate to="/notes" replace />}
     >
       {/* 🧠 Metadata for SEO & Social */}

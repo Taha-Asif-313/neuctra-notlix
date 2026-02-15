@@ -2,8 +2,7 @@ import React, { useEffect } from "react";
 import { ReactUserSignUp } from "@neuctra/authix";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { getPackage, updatePackage } from "../../authix/authixinit";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../../context/AppContext";
 import Metadata from "../../MetaData";
 
 const SignupPage = () => {

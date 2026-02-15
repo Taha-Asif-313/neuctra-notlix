@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useAppContext } from "../context/useAppContext";
+import { useAppContext } from "../context/AppContext";
 
 /* ----------------------------------------
    🌀 Session Loading Screen (Modern)

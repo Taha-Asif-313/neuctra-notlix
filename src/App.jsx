@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -6,7 +5,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { ReactSignedIn, setSdkConfig } from "@neuctra/authix";
+import { ReactSignedIn } from "@neuctra/authix";
 
 // 🧩 Layouts
 import SiteLayout from "./layouts/SiteLayout";
@@ -30,102 +29,21 @@ import TermsPage from "./pages/static/TermsPage";
 import PrivacyPolicyPage from "./pages/static/PrivacyPolicyPage";
 
 // ⚙️ Context
-import { useAppContext } from "./context/useAppContext";
-
-import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react"; // fallback icon (if no logo)
+import { useAppContext } from "./context/AppContext";
 import ScrollToHashElement from "./components/ScrollToHashElement";
 import ScrollToTop from "./components/ScrollToTop";
 
-/* ----------------------------------------
-   🌀 Session Loading Screen (Modern)
----------------------------------------- */
-const SessionLoader = () => {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-zinc-900 z-[9999]">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative flex flex-col items-center gap-6"
-      >
-        {/* Outer Circular Ring */}
-        <div className="relative w-28 h-28 flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-4 border-emerald-500/30 border-t-primary animate-spin-slow" />
-
-          {/* Logo in center */}
-          <img
-            src={"/logo-dark.png"}
-            alt="Logo"
-            className="w-14 h-14 rounded-full object-contain drop-shadow-md"
-          />
-        </div>
-
-        {/* Loading text */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-gray-700 dark:text-gray-300 font-medium tracking-wide"
-        >
-          Checking your session...
-        </motion.p>
-      </motion.div>
-    </div>
-  );
-};
-
 function App() {
-  const { darkMode, setDarkMode, notes, setNotes, user, isUserSignedIn } =
-    useAppContext();
-
-  const [appReady, setAppReady] = useState(false);
-  const [localCheckDone, setLocalCheckDone] = useState(false);
+  const { darkMode, setDarkMode, notes, setNotes } = useAppContext();
 
   // 🌙 Toggle dark/light theme
   const toggleDarkMode = () => setDarkMode((prev) => !prev);
 
-  /* ----------------------------------------
-     1️⃣ Check localStorage session first
-  ---------------------------------------- */
-  useEffect(() => {
-    const storedUser = localStorage.getItem("userInfo");
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        if (parsed?.id) {
-          // user is available from localstorage
-          console.log("✅ Local session found:", parsed.email);
-        }
-      } catch (err) {
-        console.warn("⚠️ Invalid local user data:", err);
-      }
-    }
-    setLocalCheckDone(true);
-  }, []);
-
-  /* ----------------------------------------
-     2️⃣ Configure Authix SDK
-  ---------------------------------------- */
-  useEffect(() => {
-    if (!localCheckDone) return;
-    setSdkConfig({
-      baseUrl: "https://server.authix.neuctra.com/api",
-      apiKey:
-        "850a8c32c35f008d28295f065526825a656af0a784ea7b0910fc2a1f748adda3",
-      appId: "ba73c20458ba4be9f11dab081550a960",
-    });
-    setAppReady(true);
-  }, [localCheckDone]);
-
-  // ⏳ Wait until both local check + SDK setup done
-  if (!localCheckDone || !appReady) return <SessionLoader />;
-
   return (
     <>
       <Router>
-        <ScrollToTop/>
-        <ScrollToHashElement/>
+        <ScrollToTop />
+        <ScrollToHashElement />
         <Routes>
           {/* 🌐 Public Pages */}
           <Route element={<SiteLayout />}>
@@ -146,11 +64,7 @@ function App() {
           <Route
             path="/notes"
             element={
-              <ReactSignedIn
-                height="100%"
-                width="100%"
-                fallback={<Navigate to="/login" replace />}
-              >
+              <ReactSignedIn fallback={<Navigate to="/login" replace />}>
                 <NotesLayout
                   darkMode={darkMode}
                   toggleDarkMode={toggleDarkMode}
@@ -165,6 +79,15 @@ function App() {
             <Route path="edit/:id" element={<EditNote />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
+
+          <Route
+            path="/note/edit/:id"
+            element={
+              <ReactSignedIn fallback={<Navigate to="/login" replace />}>
+                <EditNote />
+              </ReactSignedIn>
+            }
+          />
 
           {/* 🚫 Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

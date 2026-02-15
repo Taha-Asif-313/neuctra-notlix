@@ -6,18 +6,15 @@ import {
   Menu,
   X,
   Plus,
-  BookHeart,
-  Home,
-  User,
   BookOpen,
 } from "lucide-react";
 import { ReactSignedIn, ReactUserButton } from "@neuctra/authix";
-import { useAppContext } from "../context/useAppContext";
+import { useAppContext } from "../context/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const location = useLocation();
-  const { darkMode, toggleTheme, user } = useAppContext();
+  const { darkMode, toggleTheme, logoutUser } = useAppContext();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isActive = (path) => location.pathname === path;
   const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
@@ -135,10 +132,7 @@ const Navbar = () => {
                 <ReactUserButton
                   darkMode={darkMode}
                   profileUrl="/notes/profile"
-                  onLogout={() => {
-                    localStorage.clear();
-                    window.location.reload();
-                  }}
+                  onLogout={() => logoutUser()}
                 />
               </ReactSignedIn>
             </motion.div>
@@ -165,12 +159,7 @@ const Navbar = () => {
               <ReactUserButton
                 darkMode={darkMode}
                 profileUrl="/notes/profile"
-                onLogout={() => {
-                  localStorage.removeItem("neuctra-dark-mode");
-                  localStorage.removeItem("neuctra-notes");
-                  localStorage.removeItem("theme");
-                  localStorage.removeItem("userInfo");
-                }}
+                onLogout={() => logoutUser()}
               />
             </ReactSignedIn>
 
@@ -298,8 +287,6 @@ const Navbar = () => {
                   )}
                 </motion.button>
               </nav>
-
-             
             </motion.div>
           </>
         )}

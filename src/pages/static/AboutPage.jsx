@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Brain, Users2, Rocket, Globe2 } from "lucide-react";
-import { useAppContext } from "../../context/useAppContext";
+import { useAppContext } from "../../context/AppContext";
 import Metadata from "../../MetaData";
 
 const AboutPage = () => {

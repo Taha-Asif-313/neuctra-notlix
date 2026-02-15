@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 import { marked } from "marked";
-import { updatePackageUsage } from "../authix/authixinit";
-import { useAppContext } from "../context/useAppContext";
+import { useAppContext } from "../context/AppContext";
 
 export function useNoteAiAgent() {
   const [aiResponses, setAiResponses] = useState([]);
