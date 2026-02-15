@@ -89,6 +89,15 @@ function App() {
             }
           />
 
+          <Route
+            path="/note/create"
+            element={
+              <ReactSignedIn fallback={<Navigate to="/login" replace />}>
+                <CreateNote />
+              </ReactSignedIn>
+            }
+          />
+
           {/* 🚫 Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

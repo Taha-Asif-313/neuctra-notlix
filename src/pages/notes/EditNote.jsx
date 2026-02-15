@@ -12,6 +12,9 @@ import {
   FileText,
   MoreVertical,
   Trash2,
+  Image,
+  X,
+  Menu,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "../../components/RichTextEditor";
@@ -141,15 +144,18 @@ const EditNote = () => {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [blocks, setBlocks] = useState([]);
+  const [noteThumbnail, setNoteThumbnail] = useState("");
   const [isPreview, setIsPreview] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState(new Date());
-  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [mobileView, setMobileView] = useState(false);
   const [loadingNote, setLoadingNote] = useState(true);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ✅ Detect mobile view
   useEffect(() => {
@@ -166,9 +172,12 @@ const EditNote = () => {
       setLoadingNote(true);
       try {
         const response = await getSingleNote(user.id, id);
+        console.log(response);
+
         if (response.id) {
           setTitle(response.title || "");
-          setContent(response.content || "");
+          setBlocks(response.blocks);
+          setNoteThumbnail(response.noteThumbnail || ""); // ✅ add this
           setTimeout(() => {
             if (editorRef.current?.setEditorContent)
               editorRef.current.setEditorContent(response.content || "");
@@ -203,10 +212,12 @@ const EditNote = () => {
       setLoading(true);
       const updatedNote = {
         title: title.trim(),
-        content,
+        blocks,
+        noteThumbnail, // ✅ include thumbnail
         date: new Date().toISOString(),
         wordCount,
       };
+
       await updateNote(user.id, id, updatedNote);
       setLastSaved(new Date());
       navigate("/notes");
@@ -215,73 +226,6 @@ const EditNote = () => {
       toast.error("Failed to update note.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ✅ Export HTML
-  const exportNote = () => {
-    const html = `
-<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>${title}</title></head>
-<body>
-  <h1>${title}</h1>
-  <div>${content}</div>
-</body></html>`;
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${title.replace(/\W+/g, "_")}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ✅ Export TXT
-  const exportAsText = () => {
-    const plain = `# ${title}\n\n${content.replace(/<[^>]+>/g, "")}`;
-    const blob = new Blob([plain], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${title.replace(/\W+/g, "_")}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // ✅ Import file
-  const importContent = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".html,.txt,.md";
-    input.onchange = (e) => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        let text = event.target.result;
-        const ext = file.name.split(".").pop().toLowerCase();
-        if (ext === "html") {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(text, "text/html");
-          text = doc.body.innerHTML;
-        } else {
-          text = text.replace(/\n/g, "<br>");
-        }
-        setContent(text);
-        if (editorRef.current?.setEditorContent)
-          editorRef.current.setEditorContent(text);
-      };
-      reader.readAsText(file);
-    };
-    input.click();
-  };
-
-  // ✅ Clear editor
-  const clearContent = () => {
-    if (window.confirm("Clear all content?")) {
-      setContent("");
-      if (editorRef.current?.setEditorContent)
-        editorRef.current.setEditorContent("");
     }
   };
 
@@ -344,132 +288,307 @@ const EditNote = () => {
       />
 
       <div className="min-h-screen bg-white dark:bg-zinc-950 text-black dark:text-white">
-        <header className="sticky top-0 z-40 border-b border-gray-200/60 dark:border-zinc-700/60 bg-white/80 dark:bg-black backdrop-blur-md">
-          <div className="max-w-7xl mx-auto grid grid-cols-3 items-center px-4 py-4">
-            <div className="flex items-center">
+        <header className="sticky top-0 z-40 bg-white dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-800">
+          <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
+            {/* Left: Back Button & Title */}
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link
                 to="/notes"
-                className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md transition"
+                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition"
               >
-                <ArrowLeft className="w-6 h-6" />
-                {!mobileView && <span>Back</span>}
+                <ArrowLeft className="w-4 h-4" />
+                {/* Hide text on mobile */}
+                <span className="hidden sm:inline">Back</span>
               </Link>
+
+              {/* Divider (only on sm+) */}
+              <div className="hidden sm:block h-5 w-px bg-gray-300 dark:bg-zinc-700" />
+
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                Edit Note
+              </h1>
             </div>
 
-            <div className="text-center">
-              <h1 className="text-xl font-semibold">Edit Note</h1>
-            </div>
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Last Saved (hide on mobile) */}
+              <div className="hidden md:flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
+                <Clock size={14} />
+                <span>
+                  {lastSaved.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
 
-            <div className="flex items-center justify-end gap-1.5 text-xs text-black dark:text-white">
-              <Clock size={13} />
-              <span>
-                {lastSaved.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
+              {/* Divider (hide on mobile) */}
+              <div className="hidden sm:block h-5 w-px bg-gray-300 dark:bg-zinc-700" />
+
+              {/* Icon Actions */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setIsPreview(!isPreview)}
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                  title={isPreview ? "Edit" : "Preview"}
+                >
+                  {isPreview ? <Edit3 size={18} /> : <Eye size={18} />}
+                </button>
+
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                  title="AI Assist"
+                >
+                  <Sparkles size={18} />
+                </button>
+              </div>
+
+              {/* Divider (hide on mobile) */}
+              <div className="hidden sm:block h-5 w-px bg-gray-300 dark:bg-zinc-700" />
+
+              {/* Thumbnail & Update Buttons: hide on very small screens */}
+              <div className="hidden sm:flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setImageModalOpen(true)}
+                  className="px-3 py-2 text-sm font-medium border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                >
+                  Set Thumbnail
+                </button>
+
+                <button
+                  onClick={handleUpdate}
+                  className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:opacity-90 transition"
+                >
+                  Update
+                </button>
+              </div>
+
+              {/* Mobile Menu Toggle */}
+              <div className="sm:hidden">
+                <button
+                  onClick={() => setMobileMenuOpen((prev) => !prev)}
+                  className="p-2 rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition"
+                >
+                  {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </div>
             </div>
           </div>
+
+          {/* Mobile Menu */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden px-4 py-3 bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-800 flex flex-col gap-2 sm:hidden"
+              >
+                <button
+                  onClick={() => setImageModalOpen(true)}
+                  className="w-full px-3 py-2 text-center text-sm font-medium border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                >
+                  Set Thumbnail
+                </button>
+
+                <button
+                  onClick={handleUpdate}
+                  className="w-full px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:opacity-90 transition"
+                >
+                  Update
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </header>
 
         {loadingNote ? (
           <CustomLoader message="Loading Note..." />
         ) : (
-          <main className="max-w-7xl mx-auto px-4 py-6">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Note title..."
-              className="w-full text-2xl font-bold bg-transparent border-b border-gray-300 mb-4 outline-none"
-            />
+          <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
+            <div className="space-y-8">
+              {/* Title Input */}
+              <div>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Untitled Note"
+                  className="w-full text-4xl sm:text-5xl font-bold bg-transparent border-none outline-none placeholder-slate-300 dark:placeholder-zinc-700 focus:ring-0 px-1 transition-all"
+                />
+              </div>
 
-            {!isPreview ? (
-              <RichTextEditor
-                ref={editorRef}
-                content={content}
-                setContent={setContent}
-                mobileOptimized={mobileView}
-                key={id || "new-note"}
-              />
-            ) : (
-              <div
-                className="prose dark:prose-invert max-w-none border p-4 rounded-xl"
-                dangerouslySetInnerHTML={{ __html: content }}
-              />
-            )}
+              {/* Editor / Preview */}
+              {!isPreview ? (
+                <RichTextEditor
+                  ref={editorRef}
+                  blocks={blocks}
+                  setBlocks={setBlocks}
+                  mobileOptimized={mobileView}
+                  key={id || "edit-note"}
+                />
+              ) : (
+                <div className="space-y-6">
+                  {blocks.length === 0 ? (
+                    <div className="text-center py-16 text-gray-400">
+                      Nothing to preview yet
+                    </div>
+                  ) : (
+                    blocks.map((block) => {
+                      switch (block.type) {
+                        case "text":
+                          return (
+                            <div
+                              key={block.id}
+                              className="prose prose-slate dark:prose-invert max-w-none"
+                              dangerouslySetInnerHTML={{
+                                __html: block.content?.html || "",
+                              }}
+                            />
+                          );
+
+                        case "image":
+                          return (
+                            <img
+                              key={block.id}
+                              src={block.content?.url}
+                              alt="User uploaded"
+                              className="rounded-xl border border-gray-200 dark:border-zinc-700"
+                            />
+                          );
+
+                        case "table":
+                          const headers = block.content?.headers || [];
+                          const rows = block.content?.rows || [];
+
+                          return (
+                            <div
+                              key={block.id}
+                              className="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700"
+                            >
+                              <table className="w-full text-sm border-collapse">
+                                <thead className="bg-gray-50 dark:bg-zinc-800">
+                                  <tr>
+                                    {headers.map((h, i) => (
+                                      <th
+                                        key={i}
+                                        className="px-4 py-3 text-left font-medium border-b border-gray-200 dark:border-zinc-700"
+                                      >
+                                        {h}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {rows.map((row, i) => (
+                                    <tr
+                                      key={i}
+                                      className="border-b border-gray-200 dark:border-zinc-700"
+                                    >
+                                      {row.map((cell, j) => (
+                                        <td key={j} className="px-4 py-3">
+                                          {cell}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          );
+
+                        default:
+                          return null;
+                      }
+                    })
+                  )}
+                </div>
+              )}
+            </div>
           </main>
         )}
 
-        {/* ✅ Floating Toolbar */}
-        <motion.div
-          className="fixed bottom-6 inset-x-0 flex justify-center z-50"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="flex items-center gap-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-lg border rounded-full px-5 py-3">
-            {[
-              {
-                icon: isPreview ? <Edit3 size={18} /> : <Eye size={18} />,
-                onClick: () => setIsPreview(!isPreview),
-              },
-              {
-                icon: <Sparkles size={18} className="text-amber-500" />,
-                onClick: () => setShowModal(true),
-              },
-              {
-                icon: <Save size={18} className="text-green-500" />,
-                onClick: handleUpdate,
-              },
-              {
-                icon: <Download size={18} className="text-blue-500" />,
-                onClick: exportNote,
-              },
-              {
-                icon: <MoreVertical size={18} />,
-                onClick: () => setMoreMenuOpen(!moreMenuOpen),
-              },
-            ].map((item, i) => (
-              <button
-                key={i}
-                onClick={item.onClick}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+        <AnimatePresence>
+          {imageModalOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+              onClick={() => setImageModalOpen(false)}
+            >
+              <motion.div
+                initial={{ y: 20, scale: 0.96 }}
+                animate={{ y: 0, scale: 1 }}
+                exit={{ y: 20, scale: 0.96 }}
+                transition={{ duration: 0.2 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl overflow-hidden"
               >
-                {item.icon}
-              </button>
-            ))}
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-zinc-800">
+                  <h3 className="text-base flex items-center gap-2 font-semibold">
+                    <Image size={20} />
+                    Edit Note Thumbnail
+                  </h3>
+                  <button
+                    onClick={() => setImageModalOpen(false)}
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
 
-            <AnimatePresence>
-              {moreMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute bottom-16 right-0 bg-white dark:bg-zinc-800 border rounded-2xl shadow-2xl overflow-hidden"
-                >
+                {/* Content */}
+                <div className="p-6 space-y-5">
+                  <div>
+                    <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                      Image URL
+                    </label>
+
+                    <input
+                      type="url"
+                      value={noteThumbnail}
+                      onChange={(e) => setNoteThumbnail(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      className="w-full px-4 py-3 text-sm rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+                    />
+                  </div>
+
+                  {noteThumbnail && (
+                    <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-700">
+                      <img
+                        src={noteThumbnail}
+                        alt="Preview"
+                        className="w-full h-44 object-cover"
+                        onError={(e) => (e.target.style.display = "none")}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-800">
                   <button
-                    onClick={exportAsText}
-                    className="flex items-center gap-2 px-4 py-3 text-sm w-full hover:bg-gray-100 dark:hover:bg-zinc-700"
+                    onClick={() => setImageModalOpen(false)}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition"
                   >
-                    <FileText size={16} className="text-blue-500" /> Export TXT
+                    Cancel
                   </button>
+
                   <button
-                    onClick={importContent}
-                    className="flex items-center gap-2 px-4 py-3 text-sm w-full hover:bg-gray-100 dark:hover:bg-zinc-700"
+                    onClick={() => setImageModalOpen(false)}
+                    className="px-5 py-2 text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded-md hover:opacity-90 transition"
                   >
-                    <Upload size={16} className="text-amber-500" /> Import
+                    Save Thumbnail
                   </button>
-                  <button
-                    onClick={clearContent}
-                    className="flex items-center gap-2 px-4 py-3 text-sm w-full hover:bg-gray-100 dark:hover:bg-zinc-700 text-red-500"
-                  >
-                    <Trash2 size={16} /> Clear
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <AIModal
           show={showModal}

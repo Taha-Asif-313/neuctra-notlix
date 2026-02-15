@@ -1,13 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Moon,
-  Sun,
-  Menu,
-  X,
-  Plus,
-  BookOpen,
-} from "lucide-react";
+import { Moon, Sun, Menu, X, Plus, BookOpen } from "lucide-react";
 import { ReactSignedIn, ReactUserButton } from "@neuctra/authix";
 import { useAppContext } from "../context/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,277 +9,132 @@ const Navbar = () => {
   const location = useLocation();
   const { darkMode, toggleTheme, logoutUser } = useAppContext();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const isActive = (path) => location.pathname === path;
   const toggleDrawer = () => setIsDrawerOpen((prev) => !prev);
 
   const navItems = [
     { path: "/notes", label: "Notes", icon: BookOpen },
-    { path: "/notes/create", label: "New Note", icon: Plus },
+    { path: "/note/create", label: "New Note", icon: Plus },
   ];
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black shadow shadow-gray-200 dark:shadow-zinc-900`}
-    >
-      {/* Main Navigation Bar */}
-      <div
-        className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-0 transition-all duration-300 `}
-        initial={{ y: -100 }}
+    <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200 dark:border-zinc-800">
+      
+      <motion.div
+        initial={{ y: -60 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between"
       >
-        <div className="py-4 flex justify-between items-center">
-          {/* Logo */}
-          <Link to="/notes" className="flex items-center space-x-2 group">
-            <div className="relative">
-              <div className="relative">
-                <img
-                  src={"/logo-dark.png"}
-                  alt="Neuctra Notes"
-                  className="h-10 w-10 object-cover"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] text-primary leading-4">
-                Neuctra
-              </span>
-              <span className="text-lg dark:text-white text-black font-bold leading-3">
-                Notlix
-              </span>
-            </div>
-          </Link>
+        {/* Logo */}
+        <Link to="/notes" className="flex items-center gap-2">
+          <img
+            src="/logo-dark.png"
+            alt="Neuctra Notes"
+            className="h-8 w-8 object-cover"
+          />
+          <span className="text-base font-semibold text-black dark:text-white">
+            Notlix
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={item.path}
-                  whileHover={{ y: -1 }}
-                  whileTap={{ y: 0 }}
-                >
-                  <Link
-                    to={item.path}
-                    className={`relative px-4 py-2.5 rounded-t-xl text-xs md:text-sm font-medium flex items-center gap-2 transition-all duration-200 group ${
-                      isActive(item.path)
-                        ? "text-white bg-primary shadow-sm"
-                        : "text-gray-600 dark:text-white hover:text-primary dark:hover:text-primary"
-                    }`}
-                  >
-                    <Icon
-                      size={15}
-                      className={`transition-colors duration-200 ${
-                        isActive(item.path)
-                          ? "text-white"
-                          : "text-gray-500 dark:text-white group-hover:text-primary"
-                      }`}
-                    />
-                    {item.label}
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
 
-                    {isActive(item.path) && (
-                      <motion.div
-                        className="absolute bottom-0 left-0 h-[2px] w-full bg-white/70 dark:bg-primary rounded-full"
-                        layoutId="activeIndicator"
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 25,
-                        }}
-                      />
-                    )}
-                  </Link>
-                </motion.div>
-              );
-            })}
-
-            {/* Theme Toggle */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleTheme}
-              className="m-2.5 rounded-xl transition-all duration-200 shadow-sm ml-2"
-              aria-label="Toggle dark mode"
-            >
-              <motion.div
-                initial={false}
-                animate={{ rotate: darkMode ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition ${
+                  active
+                    ? "bg-primary text-white"
+                    : "text-gray-600 dark:text-gray-300 hover:text-primary"
+                }`}
               >
-                {darkMode ? (
-                  <Sun size={20} className="text-primary" />
-                ) : (
-                  <Moon size={20} className="text-primary" />
-                )}
-              </motion.div>
-            </motion.button>
+                <Icon size={16} />
+                {item.label}
+              </Link>
+            );
+          })}
 
-            {/* User Button */}
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="ml-2"
-            >
-              <ReactSignedIn>
-                <ReactUserButton
-                  darkMode={darkMode}
-                  profileUrl="/notes/profile"
-                  onLogout={() => logoutUser()}
-                />
-              </ReactSignedIn>
-            </motion.div>
-          </div>
+          {/* Divider */}
+          <div className="h-5 w-px bg-gray-300 dark:bg-zinc-700 mx-2" />
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
-            {/* Theme Toggle Mobile */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleTheme}
-              className="p-2 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all duration-200"
-              aria-label="Toggle dark mode"
-            >
-              {darkMode ? (
-                <Sun size={18} className="text-primary" />
-              ) : (
-                <Moon size={18} className="text-primary" />
-              )}
-            </motion.button>
+          {/* Theme */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+          >
+            {darkMode ? (
+              <Sun size={18} className="text-primary" />
+            ) : (
+              <Moon size={18} className="text-primary" />
+            )}
+          </button>
 
-            {/* User Button Mobile */}
-            <ReactSignedIn>
-              <ReactUserButton
-                darkMode={darkMode}
-                profileUrl="/notes/profile"
-                onLogout={() => logoutUser()}
-              />
-            </ReactSignedIn>
-
-            {/* Menu Toggle */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={toggleDrawer}
-              className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-all duration-200"
-              aria-label="Toggle menu"
-            >
-              {isDrawerOpen ? <X size={24} /> : <Menu size={24} />}
-            </motion.button>
-          </div>
+          {/* User */}
+          <ReactSignedIn>
+            <ReactUserButton
+              darkMode={darkMode}
+              profileUrl="/notes/profile"
+              onLogout={logoutUser}
+            />
+          </ReactSignedIn>
         </div>
-      </div>
+
+        {/* Mobile */}
+        <div className="md:hidden flex items-center gap-2">
+          <button onClick={toggleTheme}>
+            {darkMode ? (
+              <Sun size={18} className="text-primary" />
+            ) : (
+              <Moon size={18} className="text-primary" />
+            )}
+          </button>
+
+          <button onClick={toggleDrawer}>
+            {isDrawerOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+      </motion.div>
 
       {/* Mobile Drawer */}
       <AnimatePresence>
         {isDrawerOpen && (
           <>
-            {/* Backdrop Overlay */}
             <motion.div
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+              className="fixed inset-0 bg-black/40 z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={toggleDrawer}
             />
 
-            {/* Drawer Panel */}
             <motion.div
-              className="fixed top-0 right-0 w-80 h-full bg-white dark:bg-zinc-950 border-l border-gray-200 dark:border-zinc-800 shadow-2xl z-50 flex flex-col"
+              className="fixed top-0 right-0 w-72 h-full bg-white dark:bg-zinc-950 border-l border-gray-200 dark:border-zinc-800 shadow-xl z-50 p-6 space-y-4"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 400, damping: 40 }}
             >
-              {/* Drawer Header */}
-              <div className="p-6 border-b border-gray-200 dark:border-zinc-800">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src="/logo-dark.png"
-                      alt="Logo"
-                      className="h-12 w-12 object-cover rounded-xl shadow-lg"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-lg font-bold text-gray-800 dark:text-gray-100">
-                        Neuctra
-                      </span>
-                      <span className="text-sm font-semibold text-primary">
-                        Notlix
-                      </span>
-                    </div>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
                     onClick={toggleDrawer}
-                    className="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-all duration-200"
+                    className="flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-primary"
                   >
-                    <X size={20} />
-                  </motion.button>
-                </div>
-              </div>
-
-              {/* Navigation Items */}
-              <nav className="flex-1 p-6 space-y-2">
-                {navItems.map((item, index) => {
-                  const Icon = item.icon;
-                  return (
-                    <motion.div
-                      key={item.path}
-                      initial={{ x: 20, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Link
-                        to={item.path}
-                        onClick={toggleDrawer}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                          isActive(item.path)
-                            ? "bg-primary/10 text-primary shadow-sm border border-primary/20"
-                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800"
-                        }`}
-                      >
-                        <Icon
-                          size={20}
-                          className={isActive(item.path) ? "text-primary" : ""}
-                        />
-                        <span className="font-medium">{item.label}</span>
-                        {isActive(item.path) && (
-                          <motion.div
-                            className="w-2 h-2 bg-primary rounded-full ml-auto"
-                            layoutId="mobileActiveIndicator"
-                          />
-                        )}
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-
-                {/* Theme Toggle in Drawer */}
-                <motion.button
-                  initial={{ x: 20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  onClick={() => {
-                    toggleTheme();
-                    toggleDrawer();
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-all duration-200"
-                >
-                  {darkMode ? (
-                    <>
-                      <Sun size={20} className="text-amber-500" />
-                      <span className="font-medium">Light Mode</span>
-                    </>
-                  ) : (
-                    <>
-                      <Moon size={20} className="text-indigo-600" />
-                      <span className="font-medium">Dark Mode</span>
-                    </>
-                  )}
-                </motion.button>
-              </nav>
+                    <Icon size={18} />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </motion.div>
           </>
         )}
