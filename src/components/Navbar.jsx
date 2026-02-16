@@ -34,15 +34,14 @@ const Navbar = () => {
             className="h-10 w-10 object-cover"
           />
 
-     <span className="flex flex-col">
-  <span className="text-[11px] font-medium text-primary">
-    Neuctra
-  </span>
-  <span className="text-xl leading-4 font-black text-black/70 dark:text-white">
-    Notlix
-  </span>
-</span>
-
+          <span className="flex flex-col">
+            <span className="text-[11px] font-medium text-primary">
+              Neuctra
+            </span>
+            <span className="text-lg leading-3 font-black text-black/70 dark:text-white">
+              Notlix
+            </span>
+          </span>
         </Link>
 
         {/* Desktop Nav */}

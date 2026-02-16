@@ -120,12 +120,6 @@ const TextEditorBlock = ({
     setShowSizeMenu(false);
   };
 
-  const handleColorChange = (color) => {
-    editor.color(color.hex);
-    setSelectedColor(color.hex);
-    setShowColorPicker(false);
-  };
-
   const handleSave = () => {
     const content = editorRef.current?.innerHTML.trim() || "";
     onDone?.(content);
