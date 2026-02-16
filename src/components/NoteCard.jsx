@@ -17,12 +17,13 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { encryptData } from "../utils/cryptoUtils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { createNote, updatePackageUsage } from "../utils/authixInit";
 import { AnimatePresence, motion } from "framer-motion";
 
 const NoteCard = ({ note, onDelete, onDownload }) => {
+  const navigate = useNavigate();
   const { user, setNotes } = useAppContext();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [modal, setModal] = useState({ show: false, type: "", link: "" });
@@ -32,6 +33,7 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
     onConfirm: null,
     loading: false,
   });
+
   const dropdownRef = useRef(null);
 
   const formattedDate = new Date(note.createdAt).toLocaleDateString("en-US", {
@@ -39,6 +41,7 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
     month: "short",
     day: "numeric",
   });
+
   const formattedTime = new Date(note.createdAt).toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
@@ -268,6 +271,7 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
         </div>
       </div>
     );
+console.log(note);
 
   return (
     <>
@@ -275,14 +279,15 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
       <ConfirmModal />
 
       <motion.div
+        onClick={() => navigate(`/note/edit/${note.id}`)}
         transition={{ type: "spring", stiffness: 250, damping: 18 }}
-        className="group relative rounded-3xl overflow-visible bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 shadow-md hover:shadow-2xl transition-all duration-500"
+        className="group cursor-pointer relative rounded-3xl overflow-visible bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 shadow-md hover:shadow-2xl transition-all duration-500"
       >
         {/* Image Section */}
         <div className="relative h-40 w-full overflow-hidden rounded-t-3xl">
-          {note.image ? (
+          {note.noteThumbnail ? (
             <img
-              src={note.image}
+              src={note.noteThumbnail}
               alt={note.title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
@@ -295,7 +300,10 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
           {/* Floating Action Button */}
           <div className="absolute top-3 right-3" ref={dropdownRef}>
             <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
+          onClick={(e) => {
+    e.stopPropagation();
+    setDropdownOpen((prev) => !prev);
+  }}
               className="p-2 rounded-lg bg-white/70 dark:bg-zinc-950/70 border border-gray-200 dark:border-zinc-800 shadow-md hover:scale-105 transition"
             >
               <MoreVertical size={18} />

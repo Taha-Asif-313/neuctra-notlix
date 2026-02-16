@@ -80,14 +80,7 @@ function App() {
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
-          <Route
-            path="/note/edit/:id"
-            element={
-              <ReactSignedIn fallback={<Navigate to="/login" replace />}>
-                <EditNote />
-              </ReactSignedIn>
-            }
-          />
+          <Route path="/note/edit/:id" element={<EditNote />} />
 
           <Route
             path="/note/create"

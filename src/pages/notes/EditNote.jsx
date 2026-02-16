@@ -30,6 +30,7 @@ import CustomLoader from "../../components/CustomLoader";
 import toast from "react-hot-toast";
 import { useNoteAiAgent } from "../../hooks/useNoteAiAgent";
 import AIModal from "../../components/AiModal";
+import { ReactSignedIn } from "@neuctra/authix";
 
 const EditNote = () => {
   const { id } = useParams();
@@ -281,7 +282,7 @@ const EditNote = () => {
   if (loading) return <CustomLoader message="Saving Note..." />;
 
   return (
-    <>
+    <ReactSignedIn>
       <Metadata
         title={title ? `${title} — Edit Note | Notlix` : "Edit Note | Notlix"}
         description="Edit your note with AI support."
@@ -600,7 +601,7 @@ const EditNote = () => {
           loading={aiLoading || loading}
         />
       </div>
-    </>
+    </ReactSignedIn>
   );
 };
 

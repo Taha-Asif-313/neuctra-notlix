@@ -6,14 +6,21 @@ import {
   Strikethrough,
   List,
   ListOrdered,
-  Check,
-  X,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
   ChevronDown,
   Type,
   Palette,
+  RotateCcw,
+  RotateCw,
+  Search as SearchIcon,
 } from "lucide-react";
 import { TwitterPicker } from "react-color";
+import { createEditorCommands } from "../../utils/editorCommands";
 
+/* ---------------- Fonts & Sizes ---------------- */
 const fonts = [
   { name: "Arial", value: "Arial, sans-serif" },
   { name: "Georgia", value: "Georgia, serif" },
@@ -26,214 +33,289 @@ const fonts = [
 
 const sizes = [12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48];
 
-const TextEditorBlock = ({
-  initialValue = "",
-  onDone,
-  onCancel,
-  placeholder = "Start writing...",
-}) => {
+/* ---------------- UI Components ---------------- */
+const ToolbarIcon = ({ children, onClick }) => (
+  <button
+    onClick={onClick}
+    onMouseDown={(e) => e.preventDefault()}
+    className="p-2 rounded-lg transition-all duration-200
+      text-zinc-600 dark:text-zinc-300
+      hover:bg-white dark:hover:bg-zinc-700 hover:text-primary"
+  >
+    {children}
+  </button>
+);
+
+const DropdownBox = ({ children }) => (
+  <div
+    className="absolute z-50 mt-2 
+      bg-white dark:bg-zinc-800 
+      border border-zinc-200 dark:border-zinc-700 
+      rounded-xl shadow-2xl 
+      py-2 min-w-[160px] max-h-[300px] overflow-y-auto"
+  >
+    {children}
+  </div>
+);
+
+const DropdownItem = ({ children, ...props }) => (
+  <button
+    {...props}
+    onMouseDown={(e) => e.preventDefault()}
+    className="w-full text-left px-4 py-2 
+      hover:bg-zinc-100 dark:hover:bg-zinc-700 
+      text-sm transition"
+  >
+    {children}
+  </button>
+);
+
+const TextEditorBlock = ({ initialValue = "", onDone, onCancel, placeholder = "Start writing..." }) => {
   const editorRef = useRef(null);
+  const editor = createEditorCommands(editorRef);
+
   const [showFontMenu, setShowFontMenu] = useState(false);
   const [showSizeMenu, setShowSizeMenu] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [selectedFont, setSelectedFont] = useState(fonts[0]);
+  const [selectedSize, setSelectedSize] = useState(16);
+  const [selectedColor, setSelectedColor] = useState("#000000");
 
-  const [fontFamily, setFontFamily] = useState(fonts[0]);
-  const [fontSize, setFontSize] = useState(16);
-  const [textColor, setTextColor] = useState("#000000");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Close dropdowns on outside click
+  /* ---------------- Initialize Content ---------------- */
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    if (editorRef.current) editorRef.current.innerHTML = initialValue || "";
+  }, [initialValue]);
+
+  /* ---------------- Close Dropdowns Outside Click ---------------- */
+  useEffect(() => {
+    const handler = (e) => {
       if (!e.target.closest(".dropdown-container")) {
         setShowFontMenu(false);
         setShowSizeMenu(false);
         setShowColorPicker(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Initialize editor content
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.innerHTML =
-        initialValue || `<p class="placeholder-text">${placeholder}</p>`;
-    }
-  }, [initialValue, placeholder]);
-
-  const focusEditor = () => editorRef.current?.focus();
-
-  const exec = (command, value = null) => {
-    focusEditor();
-    document.execCommand(command, false, value);
-  };
-
-  // Lists
-  const toggleList = (type) => exec(type);
-
-  // Apply font size to selection or future typing
-  const applyFontSize = (size) => {
-    focusEditor();
-    const selection = window.getSelection();
-    if (selection && selection.toString().length > 0) {
-      document.execCommand("fontSize", false, "7");
-      const fonts = editorRef.current.getElementsByTagName("font");
-      for (let el of fonts) {
-        if (el.size === "7") {
-          el.removeAttribute("size");
-          el.style.fontSize = size + "px";
-        }
-      }
-    } else {
-      // Future typing
-      document.execCommand("fontSize", false, "7");
-    }
-    setFontSize(size);
-    setShowSizeMenu(false);
-  };
-
-  const applyFontFamily = (font) => {
-    focusEditor();
-    document.execCommand("fontName", false, font.value);
-    setFontFamily(font);
+  /* ---------------- Handlers ---------------- */
+  const handleFontChange = (font) => {
+    editor.fontFamily(font.value);
+    setSelectedFont(font);
     setShowFontMenu(false);
   };
 
-  const applyTextColor = (color) => {
-    focusEditor();
-    exec("foreColor", color.hex);
-    setTextColor(color.hex);
+  const handleSizeChange = (size) => {
+    editor.fontSize(size);
+    setSelectedSize(size);
+    setShowSizeMenu(false);
+  };
+
+  const handleColorChange = (color) => {
+    editor.color(color.hex);
+    setSelectedColor(color.hex);
+    setShowColorPicker(false);
   };
 
   const handleSave = () => {
-    let content = editorRef.current?.innerHTML || "";
-    content = content
-      .replace(/<p><br><\/p>/g, "")
-      .replace(/<p class="placeholder-text">.*?<\/p>/g, "")
-      .trim();
-    onDone && onDone(content || "");
+    const content = editorRef.current?.innerHTML.trim() || "";
+    onDone?.(content);
   };
 
-  return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-lg overflow-hidden">
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 bg-gradient-to-r from-zinc-50 to-white dark:from-zinc-800 dark:to-zinc-900 border-b border-zinc-200 dark:border-zinc-700">
+  /* ---------------- Undo / Redo ---------------- */
+  const handleUndo = () => document.execCommand("undo");
+  const handleRedo = () => document.execCommand("redo");
 
-        {/* Text formatting */}
-        <div className="flex items-center gap-1 px-1 border-r border-zinc-200 dark:border-zinc-700">
-          <button onClick={() => exec("bold")} className="toolbar-btn" title="Bold"><Bold size={18} /></button>
-          <button onClick={() => exec("italic")} className="toolbar-btn" title="Italic"><Italic size={18} /></button>
-          <button onClick={() => exec("underline")} className="toolbar-btn" title="Underline"><Underline size={18} /></button>
-          <button onClick={() => exec("strikeThrough")} className="toolbar-btn" title="Strikethrough"><Strikethrough size={18} /></button>
+  /* ---------------- Search & Style ---------------- */
+  const handleSearchStyle = () => {
+    if (!searchQuery) return;
+    const content = editorRef.current.innerHTML;
+    const regex = new RegExp(searchQuery, "gi");
+    const styled = content.replace(
+      regex,
+      (match) => `<span style="background-color:yellow;color:${selectedColor};font-family:${selectedFont.value};font-size:${selectedSize}px;">${match}</span>`
+    );
+    editorRef.current.innerHTML = styled;
+  };
+
+  /* ---------------- Render ---------------- */
+  return (
+    <div
+      className="relative bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl 
+        border border-zinc-200/60 dark:border-zinc-700/60 
+        rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] 
+        overflow-hidden transition-all duration-300"
+    >
+      {/* ---------------- Toolbar ---------------- */}
+      <div
+        className="sticky top-0 z-40 
+          flex flex-wrap items-center gap-2 px-4 py-3 
+          bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl
+          border-b border-zinc-200/60 dark:border-zinc-700/60"
+      >
+        {/* Formatting */}
+        <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
+          <ToolbarIcon onClick={editor.bold}><Bold size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={editor.italic}><Italic size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={editor.underline}><Underline size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={editor.strike}><Strikethrough size={16} /></ToolbarIcon>
+        </div>
+
+        {/* Alignment */}
+        <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
+          <ToolbarIcon onClick={() => editor.align("left")}><AlignLeft size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={() => editor.align("center")}><AlignCenter size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={() => editor.align("right")}><AlignRight size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={() => editor.align("justify")}><AlignJustify size={16} /></ToolbarIcon>
         </div>
 
         {/* Lists */}
-        <div className="flex items-center gap-1 px-1 border-r border-zinc-200 dark:border-zinc-700">
-          <button onClick={() => toggleList("insertUnorderedList")} className="toolbar-btn" title="Bullet List"><List size={18} /></button>
-          <button onClick={() => toggleList("insertOrderedList")} className="toolbar-btn" title="Numbered List"><ListOrdered size={18} /></button>
+        <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
+          <ToolbarIcon onClick={editor.unorderedList}><List size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={editor.orderedList}><ListOrdered size={16} /></ToolbarIcon>
         </div>
 
-        {/* Font Dropdown */}
-        <div className="dropdown-container relative px-1">
+        {/* Undo / Redo */}
+        <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
+          <ToolbarIcon onClick={handleUndo}><RotateCcw size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={handleRedo}><RotateCw size={16} /></ToolbarIcon>
+        </div>
+
+        {/* Font Selector */}
+        <div className="dropdown-container relative">
           <button
             onClick={() => setShowFontMenu(!showFontMenu)}
-            className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all text-sm"
+            onMouseDown={(e) => e.preventDefault()}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg
+              bg-zinc-100/70 dark:bg-zinc-800/70 text-sm"
           >
-            <Type size={16} className="text-zinc-500" />
-            <span className="max-w-[100px] truncate">{fontFamily.name}</span>
-            <ChevronDown size={14} className={`transition-transform ${showFontMenu ? "rotate-180" : ""}`} />
+            <Type size={14} />
+            <span className="max-w-[80px] truncate">{selectedFont.name}</span>
+            <ChevronDown size={14} />
           </button>
+
           {showFontMenu && (
-            <div className="absolute z-50 mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl py-1 min-w-[180px]">
+            <DropdownBox>
               {fonts.map((f) => (
-                <button
+                <DropdownItem
                   key={f.name}
-                  onClick={() => applyFontFamily(f)}
-                  className="w-full text-left px-4 py-2 hover:bg-blue-50 dark:hover:bg-zinc-700 transition-colors text-sm"
+                  onClick={() => handleFontChange(f)}
                   style={{ fontFamily: f.value }}
                 >
                   {f.name}
-                </button>
+                </DropdownItem>
               ))}
-            </div>
+            </DropdownBox>
           )}
         </div>
 
-        {/* Size Dropdown */}
-        <div className="dropdown-container relative px-1">
+        {/* Size Selector */}
+        <div className="dropdown-container relative">
           <button
             onClick={() => setShowSizeMenu(!showSizeMenu)}
-            className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all text-sm"
+            onMouseDown={(e) => e.preventDefault()}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg
+              bg-zinc-100/70 dark:bg-zinc-800/70 text-sm"
           >
-            <span>{fontSize}px</span>
-            <ChevronDown size={14} className={`transition-transform ${showSizeMenu ? "rotate-180" : ""}`} />
+            {selectedSize}px
+            <ChevronDown size={14} />
           </button>
+
           {showSizeMenu && (
-            <div className="absolute z-50 mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl py-1 min-w-[100px] max-h-[200px] overflow-y-auto">
+            <DropdownBox>
               {sizes.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => applyFontSize(s)}
-                  className={`w-full text-left px-4 py-2 hover:bg-blue-50 dark:hover:bg-zinc-700 transition-colors text-sm ${s === fontSize ? "bg-blue-50 dark:bg-zinc-700 text-blue-600" : ""}`}
-                >
+                <DropdownItem key={s} onClick={() => handleSizeChange(s)}>
                   {s}px
-                </button>
+                </DropdownItem>
               ))}
-            </div>
+            </DropdownBox>
           )}
         </div>
 
         {/* Color Picker */}
-        <div className="dropdown-container relative px-1">
+        <div className="dropdown-container relative">
           <button
             onClick={() => setShowColorPicker(!showColorPicker)}
-            className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all text-sm"
+            onMouseDown={(e) => e.preventDefault()}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg
+              bg-zinc-100/70 dark:bg-zinc-800/70"
           >
-            <div className="w-4 h-4 rounded-full border border-zinc-300" style={{ backgroundColor: textColor }} />
-            <Palette size={16} className="text-zinc-500" />
-            <ChevronDown size={14} className={`transition-transform ${showColorPicker ? "rotate-180" : ""}`} />
+            <div
+              className="w-4 h-4 rounded-full border"
+              style={{ backgroundColor: selectedColor }}
+            />
+            <Palette size={14} />
           </button>
+
           {showColorPicker && (
-            <div className="absolute z-50 mt-1 right-0">
+            <div className="absolute z-50 mt-2 right-0 shadow-2xl rounded-xl overflow-hidden">
               <TwitterPicker
-                color={textColor}
-                onChange={applyTextColor}
+                color={selectedColor}
+                onChange={handleColorChange}
                 triangle="top-right"
-                colors={['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00','#FF00FF', '#00FFFF', '#FFA500', '#800080', '#008000']}
               />
             </div>
           )}
         </div>
 
+        {/* Search & Style */}
+        <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search text..."
+            className="px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-600 text-sm"
+          />
+          <ToolbarIcon onClick={handleSearchStyle}><SearchIcon size={16} /></ToolbarIcon>
+        </div>
       </div>
 
-      {/* Editor */}
+      {/* ---------------- Editor ---------------- */}
       <div
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className="min-h-[200px] p-6 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-base leading-relaxed"
-        style={{ fontFamily: fontFamily.value, fontSize: `${fontSize}px`, color: textColor }}
-        onFocus={(e) => {
-          if (e.target.innerHTML.includes("placeholder-text")) e.target.innerHTML = "";
-        }}
+        className="min-h-[220px] px-8 py-8 
+          text-[16px] leading-relaxed 
+          focus:outline-none
+          empty:before:content-[attr(data-placeholder)]
+          empty:before:text-zinc-400
+          text-black dark:text-white
+          [&_ul]:list-disc [&_ul]:pl-8
+          [&_ol]:list-decimal [&_ol]:pl-8"
+        data-placeholder={placeholder}
       />
 
-      {/* Footer */}
-      <div className="flex items-center justify-end gap-3 p-4 bg-zinc-50 dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700">
+      {/* ---------------- Footer ---------------- */}
+      <div
+        className="flex justify-end gap-3 px-6 py-4 
+        bg-zinc-50/80 dark:bg-zinc-800/60 
+        border-t border-zinc-200/60 dark:border-zinc-700/60"
+      >
         <button
           onClick={onCancel}
-          className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-600 transition-all text-sm font-medium"
+          className="px-5 py-2.5 rounded-lg border 
+            border-zinc-300 dark:border-zinc-600 
+            text-sm font-medium hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
         >
-          <X size={16} /> Cancel
+          Cancel
         </button>
 
         <button
           onClick={handleSave}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all text-sm font-medium shadow-md"
+          className="px-5 py-2.5 rounded-lg 
+            bg-primary text-white 
+            text-sm font-semibold 
+            shadow-lg hover:shadow-xl
+            hover:bg-primary/80
+            active:scale-[0.98]
+            transition-all duration-200"
         >
-          <Check size={16} /> Save Changes
+          Save Changes
         </button>
       </div>
     </div>

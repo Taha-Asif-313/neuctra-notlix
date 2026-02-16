@@ -20,7 +20,6 @@ const Navbar = () => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200 dark:border-zinc-800">
-      
       <motion.div
         initial={{ y: -60 }}
         animate={{ y: 0 }}
@@ -28,15 +27,22 @@ const Navbar = () => {
         className="max-w-7xl mx-auto h-full px-6 flex items-center justify-between"
       >
         {/* Logo */}
-        <Link to="/notes" className="flex items-center gap-2">
+        <Link to="/notes" className="flex items-center gap-1">
           <img
             src="/logo-dark.png"
             alt="Neuctra Notes"
-            className="h-8 w-8 object-cover"
+            className="h-10 w-10 object-cover"
           />
-          <span className="text-base font-semibold text-black dark:text-white">
-            Notlix
-          </span>
+
+     <span className="flex flex-col">
+  <span className="text-[11px] font-medium text-primary">
+    Neuctra
+  </span>
+  <span className="text-xl leading-4 font-black text-black/70 dark:text-white">
+    Notlix
+  </span>
+</span>
+
         </Link>
 
         {/* Desktop Nav */}
