@@ -47,51 +47,51 @@ export const createEditorCommands = (editorRef) => {
   };
 
   /* ---------------- Text Color ---------------- */
+
   const color = (hex) => {
     const selection = window.getSelection();
-    const range = selection.rangeCount ? selection.getRangeAt(0) : null;
+    if (!selection.rangeCount) return;
 
-    if (range && !range.collapsed) {
-      // Wrap selection in span with color
+    const range = selection.getRangeAt(0);
+    if (range.collapsed) {
+      // Insert a span for typing with selected color
       const span = document.createElement("span");
       span.style.color = hex;
+      span.appendChild(document.createTextNode("\u200B")); // zero-width char
+      range.insertNode(span);
 
-      try {
-        range.surroundContents(span);
-      } catch (e) {
-        // fallback for complex selections
-        const fragment = range.extractContents();
-        span.appendChild(fragment);
-        range.insertNode(span);
-      }
+      const newRange = document.createRange();
+      newRange.setStart(span.firstChild, 1);
+      newRange.collapse(true);
 
       selection.removeAllRanges();
-      selection.addRange(range);
+      selection.addRange(newRange);
     } else {
-      // No selection: insert a span with zero-width char for typing
-      const span = document.createElement("span");
-      span.style.color = hex;
-      span.appendChild(document.createTextNode("\u200B")); // zero-width space
+      // Wrap each text node in the selection with a span
+      const content = range.cloneContents();
+      const frag = document.createDocumentFragment();
 
-      if (editorRef.current) {
-        const sel = window.getSelection();
-        const range = sel.rangeCount ? sel.getRangeAt(0) : null;
-        if (range) {
-          range.insertNode(span);
-          sel.removeAllRanges();
-          sel.collapse(span, 1); // cursor inside the span
+      content.childNodes.forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const span = document.createElement("span");
+          span.style.color = hex;
+          span.textContent = node.textContent;
+          frag.appendChild(span);
         } else {
-          editorRef.current.appendChild(span);
-          const newRange = document.createRange();
-          newRange.setStart(span, 1);
-          newRange.collapse(true);
-          sel.removeAllRanges();
-          sel.addRange(newRange);
+          // recursively apply color to element nodes
+          const wrapper = document.createElement("span");
+          wrapper.style.color = hex;
+          wrapper.appendChild(node.cloneNode(true));
+          frag.appendChild(wrapper);
         }
-      }
+      });
+
+      range.deleteContents();
+      range.insertNode(frag);
     }
 
-    focus();
+    // Keep focus
+    editorRef.current.focus();
   };
 
   /* ---------------- Remove Format ---------------- */

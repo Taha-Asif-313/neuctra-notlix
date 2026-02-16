@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { TwitterPicker } from "react-color";
 import { createEditorCommands } from "../../utils/editorCommands";
+import ColorPicker from "./ColorPicker";
 
 /* ---------------- Fonts & Sizes ---------------- */
 const fonts = [
@@ -70,7 +71,12 @@ const DropdownItem = ({ children, ...props }) => (
   </button>
 );
 
-const TextEditorBlock = ({ initialValue = "", onDone, onCancel, placeholder = "Start writing..." }) => {
+const TextEditorBlock = ({
+  initialValue = "",
+  onDone,
+  onCancel,
+  placeholder = "Start writing...",
+}) => {
   const editorRef = useRef(null);
   const editor = createEditorCommands(editorRef);
 
@@ -136,7 +142,8 @@ const TextEditorBlock = ({ initialValue = "", onDone, onCancel, placeholder = "S
     const regex = new RegExp(searchQuery, "gi");
     const styled = content.replace(
       regex,
-      (match) => `<span style="background-color:yellow;color:${selectedColor};font-family:${selectedFont.value};font-size:${selectedSize}px;">${match}</span>`
+      (match) =>
+        `<span style="background-color:yellow;color:${selectedColor};font-family:${selectedFont.value};font-size:${selectedSize}px;">${match}</span>`,
     );
     editorRef.current.innerHTML = styled;
   };
@@ -158,30 +165,54 @@ const TextEditorBlock = ({ initialValue = "", onDone, onCancel, placeholder = "S
       >
         {/* Formatting */}
         <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
-          <ToolbarIcon onClick={editor.bold}><Bold size={16} /></ToolbarIcon>
-          <ToolbarIcon onClick={editor.italic}><Italic size={16} /></ToolbarIcon>
-          <ToolbarIcon onClick={editor.underline}><Underline size={16} /></ToolbarIcon>
-          <ToolbarIcon onClick={editor.strike}><Strikethrough size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={editor.bold}>
+            <Bold size={16} />
+          </ToolbarIcon>
+          <ToolbarIcon onClick={editor.italic}>
+            <Italic size={16} />
+          </ToolbarIcon>
+          <ToolbarIcon onClick={editor.underline}>
+            <Underline size={16} />
+          </ToolbarIcon>
+          <ToolbarIcon onClick={editor.strike}>
+            <Strikethrough size={16} />
+          </ToolbarIcon>
         </div>
 
         {/* Alignment */}
         <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
-          <ToolbarIcon onClick={() => editor.align("left")}><AlignLeft size={16} /></ToolbarIcon>
-          <ToolbarIcon onClick={() => editor.align("center")}><AlignCenter size={16} /></ToolbarIcon>
-          <ToolbarIcon onClick={() => editor.align("right")}><AlignRight size={16} /></ToolbarIcon>
-          <ToolbarIcon onClick={() => editor.align("justify")}><AlignJustify size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={() => editor.align("left")}>
+            <AlignLeft size={16} />
+          </ToolbarIcon>
+          <ToolbarIcon onClick={() => editor.align("center")}>
+            <AlignCenter size={16} />
+          </ToolbarIcon>
+          <ToolbarIcon onClick={() => editor.align("right")}>
+            <AlignRight size={16} />
+          </ToolbarIcon>
+          <ToolbarIcon onClick={() => editor.align("justify")}>
+            <AlignJustify size={16} />
+          </ToolbarIcon>
         </div>
 
         {/* Lists */}
         <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
-          <ToolbarIcon onClick={editor.unorderedList}><List size={16} /></ToolbarIcon>
-          <ToolbarIcon onClick={editor.orderedList}><ListOrdered size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={editor.unorderedList}>
+            <List size={16} />
+          </ToolbarIcon>
+          <ToolbarIcon onClick={editor.orderedList}>
+            <ListOrdered size={16} />
+          </ToolbarIcon>
         </div>
 
         {/* Undo / Redo */}
         <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
-          <ToolbarIcon onClick={handleUndo}><RotateCcw size={16} /></ToolbarIcon>
-          <ToolbarIcon onClick={handleRedo}><RotateCw size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={handleUndo}>
+            <RotateCcw size={16} />
+          </ToolbarIcon>
+          <ToolbarIcon onClick={handleRedo}>
+            <RotateCw size={16} />
+          </ToolbarIcon>
         </div>
 
         {/* Font Selector */}
@@ -235,13 +266,13 @@ const TextEditorBlock = ({ initialValue = "", onDone, onCancel, placeholder = "S
           )}
         </div>
 
-        {/* Color Picker */}
+        {/* ---------------- Color Picker ---------------- */}
         <div className="dropdown-container relative">
           <button
             onClick={() => setShowColorPicker(!showColorPicker)}
             onMouseDown={(e) => e.preventDefault()}
             className="flex items-center gap-2 px-3 py-2 rounded-lg
-              bg-zinc-100/70 dark:bg-zinc-800/70"
+      bg-zinc-100/70 dark:bg-zinc-800/70"
           >
             <div
               className="w-4 h-4 rounded-full border"
@@ -251,11 +282,14 @@ const TextEditorBlock = ({ initialValue = "", onDone, onCancel, placeholder = "S
           </button>
 
           {showColorPicker && (
-            <div className="absolute z-50 mt-2 right-0 shadow-2xl rounded-xl overflow-hidden">
-              <TwitterPicker
-                color={selectedColor}
-                onChange={handleColorChange}
-                triangle="top-right"
+            <div className="absolute z-50 mt-2 right-0 shadow-2xl rounded-xl overflow-visible">
+              <ColorPicker
+                selectedColor={selectedColor}
+                onSelect={(color) => {
+                  editor.color(color); // use your editor command
+                  setSelectedColor(color);
+                  setShowColorPicker(false);
+                }}
               />
             </div>
           )}
@@ -270,7 +304,9 @@ const TextEditorBlock = ({ initialValue = "", onDone, onCancel, placeholder = "S
             placeholder="Search text..."
             className="px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-600 text-sm"
           />
-          <ToolbarIcon onClick={handleSearchStyle}><SearchIcon size={16} /></ToolbarIcon>
+          <ToolbarIcon onClick={handleSearchStyle}>
+            <SearchIcon size={16} />
+          </ToolbarIcon>
         </div>
       </div>
 
