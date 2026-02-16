@@ -1,66 +1,88 @@
 import React, { useState } from "react";
-import { Trash2, Check, X } from "lucide-react";
+import { Trash2, Check, X, Link } from "lucide-react";
 
-const EditImage = ({ initialUrl = "", onDone, onCancel }) => {
+const ImageEditorBlock = ({ initialUrl = "", onDone, onCancel }) => {
   const [url, setUrl] = useState(initialUrl);
 
-  return (
-    <div className="space-y-3">
-      {/* URL Input */}
-      <div className="flex items-center gap-2">
-        <input
-          type="url"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Enter image URL..."
-          className="flex-1 px-3 py-2 text-sm bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500"
-        />
-      </div>
+  const handleSave = () => {
+    if (!url) return;
+    onDone && onDone(url);
+  };
 
-      {/* Preview */}
-      {url ? (
-        <div className="relative group">
-          <img
-            src={url}
-            alt="User uploaded"
-            className="w-full h-auto max-h-[300px] object-contain rounded-lg border border-zinc-200 dark:border-zinc-700"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src =
-                "https://via.placeholder.com/400x200?text=Invalid+Image+URL";
-            }}
-          />
+  return (
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 space-y-4 shadow-sm">
+      
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          Image Settings
+        </h3>
+
+        {url && (
           <button
             onClick={() => setUrl("")}
-            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="p-1.5 rounded-md bg-red-50 dark:bg-red-900/30 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 transition"
             title="Remove image"
           >
             <Trash2 size={16} />
           </button>
-        </div>
-      ) : (
-        <div className="min-h-[180px] border-2 border-dashed border-zinc-300 dark:border-zinc-600 rounded-lg flex flex-col items-center justify-center gap-3 bg-zinc-50 dark:bg-zinc-800/50">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">No image selected</p>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Done / Cancel Buttons */}
-      <div className="flex gap-2 justify-end">
+      {/* URL Input */}
+      <div className="flex items-center gap-2">
+        <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-md">
+          <Link size={16} className="text-zinc-500" />
+        </div>
+
+        <input
+          type="url"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="Paste image URL here..."
+          className="flex-1 px-3 py-2 text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500"
+        />
+      </div>
+
+      {/* Preview */}
+      <div className="rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/40">
+        {url ? (
+          <img
+            src={url}
+            alt="Preview"
+            className="w-full max-h-[280px] object-contain"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src =
+                "https://via.placeholder.com/600x300?text=Invalid+Image+URL";
+            }}
+          />
+        ) : (
+          <div className="min-h-[180px] flex items-center justify-center text-sm text-zinc-400">
+            Image preview will appear here
+          </div>
+        )}
+      </div>
+
+      {/* Footer Buttons */}
+      <div className="flex justify-end gap-2 pt-2">
         <button
           onClick={() => onCancel && onCancel()}
-          className="px-3 py-1.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-md hover:bg-zinc-300 dark:hover:bg-zinc-600 transition"
+          className="px-4 py-2 text-sm rounded-md bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition flex items-center gap-1"
         >
-          <X size={16} className="inline mr-1" /> Cancel
+          <X size={16} /> Cancel
         </button>
+
         <button
-          onClick={() => onDone && onDone(url)}
-          className="px-3 py-1.5 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
+          onClick={handleSave}
+          disabled={!url}
+          className="px-4 py-2 text-sm rounded-md bg-primary text-white hover:opacity-90 transition flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Check size={16} className="inline mr-1" /> Done
+          <Check size={16} /> Save
         </button>
       </div>
     </div>
   );
 };
 
-export default EditImage;
+export default ImageEditorBlock;

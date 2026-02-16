@@ -16,19 +16,20 @@ import {
   RotateCcw,
   RotateCw,
   Search as SearchIcon,
+  Eraser,
 } from "lucide-react";
-import { TwitterPicker } from "react-color";
 import { createEditorCommands } from "../../utils/editorCommands";
 import ColorPicker from "./ColorPicker";
 
 /* ---------------- Fonts & Sizes ---------------- */
 const fonts = [
   { name: "Arial", value: "Arial, sans-serif" },
-  { name: "Georgia", value: "Georgia, serif" },
+  { name: "Jameel Noori", value: "JameelNoori, Noto Nastaliq Urdu, serif" },
   { name: "Times New Roman", value: "'Times New Roman', serif" },
   { name: "Courier New", value: "'Courier New', monospace" },
-  { name: "Verdana", value: "Verdana, sans-serif" },
-  { name: "Helvetica", value: "Helvetica, sans-serif" },
+  { name: "Quran Font", value: "QuranFont, Scheherazade New, Amiri, serif" },
+  { name: "Quran Surah Font", value: "QuranSurah, Scheherazade New, serif" },
+    { name: "Hafs", value: "Hafs, Scheherazade New, serif" },
   { name: "Inter", value: "'Inter', sans-serif" },
 ];
 
@@ -289,17 +290,10 @@ const TextEditorBlock = ({
           )}
         </div>
 
-        {/* Search & Style */}
+        {/* Clear Formatting */}
         <div className="flex items-center gap-1 bg-zinc-100/70 dark:bg-zinc-800/70 rounded-xl p-1">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search text..."
-            className="px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-600 text-sm"
-          />
-          <ToolbarIcon onClick={handleSearchStyle}>
-            <SearchIcon size={16} />
+          <ToolbarIcon onClick={editor.clearFormatting}>
+            <Eraser size={16} />
           </ToolbarIcon>
         </div>
       </div>
@@ -309,7 +303,7 @@ const TextEditorBlock = ({
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className="min-h-[220px] px-8 py-8 
+        className="min-h-[220px] px-4 py-4 
           text-[16px] leading-relaxed 
           focus:outline-none
           empty:before:content-[attr(data-placeholder)]
@@ -321,11 +315,7 @@ const TextEditorBlock = ({
       />
 
       {/* ---------------- Footer ---------------- */}
-      <div
-        className="flex justify-end gap-3 px-6 py-4 
-        bg-zinc-50/80 dark:bg-zinc-800/60 
-        border-t border-zinc-200/60 dark:border-zinc-700/60"
-      >
+      <div className="flex justify-end gap-3 px-6 pb-4">
         <button
           onClick={onCancel}
           className="px-5 py-2.5 rounded-lg border 

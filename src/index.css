@@ -38,6 +38,13 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: "Hafs";
+  src: url("/fonts/hafs.woff2") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* 🌑 Global Styles */
 body {
   background-color: black;

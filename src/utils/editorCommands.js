@@ -95,7 +95,31 @@ export const createEditorCommands = (editorRef) => {
   };
 
   /* ---------------- Remove Format ---------------- */
-  const clearFormatting = () => exec("removeFormat");
+  const clearFormatting = () => {
+    focus();
+    document.execCommand("removeFormat");
+
+    // Remove inline styles manually
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+
+    const walker = document.createTreeWalker(
+      container,
+      NodeFilter.SHOW_ELEMENT,
+      null,
+      false,
+    );
+
+    while (walker.nextNode()) {
+      const el = walker.currentNode;
+      if (el.style) {
+        el.removeAttribute("style");
+      }
+    }
+  };
 
   return {
     bold,
