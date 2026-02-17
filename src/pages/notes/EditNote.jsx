@@ -1,37 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  Save,
-  Eye,
-  Edit3,
-  Sparkles,
-  Clock,
-  Download,
-  Upload,
-  FileText,
-  MoreVertical,
-  Trash2,
-  Image,
-  X,
-  Menu,
-} from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Eye, Edit3, Clock, Image, X, Menu } from "lucide-react";
 import RichTextEditor from "../../components/RichTextEditor";
-import {
-  getPackage,
-  getSingleNote,
-  updateNote,
-  updatePackageUsage,
-} from "../../utils/authixInit";
-import { useAppContext } from "../../context/AppContext";
 import Metadata from "../../MetaData";
 import CustomLoader from "../../components/CustomLoader";
 import toast from "react-hot-toast";
-import { useNoteAiAgent } from "../../hooks/useNoteAiAgent";
-import AIModal from "../../components/AiModal";
-import { ReactSignedIn } from "@neuctra/authix";
 import BlocksPreview from "../../components/TextEditor/previews/BlockPreview";
+import { useAppContext } from "../../context/AppContext";
+import { ReactSignedIn } from "@neuctra/authix";
+import { getSingleNote, updateNote } from "../../utils/authixInit";
+import { motion, AnimatePresence } from "framer-motion";
 
 const EditNote = () => {
   const { id } = useParams();
@@ -39,125 +17,15 @@ const EditNote = () => {
   const editorRef = useRef();
   const { user } = useAppContext();
 
-  const { generateNote, aiResponses, loading: aiLoading } = useNoteAiAgent();
-
-  const quickPrompts = [
-    {
-      key: "meeting_notes",
-      value:
-        "Create a professional meeting notes template with agenda, key points, decisions, and action items.",
-    },
-    {
-      key: "study_summary",
-      value:
-        "Generate a study summary outline with main topics, key concepts, and short explanations.",
-    },
-    {
-      key: "project_ideas",
-      value:
-        "Brainstorm a list of creative project ideas, including purpose, tools, and potential challenges.",
-    },
-    {
-      key: "daily_reflection",
-      value:
-        "Create a daily reflection note layout including gratitude, highlights, and lessons learned.",
-    },
-    {
-      key: "shopping_list",
-      value:
-        "Make a categorized shopping list with sections for groceries, cleaning, and essentials.",
-    },
-    {
-      key: "recipe_notes",
-      value:
-        "Generate a recipe note format with ingredients, step-by-step instructions, and cooking tips.",
-    },
-    {
-      key: "book_summary",
-      value:
-        "Write a book summary template with title, author, main idea, and favorite quotes.",
-    },
-    {
-      key: "goal_tracker",
-      value:
-        "Design a goal tracking note with short-term, long-term goals, and progress milestones.",
-    },
-    {
-      key: "workout_log",
-      value:
-        "Create a workout log with date, exercises, sets, reps, and performance notes.",
-    },
-    {
-      key: "habit_tracker",
-      value:
-        "Generate a daily habit tracker layout for consistency and motivation.",
-    },
-    {
-      key: "travel_plan",
-      value:
-        "Make a travel planning note including destinations, itinerary, budget, and must-see places.",
-    },
-    {
-      key: "content_ideas",
-      value:
-        "Brainstorm social media or blog content ideas with topics, captions, and hashtags.",
-    },
-    {
-      key: "project_plan",
-      value:
-        "Create a project planning note with objectives, timeline, deliverables, and status updates.",
-    },
-    {
-      key: "learning_journal",
-      value:
-        "Generate a learning journal layout to capture what was learned, challenges, and takeaways.",
-    },
-    {
-      key: "gratitude_journal",
-      value:
-        "Design a gratitude journal entry with sections for things you're thankful for and reflections.",
-    },
-    {
-      key: "bug_report",
-      value:
-        "Make a structured bug report template with issue details, reproduction steps, and status.",
-    },
-    {
-      key: "meeting_agenda",
-      value:
-        "Create a meeting agenda format with objectives, discussion points, and expected outcomes.",
-    },
-    {
-      key: "idea_brainstorm",
-      value:
-        "Generate an idea brainstorming sheet for creative projects and innovation sessions.",
-    },
-    {
-      key: "financial_tracker",
-      value:
-        "Design a financial tracker note with income, expenses, and savings breakdowns.",
-    },
-    {
-      key: "study_plan",
-      value:
-        "Create a study plan layout with topics, deadlines, and completion progress.",
-    },
-  ];
-
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const [blocks, setBlocks] = useState([]);
   const [noteThumbnail, setNoteThumbnail] = useState("");
   const [isPreview, setIsPreview] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState(new Date());
-  const [wordCount, setWordCount] = useState(0);
   const [loadingNote, setLoadingNote] = useState(true);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
 
   // ✅ Fetch note
   useEffect(() => {
@@ -172,10 +40,6 @@ const EditNote = () => {
           setTitle(response.title || "");
           setBlocks(response.blocks);
           setNoteThumbnail(response.noteThumbnail || ""); // ✅ add this
-          setTimeout(() => {
-            if (editorRef.current?.setEditorContent)
-              editorRef.current.setEditorContent(response.content || "");
-          }, 100);
         }
       } catch (err) {
         console.error("Failed to load note:", err);
@@ -185,15 +49,6 @@ const EditNote = () => {
     };
     fetchNote();
   }, [id, user]);
-
-  // ✅ Word count
-  useEffect(() => {
-    const words = (title + " " + content)
-      .trim()
-      .split(/\s+/)
-      .filter((w) => w.length > 0).length;
-    setWordCount(words);
-  }, [title, content]);
 
   // ✅ Save note
   const handleUpdate = async () => {
@@ -209,7 +64,6 @@ const EditNote = () => {
         blocks,
         noteThumbnail, // ✅ include thumbnail
         date: new Date().toISOString(),
-        wordCount,
       };
 
       await updateNote(user.id, id, updatedNote);
@@ -220,55 +74,6 @@ const EditNote = () => {
       toast.error("Failed to update note.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  // -----------------------------
-  // 🤖 Generate with AI (Daily Limit)
-  // -----------------------------
-  const handleAIGenerate = async () => {
-    if (!aiPrompt.trim()) {
-      toast.error("Please enter a prompt first!");
-      return;
-    }
-
-    try {
-      const pkg = await getPackage(user.id);
-      if (!pkg) {
-        toast.error("Failed to verify your package.");
-        return;
-      }
-
-      // 🧠 Use daily prompt limit instead of monthly
-      const used = pkg?.usage?.aiPromptsUsed ?? 0;
-      const limit = pkg?.aiPromptsPerDay ?? 5;
-
-      if (used >= limit) {
-        toast.error(`AI prompt limit reached (${limit}/day).`);
-        return;
-      }
-
-      // 🚀 Generate AI content
-      const aiResult = await generateNote(aiPrompt);
-      if (!aiResult) {
-        toast.error("AI did not return a valid response.");
-        return;
-      }
-
-      // 📊 Increment usage count
-      await updatePackageUsage(user.id, "ai", "increment");
-
-      // 📝 Update editor content
-      setContent(aiResult);
-      editorRef.current?.setEditorContent(aiResult);
-
-      toast.success("AI note generated successfully!");
-      setShowModal(false);
-    } catch (err) {
-      console.error("❌ AI Generation Error:", err);
-      toast.error("AI failed to generate note.");
-    } finally {
-      setNoteLoading(false);
     }
   };
 
@@ -327,14 +132,6 @@ const EditNote = () => {
                   title={isPreview ? "Edit" : "Preview"}
                 >
                   {isPreview ? <Edit3 size={18} /> : <Eye size={18} />}
-                </button>
-
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-                  title="AI Assist"
-                >
-                  <Sparkles size={18} />
                 </button>
               </div>
 
@@ -433,8 +230,7 @@ const EditNote = () => {
       placeholder-slate-300
       dark:placeholder-zinc-700
 
-      transition-all
-    "
+      transition-all"
                 />
               </div>
 
@@ -532,16 +328,6 @@ const EditNote = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
-        <AIModal
-          show={showModal}
-          onClose={() => setShowModal(false)}
-          aiPrompt={aiPrompt}
-          setAiPrompt={setAiPrompt}
-          quickPrompts={quickPrompts}
-          handleAIGenerate={handleAIGenerate}
-          loading={aiLoading || loading}
-        />
       </div>
     </ReactSignedIn>
   );

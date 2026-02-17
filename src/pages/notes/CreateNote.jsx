@@ -2,36 +2,25 @@ import { useState, useEffect, useRef } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
-  Save,
   Eye,
   Edit3,
-  Sparkles,
   Clock,
-  Download,
-  Upload,
   FileText,
-  MoreVertical,
-  Trash2,
   X,
-  Check,
   Image,
   Menu,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import toast from "react-hot-toast";
-
-import RichTextEditor from "../../components/RichTextEditor";
-import AIModal from "../../components/AiModal";
-import CustomLoader from "../../components/CustomLoader";
-import Metadata from "../../MetaData";
-
 import {
   createNote,
   getPackage,
   updatePackageUsage,
 } from "../../utils/authixInit";
+import toast from "react-hot-toast";
+import RichTextEditor from "../../components/RichTextEditor";
+import CustomLoader from "../../components/CustomLoader";
+import Metadata from "../../MetaData";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppContext } from "../../context/AppContext";
-import { useNoteAiAgent } from "../../hooks/useNoteAiAgent";
 import { ReactSignedIn } from "@neuctra/authix";
 
 const CreateNote = () => {
@@ -46,35 +35,12 @@ const CreateNote = () => {
   const [blocks, setBlocks] = useState([]); // ✅ blocks instead of raw content
   const [noteThumbnail, setNoteThumbnail] = useState("");
   const [isPreview, setIsPreview] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState("");
   const [noteLoading, setNoteLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState(new Date());
-  const [headerDropdownOpen, setHeaderDropdownOpen] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [mobileView, setMobileView] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // 🔹 AI Agent Hook
-  const { generateNote, aiLoading } = useNoteAiAgent();
-
-  // Quick Prompts
-  const quickPrompts = [
-    {
-      key: "meeting_notes",
-      value: "Create a professional meeting notes template...",
-    },
-    { key: "study_summary", value: "Generate a study summary outline..." },
-    {
-      key: "project_ideas",
-      value: "Brainstorm a list of creative project ideas...",
-    },
-    {
-      key: "daily_reflection",
-      value: "Create a daily reflection note layout...",
-    },
-  ];
 
   // -----------------------------
   // 🔹 Effects
@@ -162,52 +128,8 @@ const CreateNote = () => {
     }
   };
 
-  // -----------------------------
-  // 🤖 Generate with AI
-  // -----------------------------
-  const handleAIGenerate = async () => {
-    if (!aiPrompt.trim()) {
-      toast.error("Please enter a prompt first!");
-      return;
-    }
-
-    try {
-      const pkg = await getPackage(user.id);
-      if (!pkg) throw new Error("Failed to verify your package.");
-
-      const used = pkg?.usage?.aiPromptsUsed ?? 0;
-      const limit = pkg?.aiPromptsPerDay ?? 5;
-      if (used >= limit) {
-        toast.error(`AI prompt limit reached (${limit}/day).`);
-        return;
-      }
-
-      const aiResult = await generateNote(aiPrompt);
-      if (!aiResult) throw new Error("AI did not return a valid response.");
-
-      await updatePackageUsage(user.id, "ai", "increment");
-
-      // 📝 Convert AI text to a single text block
-      setBlocks([
-        {
-          id: Date.now(),
-          type: "text",
-          content: { html: aiResult, isEditing: false },
-        },
-      ]);
-      toast.success("AI note generated successfully!");
-      setShowModal(false);
-    } catch (err) {
-      console.error("❌ AI Generation Error:", err);
-      toast.error("AI failed to generate note.");
-    } finally {
-      setNoteLoading(false);
-    }
-  };
-
   if (noteLoading)
     return <CustomLoader message="Saving your note, please wait..." />;
-  if (aiLoading) return <CustomLoader message="Generating AI content..." />;
 
   return (
     <ReactSignedIn fallback={<Navigate to={"/login"} />}>
@@ -262,14 +184,6 @@ const CreateNote = () => {
                   title={isPreview ? "Edit" : "Preview"}
                 >
                   {isPreview ? <Edit3 size={18} /> : <Eye size={18} />}
-                </button>
-
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-                  title="AI Assist"
-                >
-                  <Sparkles size={18} />
                 </button>
 
                 {/* Divider */}
@@ -329,15 +243,6 @@ const CreateNote = () => {
                   )}
                 </button>
 
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="w-full px-3 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={16} /> AI Assist
-                  </div>
-                </button>
-
                 {/* Thumbnail & Save */}
                 <button
                   onClick={() => setImageModalOpen(true)}
@@ -373,19 +278,7 @@ const CreateNote = () => {
               <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
             </div>
 
-            {/* Word Count - Floating chip */}
-            {wordCount > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-white/70 dark:bg-zinc-800/70 backdrop-blur-sm rounded-full w-fit border border-slate-200/50 dark:border-zinc-700/50 shadow-sm"
-              >
-                <FileText size={14} className="text-slate-400" />
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                  {wordCount} {wordCount === 1 ? "word" : "words"}
-                </span>
-              </motion.div>
-            )}
+    
 
             {/* Editor/Preview Area */}
             {!isPreview ? (
@@ -615,34 +508,6 @@ const CreateNote = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Floating Save Indicator */}
-        <AnimatePresence>
-          {lastSaved > new Date(Date.now() - 5000) && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="fixed bottom-6 right-6 z-50"
-            >
-              <div className="bg-emerald-500 text-white px-4 py-3 rounded-2xl shadow-lg flex items-center gap-2">
-                <Check size={16} />
-                <span className="text-sm font-medium">Saved</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* AI Modal */}
-        <AIModal
-          show={showModal}
-          onClose={() => setShowModal(false)}
-          aiPrompt={aiPrompt}
-          setAiPrompt={setAiPrompt}
-          quickPrompts={quickPrompts}
-          handleAIGenerate={handleAIGenerate}
-          loading={aiLoading}
-        />
       </div>
     </ReactSignedIn>
   );

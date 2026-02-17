@@ -15,6 +15,7 @@ import {
 import toast from "react-hot-toast";
 import Metadata from "../../MetaData";
 import CustomLoader from "../../components/CustomLoader";
+import BlocksPreview from "../../components/TextEditor/previews/BlockPreview";
 
 const SharedNotePreview = () => {
   const { token } = useParams();
@@ -24,7 +25,7 @@ const SharedNotePreview = () => {
   const [loading, setLoading] = useState(true);
   const [expired, setExpired] = useState(false);
   const [darkMode, setDarkMode] = useState(
-    () => window.matchMedia("(prefers-color-scheme: dark)").matches
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
   const [copied, setCopied] = useState(false);
 
@@ -34,37 +35,6 @@ const SharedNotePreview = () => {
     setDarkMode(newDarkMode);
     document.documentElement.classList.toggle("dark", newDarkMode);
     localStorage.setItem("theme", newDarkMode ? "dark" : "light");
-  };
-
-  // 📋 Copy link to clipboard
-  // 📋 Copy link to clipboard (fixed version)
-  const copyLink = async () => {
-    try {
-      const link = window.location.href;
-
-      if (navigator.clipboard && window.isSecureContext) {
-        // ✅ Modern secure way
-        await navigator.clipboard.writeText(link);
-      } else {
-        // ⚙️ Fallback for non-HTTPS or older browsers
-        const textarea = document.createElement("textarea");
-        textarea.value = link;
-        textarea.style.position = "fixed";
-        textarea.style.left = "-9999px";
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-      }
-
-      setCopied(true);
-      toast.success("🔗 Link copied!");
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to copy link 😢");
-    }
   };
 
   useEffect(() => {
@@ -103,7 +73,7 @@ const SharedNotePreview = () => {
           setNote(response);
           setTitle(response.title);
           setContent(response.content);
-          toast.success("✅ Shared note loaded!");
+          toast.success("Shared note loaded!");
         } else {
           toast.error("Note not found or access denied.");
         }
@@ -156,33 +126,9 @@ const SharedNotePreview = () => {
       {/* 🧠 Auto-Generated SEO Metadata */}
       <Metadata
         title={`${title || "Shared Note"} | Neuctra Notlix`}
-        description={(() => {
-          // 🧹 Step 1: Remove HTML tags from note content
-          const cleanText =
-            content
-              ?.replace(/<[^>]*>/g, " ") // strip HTML
-              ?.replace(/\s+/g, " ") // collapse whitespace
-              ?.trim() || "";
-
-          // 🪄 Step 2: Build a natural-language summary
-          if (!cleanText)
-            return "View this shared note securely on Neuctra Notlix — your AI-powered cloud workspace for collaboration and creativity.";
-
-          // 🧠 Step 3: Extract a concise, human-readable preview
-          const sentences = cleanText.split(/[.!?]\s/);
-          let summary =
-            sentences.length > 1
-              ? sentences.slice(0, 2).join(". ")
-              : cleanText.slice(0, 160);
-
-          // 🧱 Step 4: Trim overly long snippets
-          if (summary.length > 160) summary = summary.slice(0, 157) + "...";
-
-          return (
-            summary ||
-            "A shared note available for secure viewing and collaboration on Neuctra Notlix."
-          );
-        })()}
+        description={
+          "View this shared note securely on Neuctra Notlix — your AI-powered cloud workspace for collaboration and creativity."
+        }
         keywords="shared note, Neuctra Notlix, AI collaboration, cloud notes, secure sharing, real-time editing, team notes, productivity app"
         ogTitle={`${title || "Shared Note"} | Neuctra Notlix`}
         ogDescription="View and collaborate on this shared note using Neuctra Notlix — the AI-powered cloud platform for smart notes and teamwork."
@@ -193,7 +139,7 @@ const SharedNotePreview = () => {
       <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300 pb-10">
         {/* Header */}
         <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-black/80 border-b border-gray-200/50 dark:border-zinc-700/50 supports-backdrop-blur:bg-white/60 dark:supports-backdrop-blur:bg-black/60 transition-all duration-300">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="p-2 bg-primary/10 rounded-xl shrink-0">
@@ -211,20 +157,6 @@ const SharedNotePreview = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Copy Link Button */}
-                <button
-                  onClick={copyLink}
-                  className="p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200 group"
-                  title="Copy link to clipboard"
-                >
-                  {copied ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <Copy className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
-                  )}
-                </button>
-
-                {/* Theme Toggle */}
                 <button
                   onClick={toggleTheme}
                   className="p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200"
@@ -244,25 +176,17 @@ const SharedNotePreview = () => {
         </header>
 
         {/* Content */}
-        <main className="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border dark:text-white border-gray-200 dark:border-zinc-900 bg-white dark:bg-zinc-950 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20">
-            <article
-              className="prose prose-zinc dark:prose-invert max-w-none p-6 sm:p-8 lg:p-10 min-h-[50vh] leading-relaxed
-              prose-headings:font-semibold
-              prose-h1:text-3xl sm:prose-h1:text-4xl
-              prose-h2:text-2xl sm:prose-h2:text-3xl
-              prose-h3:text-xl sm:prose-h3:text-2xl
-              prose-p:text-gray-700 dark:prose-p:text-gray-300
-              prose-a:text-primary hover:prose-a:text-primary/80
-              prose-strong:text-gray-900 dark:prose-strong:text-white
-              prose-code:bg-gray-100 dark:prose-code:bg-zinc-700
-              prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md
-              prose-pre:bg-gray-900 prose-pre:text-gray-100
-              prose-blockquote:border-primary prose-blockquote:bg-gray-50 dark:prose-blockquote:bg-zinc-700/50
-              prose-ul:marker:text-gray-400 dark:prose-ul:marker:text-gray-500
-              prose-ol:marker:text-gray-400 dark:prose-ol:marker:text-gray-500"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
+        <main className="max-w-7xl mx-auto mt-8 px-4 sm:px-6 lg:px-8">
+          {/* Title Input - Modern minimalist */}
+          <div className=" dark:text-white">
+            <div className="relative space-y-3">
+              <h1 className="w-full text-4xl sm:text-5xl font-bold bg-transparent border-none outline-none placeholder-slate-300 dark:placeholder-zinc-700 focus:ring-0 px-1 transition-all">
+                {note.title}
+              </h1>
+              {/* Animated underline */}
+              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 scale-x-0 group-focus-within:scale-x-100 transition-transform duration-300 origin-left" />
+            </div>
+            <BlocksPreview blocks={note.blocks} />
           </div>
         </main>
 

@@ -20,7 +20,7 @@ const BlocksPreview = ({ blocks }) => {
           <div key={block.id} className="w-full">
             {/* ---------------- TEXT BLOCK ---------------- */}
             {block.type === "text" && (
-              <div className={`p-4`}>
+              <div className={`p-1`}>
                 <div
                   className={divProseStyles}
                   dangerouslySetInnerHTML={{

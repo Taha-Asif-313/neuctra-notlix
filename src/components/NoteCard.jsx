@@ -281,7 +281,6 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
         </div>
       </div>
     );
-  console.log(note);
 
   return (
     <>
@@ -331,9 +330,23 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
           {/* Preview */}
           <div
             dangerouslySetInnerHTML={{
-              __html:
-                note.blocks?.[0]?.content?.html ||
-                "<p class='text-gray-400'>Nothing to preview</p>",
+              __html: (() => {
+                const html = note.blocks?.[0]?.content?.html || "";
+                if (!html)
+                  return "<p class='text-gray-400'>Nothing to preview</p>";
+
+                // 1️⃣ Strip HTML tags
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = html;
+                const text = tempDiv.textContent || tempDiv.innerText || "";
+
+                // 2️⃣ Truncate to 100 characters (adjust as needed)
+                const truncated =
+                  text.length > 100 ? text.slice(0, 100) + "..." : text;
+
+                // 3️⃣ Return as paragraph
+                return `<p class="text-gray-700 dark:text-gray-300">${truncated}</p>`;
+              })(),
             }}
             className={divProseStyles}
           />
@@ -365,6 +378,7 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()} // ✅ Stop propagation
               className="absolute top-12 right-3 w-56 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-2xl overflow-visible z-50"
             >
               <div className="py-1 text-sm">
