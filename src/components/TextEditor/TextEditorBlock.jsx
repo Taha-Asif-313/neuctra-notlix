@@ -29,7 +29,7 @@ const fonts = [
   { name: "Courier New", value: "'Courier New', monospace" },
   { name: "Quran Font", value: "QuranFont, Scheherazade New, Amiri, serif" },
   { name: "Quran Surah Font", value: "QuranSurah, Scheherazade New, serif" },
-    { name: "Hafs", value: "Hafs, Scheherazade New, serif" },
+  { name: "Hafs", value: "Hafs, Scheherazade New, serif" },
   { name: "Inter", value: "'Inter', sans-serif" },
 ];
 
@@ -129,19 +129,6 @@ const TextEditorBlock = ({
   /* ---------------- Undo / Redo ---------------- */
   const handleUndo = () => document.execCommand("undo");
   const handleRedo = () => document.execCommand("redo");
-
-  /* ---------------- Search & Style ---------------- */
-  const handleSearchStyle = () => {
-    if (!searchQuery) return;
-    const content = editorRef.current.innerHTML;
-    const regex = new RegExp(searchQuery, "gi");
-    const styled = content.replace(
-      regex,
-      (match) =>
-        `<span style="background-color:yellow;color:${selectedColor};font-family:${selectedFont.value};font-size:${selectedSize}px;">${match}</span>`,
-    );
-    editorRef.current.innerHTML = styled;
-  };
 
   /* ---------------- Render ---------------- */
   return (
@@ -303,14 +290,38 @@ const TextEditorBlock = ({
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        className="min-h-[220px] px-4 py-4 
-          text-[16px] leading-relaxed 
-          focus:outline-none
-          empty:before:content-[attr(data-placeholder)]
-          empty:before:text-zinc-400
-          text-black dark:text-white
-          [&_ul]:list-disc [&_ul]:pl-8
-          [&_ol]:list-decimal [&_ol]:pl-8"
+        className="
+    w-full
+    max-w-full
+    min-h-[220px]
+
+    px-4 py-4
+    text-[16px] leading-relaxed
+    focus:outline-none
+
+    break-words
+    whitespace-normal
+    overflow-x-hidden
+
+    text-black dark:text-white
+
+    [&_*]:max-w-full
+    [&_*]:break-words
+    [&_*]:whitespace-normal
+
+    [&_img]:max-w-full
+    [&_img]:h-auto
+
+    [&_table]:block
+    [&_table]:w-full
+    [&_table]:overflow-x-auto
+
+    [&_ul]:list-disc [&_ul]:pl-8
+    [&_ol]:list-decimal [&_ol]:pl-8
+
+    empty:before:content-[attr(data-placeholder)]
+    empty:before:text-zinc-400
+  "
         data-placeholder={placeholder}
       />
 
