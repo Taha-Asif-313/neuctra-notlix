@@ -240,6 +240,7 @@ const EditNote = () => {
                   ref={editorRef}
                   blocks={blocks}
                   setBlocks={setBlocks}
+                  showAiButton={true}
                   key={id || "edit-note"}
                 />
               ) : (

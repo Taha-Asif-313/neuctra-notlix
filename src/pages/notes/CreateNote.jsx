@@ -294,7 +294,7 @@ const CreateNote = () => {
                   ref={editorRef}
                   blocks={blocks}
                   setBlocks={setBlocks}
-                  mobileOptimized={mobileView}
+                  showAiButton = {true}
                 />
               </div>
             ) : (

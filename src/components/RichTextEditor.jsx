@@ -63,7 +63,7 @@ const AddBlockButton = ({ icon, label, onClick }) => (
 /* Main Editor with AI Support */
 /* -------------------------------- */
 const RichTextEditor = forwardRef(
-  ({ blocks: initialBlocks = [], setBlocks: setParentBlocks }, ref) => {
+  ({showAiButton = false, blocks: initialBlocks = [], setBlocks: setParentBlocks }, ref) => {
     const {user} = useAppContext();
     const [blocks, setBlocks] = useState(initialBlocks);
     const [history, setHistory] = useState([]);
@@ -446,7 +446,7 @@ const RichTextEditor = forwardRef(
           </div>
 
           {/* ================= AI GENIE ================= */}
-          {user && (
+          {user && showAiButton && (
             <div className="fixed bottom-6 right-6 z-50">
               {/* Floating Button with Framer Motion */}
               <AnimatePresence>
