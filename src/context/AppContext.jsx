@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { authix } from "../utils/authixInit"; // ✅ import authix properly
+import { authix, getAllNotes } from "../utils/authixInit"; // ✅ import authix properly
 import CustomLoader from "../components/CustomLoader";
 
 /* ----------------------------------------
@@ -83,6 +83,12 @@ export const AppProvider = ({ children }) => {
     initUser();
   }, [setUserInfo]);
 
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotes(user.id);
+    }
+  }, [user?.id]);
+
   /* ----------------------------------------
      🌓 Dark Mode Handling
   ---------------------------------------- */
@@ -107,6 +113,18 @@ export const AppProvider = ({ children }) => {
       setDarkMode(systemPrefersDark);
     }
   }, [setDarkMode]);
+
+  const fetchNotes = async (userId) => {
+    if (!userId) return;
+
+    try {
+      const fetchedNotes = await getAllNotes(userId);
+      setNotes(Array.isArray(fetchedNotes) ? fetchedNotes : []);
+    } catch (error) {
+      console.error("❌ Failed to fetch notes:", error);
+      setNotes([]);
+    }
+  };
 
   const toggleTheme = () => {
     if (darkMode === "system") {

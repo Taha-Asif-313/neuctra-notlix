@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Save,
@@ -32,6 +32,7 @@ import {
 } from "../../utils/authixInit";
 import { useAppContext } from "../../context/AppContext";
 import { useNoteAiAgent } from "../../hooks/useNoteAiAgent";
+import { ReactSignedIn } from "@neuctra/authix";
 
 const CreateNote = () => {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ const CreateNote = () => {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [mobileView, setMobileView] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // 🔹 AI Agent Hook
   const { generateNote, aiLoading } = useNoteAiAgent();
@@ -209,150 +210,152 @@ const CreateNote = () => {
   if (aiLoading) return <CustomLoader message="Generating AI content..." />;
 
   return (
-    <>
+    <ReactSignedIn fallback={<Navigate to={"/login"} />}>
       <Metadata
         title="Create New Note – Neuctra Notlix"
         description="Create and organize your ideas effortlessly with Neuctra Notlix — the AI-powered note editor."
       />
 
       <div className="min-h-screen bg-slate-50 dark:bg-black text-gray-900 dark:text-white">
-   <header className="sticky top-0 z-40 bg-white dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-800">
-  <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
-    {/* Left: Back + Title */}
-    <div className="flex items-center gap-4">
-      <Link
-        to="/notes"
-        className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="hidden sm:inline">Back</span>
-      </Link>
+        <header className="sticky top-0 z-40 bg-white dark:bg-zinc-950 border-b border-gray-200 dark:border-zinc-800">
+          <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
+            {/* Left: Back + Title */}
+            <div className="flex items-center gap-4">
+              <Link
+                to="/notes"
+                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">Back</span>
+              </Link>
 
-      {/* Divider */}
-      <div className="hidden sm:block h-5 w-px bg-gray-300 dark:bg-zinc-700" />
+              {/* Divider */}
+              <div className="hidden sm:block h-5 w-px bg-gray-300 dark:bg-zinc-700" />
 
-      <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-        New Note
-      </h1>
-    </div>
-
-    {/* Right: Actions */}
-    <div className="flex items-center gap-2 sm:gap-3">
-      {/* Last Saved (md+) */}
-      <div className="hidden md:flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
-        <Clock size={14} />
-        <span>
-          {lastSaved.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        </span>
-      </div>
-
-      {/* Divider (sm+) */}
-      <div className="hidden sm:block h-5 w-px bg-gray-300 dark:bg-zinc-700" />
-
-      {/* Desktop Actions */}
-      <div className="hidden sm:flex items-center gap-2 sm:gap-3">
-        {/* Icon Actions */}
-        <button
-          onClick={() => setIsPreview(!isPreview)}
-          className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-          title={isPreview ? "Edit" : "Preview"}
-        >
-          {isPreview ? <Edit3 size={18} /> : <Eye size={18} />}
-        </button>
-
-        <button
-          onClick={() => setShowModal(true)}
-          className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-          title="AI Assist"
-        >
-          <Sparkles size={18} />
-        </button>
-
-        {/* Divider */}
-        <div className="h-5 w-px bg-gray-300 dark:bg-zinc-700" />
-
-        {/* Secondary & Primary Buttons */}
-        <button
-          onClick={() => setImageModalOpen(true)}
-          className="px-3 py-2 text-sm font-medium border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-        >
-          Set Thumbnail
-        </button>
-
-        <button
-          onClick={handleSaveNote}
-          className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:opacity-90 transition"
-        >
-          Save
-        </button>
-      </div>
-
-      {/* Mobile Menu Toggle */}
-      <div className="sm:hidden">
-        <button
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="p-2 rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition"
-        >
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </div>
-    </div>
-  </div>
-
-  {/* Mobile Menu */}
-  <AnimatePresence>
-    {mobileMenuOpen && (
-      <motion.div
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ height: "auto", opacity: 1 }}
-        exit={{ height: 0, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className="overflow-hidden px-4 py-3 bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-800 flex flex-col gap-2 sm:hidden"
-      >
-        {/* Icon Actions */}
-        <button
-          onClick={() => setIsPreview(!isPreview)}
-          className="w-full px-3 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-        >
-          {isPreview ? (
-            <div className="flex items-center gap-2">
-              <Edit3 size={16} /> Edit
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                New Note
+              </h1>
             </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Eye size={16} /> Preview
-            </div>
-          )}
-        </button>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-full px-3 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-        >
-          <div className="flex items-center gap-2">
-            <Sparkles size={16} /> AI Assist
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Last Saved (md+) */}
+              <div className="hidden md:flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
+                <Clock size={14} />
+                <span>
+                  {lastSaved.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+
+              {/* Divider (sm+) */}
+              <div className="hidden sm:block h-5 w-px bg-gray-300 dark:bg-zinc-700" />
+
+              {/* Desktop Actions */}
+              <div className="hidden sm:flex items-center gap-2 sm:gap-3">
+                {/* Icon Actions */}
+                <button
+                  onClick={() => setIsPreview(!isPreview)}
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                  title={isPreview ? "Edit" : "Preview"}
+                >
+                  {isPreview ? <Edit3 size={18} /> : <Eye size={18} />}
+                </button>
+
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                  title="AI Assist"
+                >
+                  <Sparkles size={18} />
+                </button>
+
+                {/* Divider */}
+                <div className="h-5 w-px bg-gray-300 dark:bg-zinc-700" />
+
+                {/* Secondary & Primary Buttons */}
+                <button
+                  onClick={() => setImageModalOpen(true)}
+                  className="px-3 py-2 text-sm font-medium border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                >
+                  Set Thumbnail
+                </button>
+
+                <button
+                  onClick={handleSaveNote}
+                  className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:opacity-90 transition"
+                >
+                  Save
+                </button>
+              </div>
+
+              {/* Mobile Menu Toggle */}
+              <div className="sm:hidden">
+                <button
+                  onClick={() => setMobileMenuOpen((prev) => !prev)}
+                  className="p-2 rounded-md bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition"
+                >
+                  {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </div>
+            </div>
           </div>
-        </button>
 
-        {/* Thumbnail & Save */}
-        <button
-          onClick={() => setImageModalOpen(true)}
-          className="w-full px-3 py-2 text-center text-sm font-medium border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
-        >
-          Set Thumbnail
-        </button>
+          {/* Mobile Menu */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden px-4 py-3 bg-white dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-800 flex flex-col gap-2 sm:hidden"
+              >
+                {/* Icon Actions */}
+                <button
+                  onClick={() => setIsPreview(!isPreview)}
+                  className="w-full px-3 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                >
+                  {isPreview ? (
+                    <div className="flex items-center gap-2">
+                      <Edit3 size={16} /> Edit
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Eye size={16} /> Preview
+                    </div>
+                  )}
+                </button>
 
-        <button
-          onClick={handleSaveNote}
-          className="w-full px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:opacity-90 transition"
-        >
-          Save
-        </button>
-      </motion.div>
-    )}
-  </AnimatePresence>
-</header>
+                <button
+                  onClick={() => setShowModal(true)}
+                  className="w-full px-3 py-2 text-left rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={16} /> AI Assist
+                  </div>
+                </button>
 
+                {/* Thumbnail & Save */}
+                <button
+                  onClick={() => setImageModalOpen(true)}
+                  className="w-full px-3 py-2 text-center text-sm font-medium border border-gray-300 dark:border-zinc-700 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-800 transition"
+                >
+                  Set Thumbnail
+                </button>
+
+                <button
+                  onClick={handleSaveNote}
+                  className="w-full px-4 py-2 text-sm font-medium bg-primary text-white rounded-md hover:opacity-90 transition"
+                >
+                  Save
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </header>
 
         {/* Editor Section */}
         <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
@@ -641,7 +644,7 @@ const CreateNote = () => {
           loading={aiLoading}
         />
       </div>
-    </>
+    </ReactSignedIn>
   );
 };
 

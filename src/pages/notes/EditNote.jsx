@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Save,
@@ -154,18 +154,10 @@ const EditNote = () => {
   const [loading, setLoading] = useState(false);
   const [lastSaved, setLastSaved] = useState(new Date());
   const [wordCount, setWordCount] = useState(0);
-  const [mobileView, setMobileView] = useState(false);
   const [loadingNote, setLoadingNote] = useState(true);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // ✅ Detect mobile view
-  useEffect(() => {
-    const checkMobile = () => setMobileView(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   // ✅ Fetch note
   useEffect(() => {
@@ -283,7 +275,7 @@ const EditNote = () => {
   if (loading) return <CustomLoader message="Saving Note..." />;
 
   return (
-    <ReactSignedIn>
+    <ReactSignedIn fallback={<Navigate to={"/login"} />}>
       <Metadata
         title={title ? `${title} — Edit Note | Notlix` : "Edit Note | Notlix"}
         description="Edit your note with AI support."
@@ -412,13 +404,37 @@ const EditNote = () => {
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
             <div className="space-y-8">
               {/* Title Input */}
-              <div>
+              <div className="w-full">
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Untitled Note"
-                  className="w-full text-4xl sm:text-5xl font-bold bg-transparent border-none outline-none placeholder-slate-300 dark:placeholder-zinc-700 focus:ring-0 px-1 transition-all"
+                  className="
+      w-full
+
+      text-2xl
+      sm:text-3xl
+      md:text-4xl
+      lg:text-5xl
+
+      font-bold
+      bg-transparent
+      border-none
+      outline-none
+      focus:ring-0
+
+      px-2 sm:px-1
+      py-2 sm:py-3
+
+      leading-tight
+      break-words
+
+      placeholder-slate-300
+      dark:placeholder-zinc-700
+
+      transition-all
+    "
                 />
               </div>
 
@@ -428,11 +444,10 @@ const EditNote = () => {
                   ref={editorRef}
                   blocks={blocks}
                   setBlocks={setBlocks}
-                  mobileOptimized={mobileView}
                   key={id || "edit-note"}
                 />
               ) : (
-              <BlocksPreview blocks={blocks} />
+                <BlocksPreview blocks={blocks} />
               )}
             </div>
           </main>

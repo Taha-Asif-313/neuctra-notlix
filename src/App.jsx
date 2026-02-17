@@ -32,6 +32,7 @@ import PrivacyPolicyPage from "./pages/static/PrivacyPolicyPage";
 import { useAppContext } from "./context/AppContext";
 import ScrollToHashElement from "./components/ScrollToHashElement";
 import ScrollToTop from "./components/ScrollToTop";
+import NotFoundPage from "./pages/static/NotFoundPage";
 
 function App() {
   const { darkMode, setDarkMode, notes, setNotes } = useAppContext();
@@ -75,24 +76,15 @@ function App() {
             }
           >
             <Route index element={<AllNotes />} />
-            <Route path="create" element={<CreateNote />} />
-            <Route path="edit/:id" element={<EditNote />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
 
           <Route path="/note/edit/:id" element={<EditNote />} />
 
-          <Route
-            path="/note/create"
-            element={
-              <ReactSignedIn fallback={<Navigate to="/login" replace />}>
-                <CreateNote />
-              </ReactSignedIn>
-            }
-          />
+          <Route path="/note/create" element={<CreateNote />} />
 
           {/* 🚫 Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage/>} />
         </Routes>
       </Router>
 

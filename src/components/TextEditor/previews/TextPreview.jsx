@@ -11,7 +11,7 @@ const divProseStyles = `
 `;
 
 const TextPreview = ({ content }) => (
-  <div className="p-4">
+  <div className="p-2">
     <div
       className={divProseStyles}
       dangerouslySetInnerHTML={{

@@ -26,29 +26,6 @@ const AllNotes = () => {
     );
   }, [notes, searchTerm]);
 
-  // 🔹 Fetch notes once
-  useEffect(() => {
-    if (!user?.id || hasFetched.current) return;
-    hasFetched.current = true;
-
-    const fetchNotes = async () => {
-      setLoading(true);
-      try {
-        const fetchedNotes = await getAllNotes(user.id);
-        setNotes(Array.isArray(fetchedNotes) ? fetchedNotes : []);
-      } catch (error) {
-        console.error("❌ Failed to fetch notes:", error);
-        console.log(error);
-
-        setNotes([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotes();
-  }, [user?.id]);
-
   // 🔹 Delete note
   const handleDeleteNote = async (noteId) => {
     if (!user?.id || !noteId) return;
