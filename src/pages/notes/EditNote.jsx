@@ -31,6 +31,7 @@ import toast from "react-hot-toast";
 import { useNoteAiAgent } from "../../hooks/useNoteAiAgent";
 import AIModal from "../../components/AiModal";
 import { ReactSignedIn } from "@neuctra/authix";
+import BlocksPreview from "../../components/TextEditor/previews/BlockPreview";
 
 const EditNote = () => {
   const { id } = useParams();
@@ -431,81 +432,7 @@ const EditNote = () => {
                   key={id || "edit-note"}
                 />
               ) : (
-                <div className="space-y-6">
-                  {blocks.length === 0 ? (
-                    <div className="text-center py-16 text-gray-400">
-                      Nothing to preview yet
-                    </div>
-                  ) : (
-                    blocks.map((block) => {
-                      switch (block.type) {
-                        case "text":
-                          return (
-                            <div
-                              key={block.id}
-                              className="prose prose-slate dark:prose-invert max-w-none"
-                              dangerouslySetInnerHTML={{
-                                __html: block.content?.html || "",
-                              }}
-                            />
-                          );
-
-                        case "image":
-                          return (
-                            <img
-                              key={block.id}
-                              src={block.content?.url}
-                              alt="User uploaded"
-                              className="rounded-xl border border-gray-200 dark:border-zinc-700"
-                            />
-                          );
-
-                        case "table":
-                          const headers = block.content?.headers || [];
-                          const rows = block.content?.rows || [];
-
-                          return (
-                            <div
-                              key={block.id}
-                              className="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700"
-                            >
-                              <table className="w-full text-sm border-collapse">
-                                <thead className="bg-gray-50 dark:bg-zinc-800">
-                                  <tr>
-                                    {headers.map((h, i) => (
-                                      <th
-                                        key={i}
-                                        className="px-4 py-3 text-left font-medium border-b border-gray-200 dark:border-zinc-700"
-                                      >
-                                        {h}
-                                      </th>
-                                    ))}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {rows.map((row, i) => (
-                                    <tr
-                                      key={i}
-                                      className="border-b border-gray-200 dark:border-zinc-700"
-                                    >
-                                      {row.map((cell, j) => (
-                                        <td key={j} className="px-4 py-3">
-                                          {cell}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          );
-
-                        default:
-                          return null;
-                      }
-                    })
-                  )}
-                </div>
+              <BlocksPreview blocks={blocks} />
               )}
             </div>
           </main>

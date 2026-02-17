@@ -245,26 +245,25 @@ const TableEditorBlock = ({
               ))}
 
               {/* Row Controls */}
- <td className="border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800">
-  <div className="flex items-center justify-center gap-1">
-    <button
-      onClick={() => addRowAt(rowIndex)}
-      className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded"
-    >
-      <Plus size={14} />
-    </button>
+              <td className="border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800">
+                <div className="flex items-center justify-center gap-1">
+                  <button
+                    onClick={() => addRowAt(rowIndex)}
+                    className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded"
+                  >
+                    <Plus size={14} />
+                  </button>
 
-    {tableData.rows.length > 1 && (
-      <button
-        onClick={() => deleteRow(rowIndex)}
-        className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
-      >
-        <Trash2 size={14} />
-      </button>
-    )}
-  </div>
-</td>
-
+                  {tableData.rows.length > 1 && (
+                    <button
+                      onClick={() => deleteRow(rowIndex)}
+                      className="opacity-100 sm:opacity-0 group-hover:opacity-100 transition p-1 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              </td>
             </tr>
           ))}
 
@@ -290,7 +289,7 @@ const TableEditorBlock = ({
         <div className="p-3 border-t border-zinc-200 dark:border-zinc-700 text-right">
           <button
             onClick={() => onDone(tableData)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition"
+            className="inline-flex text-sm items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition"
           >
             <Check size={16} /> Done
           </button>

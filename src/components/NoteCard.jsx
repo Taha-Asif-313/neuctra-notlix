@@ -22,6 +22,16 @@ import { useAppContext } from "../context/AppContext";
 import { createNote, updatePackageUsage } from "../utils/authixInit";
 import { AnimatePresence, motion } from "framer-motion";
 
+const divProseStyles = `
+  prose dark:prose-invert max-w-full w-full py-2
+  text-sm sm:text-base
+  break-words overflow-hidden
+  [&_*]:max-w-full [&_*]:break-words
+  [&_*]:whitespace-normal [&_*]:overflow-hidden
+  [&_img]:w-full [&_img]:h-auto
+  [&_table]:block [&_table]:w-full [&_table]:overflow-x-auto
+`;
+
 const NoteCard = ({ note, onDelete, onDownload }) => {
   const navigate = useNavigate();
   const { user, setNotes } = useAppContext();
@@ -271,7 +281,7 @@ const NoteCard = ({ note, onDelete, onDownload }) => {
         </div>
       </div>
     );
-console.log(note);
+  console.log(note);
 
   return (
     <>
@@ -300,10 +310,10 @@ console.log(note);
           {/* Floating Action Button */}
           <div className="absolute top-3 right-3" ref={dropdownRef}>
             <button
-          onClick={(e) => {
-    e.stopPropagation();
-    setDropdownOpen((prev) => !prev);
-  }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDropdownOpen((prev) => !prev);
+              }}
               className="p-2 rounded-lg bg-white/70 dark:bg-zinc-950/70 border border-gray-200 dark:border-zinc-800 shadow-md hover:scale-105 transition"
             >
               <MoreVertical size={18} />
@@ -325,7 +335,7 @@ console.log(note);
                 note.blocks?.[0]?.content?.html ||
                 "<p class='text-gray-400'>Nothing to preview</p>",
             }}
-            className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed"
+            className={divProseStyles}
           />
 
           {/* Divider */}

@@ -18,8 +18,8 @@ import {
   Search as SearchIcon,
   Eraser,
 } from "lucide-react";
-import { createEditorCommands } from "../../utils/editorCommands";
-import ColorPicker from "./ColorPicker";
+import { createEditorCommands } from "../../../utils/editorCommands";
+import ColorPicker from "../ColorPicker";
 
 /* ---------------- Fonts & Sizes ---------------- */
 const fonts = [
