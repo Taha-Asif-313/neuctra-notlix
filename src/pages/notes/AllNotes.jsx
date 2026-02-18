@@ -22,7 +22,7 @@ const AllNotes = () => {
     return notes.filter(
       (note) =>
         note.title?.toLowerCase().includes(lower) ||
-        note.content?.toLowerCase().includes(lower)
+        note.content?.toLowerCase().includes(lower),
     );
   }, [notes, searchTerm]);
 
@@ -80,8 +80,6 @@ const AllNotes = () => {
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <div className="flex flex-col lg:flex-row gap-8">
           <main className="flex-1">
-         
-
             <SearchBar value={searchTerm} onChange={setSearchTerm} />
 
             {/* 🔹 Loading State */}

@@ -2,34 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { authix, getAllNotes } from "../utils/authixInit"; // ✅ import authix properly
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import CustomLoader from "../components/CustomLoader";
-
-/* ----------------------------------------
-   🧠 Custom Hook: Local Storage Sync
----------------------------------------- */
-function useLocalStorage(key, initialValue) {
-  const [storedValue, setStoredValue] = useState(() => {
-    try {
-      const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
-
-  const setValue = (value) => {
-    try {
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      console.error("LocalStorage Error:", error);
-    }
-  };
-
-  return [storedValue, setValue];
-}
 
 /* ----------------------------------------
    🌍 Global Context
@@ -38,7 +12,7 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useLocalStorage("neuctra-dark-mode", false);
-  const [notes, setNotes] = useLocalStorage("neuctra-notes", []);
+  const [notes, setNotes] = useState([]);
   const [userInfo, setUserInfo] = useState(null);
 
   const [loading, setLoading] = useState(true);
@@ -164,7 +138,7 @@ export const AppProvider = ({ children }) => {
 
   return (
     <AppContext.Provider value={value}>
-      {loading ? <CustomLoader message="Getting user session..." /> : children}
+      {loading ? <CustomLoader message="Getting user session" /> : children}
     </AppContext.Provider>
   );
 };
